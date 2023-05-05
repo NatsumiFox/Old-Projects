@@ -1,0 +1,162 @@
+<html>
+<head>
+	<title>Vertical wrapping demo</title>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link rel="stylesheet" href="../../common/sprites/Sonic 3/data.css">
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<link rel="stylesheet" href="../../common/md/game.css">
+	<link href="..\..\common\font\font.css" rel="stylesheet">
+	<script>
+		window["#test"] = true;
+
+		function init() {
+			window["#anim"](() => {
+				let delta = [1], p = 0;
+				script(delta, [
+					{ delay: 0, code: () => txt("") },
+					{ delay: 00, code: () => pset(5450, 2652, 1200, 0, 768, 572) },
+					{ delay: 60, class: [{ id: "player", eq: "sonic3 ani_duck fillfwd" }] },
+					{ delay: 20, code: () => css().innerText = "#scalar{transform:scale(1.8);}" },
+					{ delay: 120, code: () => pset(5450, 2652, 1200, 100, 768, 572) },
+					{ delay: 60, class: [{ id: "player", eq: "sonic3 ani_roll1" }] },
+					{ delay: 0, code: () => pset(5450, 2652, 1200, 0, 768, 510) },
+				
+					{ delay: 60, code: () => txt("Game: ????") },
+					{ delay: 100, code: () => txt("Game: Sonic must be below!") },
+					{ delay: 100, code: () => txt("") },
+					{ delay: 0, code: () => pset(5450, 2652, 1200, 112, 768, 572) },
+					{ delay: 25, class: [{ id: "player", eq: "sonic3 ani_stand" }] },
+					{ delay: 15, class: [{ id: "player", eq: "sonic3 ani_duck fillfwd" }] },
+					{ delay: 20, class: [{ id: "player", eq: "sonic3 ani_spindash" }] },
+					{ delay: 10, code: () => css().innerText = "#scalar{transform:scale(1.5);}" },
+					{ delay: 30, class: [{ id: "player", eq: "sonic3 ani_roll1" }] },
+
+					{ delay: 0, code: () => pset(5550, 2662, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5650, 2678, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5750, 2694, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5850, 2700, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5950, 2686, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 20, class: [{ id: "player", eq: "sonic3 ani_stand" }] },
+					{ delay: 0, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 60, code: () => pset(5990, 2686, 1200, -off-160, 768, 572) },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 0, code: () => css().innerText = "#scalar{transform:scale(2.5);}" },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+					{ delay: 20, code: () => pset(5990, 2686, 1200, 80, 768, 572) },
+
+					{ delay: 60, class: [{ id: "player", eq: "sonic3 ani_push xflip" }] },
+					{ delay: 0, code: () => pset(6014, 2686, 1200, 0, 768, 572) },
+					{ delay: 20, code: () => pset(6046, 2686, 1200, 0, 768, 572) },
+					{ delay: 20, code: () => pset(6068, 2686, 1200, 0, 768, 572) },
+					{ delay: 20, code: () => pset(6068, 2686, 1200, 40, 768, 616) },
+					{ delay: 25, class: [{ id: "player", eq: "sonic3 ani_stand xflip" }] },
+				]);
+			});
+
+			bgs = css();
+			tx = css();
+		}
+
+		var bgs, off = 460;
+		function pset(x, y, xo, yo, b, sy){
+			off += yo;
+			bgs.innerText = "#bar{top:"+ (b - y + 254) +"px;}#p1{background-position:"+ (-x) +"px "+ (-y) +"px!important;}#p2{top:"+ off +"px;left:"+ xo +"px;background-position:"+ (-x - xo) +"px "+ (-y - off) +"px!important}#player{top:" + (sy) + "px;left:" + (xo + 160) + "px;}";
+		}
+
+		function txt(str){
+			if(str.length) tx.innerText = "#p2::after{content:'"+ str +"';}";
+			else tx.innerText = "#p2::after{display:none!important;}";
+		}
+	</script>
+	<style>
+		.fillfwd {
+			animation-iteration-count: 1 !important;
+			animation-fill-mode: forwards !important;
+		}
+
+		#scalar {
+			transform: scale(2.7);
+			transition: transform 2s;
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			transform-origin: 50% 50%;
+		}
+
+		#p1 {
+			width: 100%;
+			height: 100%;
+			left: 0;
+			top: 0;
+			opacity: .7;
+			filter: saturate(.6) brightness(.6);
+		}
+
+		#p2 {
+			width: 320px;
+			height: 224px;
+			opacity: 1;
+			border-radius: 20px;
+		}
+
+		#p2::after {
+			content: "";
+			color: black;
+			font-family: "NiseSegaSonic", monospace;
+			font-size: 22pt;
+			-webkit-text-stroke-width: .1vh;
+			-webkit-text-stroke-color: white;
+			text-shadow: 0 0 15px #000000;
+			position: absolute;
+			width: 200%;
+			left: -50%;
+			text-align: center;
+			top: 70%;
+		}
+
+		#bar {
+			position: absolute;
+			left: 0;
+			right: 0;
+			height: 4px;
+			background: rgb(255,255,255);
+			transition: top .4s;
+		}
+
+		.plane {
+			background: url('mgz1o.png') no-repeat;
+			position: absolute;
+			image-rendering: pixelated;
+			transition: top .4s, left .4s, background-position .4s;
+		}
+
+		#p2 {
+			background: url('mgz1.png') no-repeat !important;
+		}
+
+		.sonic3 {
+			position: absolute;
+			transition: top .4s, left .4s;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<div id="scalar">
+		<div id="p1" class="plane"></div>
+		<div id="p2" class="plane"></div>
+		<div id="bar"></div>
+		<div id="player" class="sonic3 ani_stand"></div>
+	</div>
+</body>
+</html>

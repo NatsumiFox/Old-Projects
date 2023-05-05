@@ -1,0 +1,38 @@
+<html>
+<head>
+	<title>Game screen</title>
+	<link rel="stylesheet" href="..//md/game.css">
+	<link rel="stylesheet" href="inc.css">
+	<script>
+		function init() {
+		}
+	</script>
+	<style>
+		.game {
+			left: 45%;
+			top: 40%;
+			z-index: 5;
+			transform: scale(5);
+			position: absolute;
+			background: rgba(128, 128, 128, 0);
+		}
+
+		#greenscreen {
+			background: green;
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: 4;
+		}
+	</style>
+</head>
+
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<div class="game">
+		<div id="greenscreen"></div>
+	</div>
+</body>
+</html>

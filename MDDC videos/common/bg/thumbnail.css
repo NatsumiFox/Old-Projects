@@ -1,0 +1,82 @@
+body::after {
+	content: " ";
+	background: linear-gradient(78deg, rgba(114,24,144,0.5) 22%, rgba(29,3,94,0.7) 100%);
+	z-index: 1;
+}
+
+body::after, .inner {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	clip-path: ellipse(86% 250% at 100% -30%);
+}
+
+.inner {
+	overflow: hidden;
+	z-index: 5;
+}
+
+.logo {
+	width: 400px;
+	height: 300px;
+	position: absolute;
+	left: 50px;
+	bottom: 50px;
+	background: url("logo.svg") center no-repeat;
+	background-size: contain;
+	z-index: 10;
+}
+
+.title::after, .title2::after, .title2::before, .eps, .tnum {
+	-webkit-text-stroke-width: .17vw;
+	-webkit-text-stroke-color: black;
+	font-family: 'Bungee', cursive;
+	position: absolute;
+
+	background: linear-gradient(0deg, #7d6103 0%, #c29b19 15%, #ecc900 27%, #faebb0 42%, #f6e18c 58%, #ecc900 75%, #c29b19 83%, #7d6103 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	z-index: 11;
+	overflow: hidden;
+}
+
+.title::after {
+	content: "MD TECH DISASSEMBLED";
+}
+
+.title::after, .title2::after {
+	right: 1%;
+	left: 17%;
+	top: 1.5%;
+	text-align: left;
+	font-size: 6vw;
+	height: 115px;
+	line-height: 115px;
+}
+
+.title2::after {
+	content: "MD";
+	background-image: linear-gradient(0deg, #3b3b3b 0%, #929292 15%, #c0c0c0 27%, #e2dcc1 42%, #e2dcc1 58%, #c0c0c0 75%, #929292 83%, #3b3b3b 100%);
+}
+
+.eps {
+	right: 1%;
+	left: 17.5%;
+	top: 12%;
+	text-align: left;
+	font-size: 4.8vw;
+	height: 100px;
+	line-height: 100px;
+}
+
+.tnum {
+	right: 88%;
+	left: 0.5%;
+	top: 2%;
+	text-align: center;
+	font-size: 5vw;
+	height: 100px;
+	line-height: 100px;
+}

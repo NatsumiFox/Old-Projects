@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <StartArguments>AS "G:\hacks\current\Battle Race\sonic3k.asm" "G:\C#\DisassemblyVariableEquator\DisassemblyVariableEquator\map.txt"  "G:\hacks\current\Battle Race\mapper.asm"</StartArguments>
+    <StartWorkingDirectory>G:\hacks\current\Battle Race\</StartWorkingDirectory>
+  </PropertyGroup>
+</Project>

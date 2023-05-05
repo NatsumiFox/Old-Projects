@@ -1,0 +1,14 @@
+{
+  "name": "obj2cssani",
+  "version": "1.0.0",
+  "description": "convert object map, pal, art and dplc to css animation dump",
+  "main": "main.js",
+  "scripts": {
+    "test": "call \"..\\Sonic 1\\process.bat\""
+  },
+  "author": "AURORA FIELDS",
+  "license": "ISC",
+  "dependencies": {
+    "jimp": "^0.16.1"
+  }
+}

@@ -1,0 +1,67 @@
+<html>
+<head>
+	<title>Boundary Pushing example</title>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link rel="stylesheet" href="../../common/sprites/Sonic 1/data.css">
+	<link rel="stylesheet" href="../../common/md/game.css">
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<script>
+		window["#test"] = true;
+
+		function init() {
+			window["#anim"](() => {
+				setTimeout(() => {
+					css(".bar{animation: anibar 1.58s infinite ease-in-out;}");
+				}, 2130*2);
+			});
+		}
+	</script>
+	<style>
+		.game {
+			left: 45%;
+			top: 40%;
+			z-index: 5;
+			transform: scale(5);
+			position: absolute;
+			background: rgba(128,128,128,0);
+		}
+
+		.sonic1 {
+			animation-iteration-count: infinite;
+			animation-duration: 2.1s;
+			left: 16px;
+			bottom: 96px;
+			position: absolute;
+		}
+
+		.bar {
+			width: 16px;
+			left: 0px;
+			height: 100%;
+			border-radius: 5px;
+			background: rgba(255,255,255,.4);
+			position: absolute;
+			transition: background-color .5s ease-in-out;
+			opacity: 0;
+		}
+
+		@keyframes anibar {
+			0%,100%{ opacity: 0; }
+			50% { opacity: 1; }
+		}
+
+		.plane {
+			background: url('ghz2.png');
+			background-position: 0px 1381px;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<div class="game">
+		<div class="plane"></div>
+		<div class="bar"></div>
+		<div class="sonic1 xflip ani_push"></div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<html>
+<head>
+	<title>Episode 1 thumbnail</title>
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<link rel="stylesheet" href="../../common/bg/thumbnail.css">
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+	<script>
+	</script>
+	<style>
+		body {
+			position:fixed;
+		}
+
+		#amy {
+			right: 15%;
+			top: 20%;
+			width: 45%;
+			height: 80%;
+			position: absolute;
+			z-index: 5;
+
+			background: url("SonicCamera.png") no-repeat;
+			background-size: cover;
+			transform: scaleX(-1);
+		}
+
+
+		#level {
+			pointer-events: all;
+			right: 0;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			position: absolute;
+			z-index: 1 !important;
+
+			background: url("ghz1.png") no-repeat;
+			background-position: calc(-6517px * 1.825) calc(-487px * 1.825);
+			background-size: calc(10240px * 1.825) calc(1280px * 1.825);
+			-webkit-mask-image: linear-gradient(0deg, rgba(0,0,0,1) 50%, rgba(0,0,0,0.1) 85%);
+			filter: saturate(80%) blur(2px);
+		}
+	</style>
+</head>
+<body onload="//dragbg('level', 10240, 1280)">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<div class="logo"></div>
+	<div class="title"></div>
+	<div class="title2"></div>
+	<div class="eps">Zips and Camera Tricks</div>
+	<div class="tnum">#1</div>
+	<div class="inner clip">
+		<div id="amy"></div>
+	</div>
+	<div id="level" class="inner"></div>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<html>
+<head>
+	<title>Episode 1 68000 wall collision check code</title>
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link rel="stylesheet" href="../../common/68k/68k.css">
+	<script type="text/javascript" src="../../common/68k/68k.js"></script>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+	<script>
+		window["#test"] = true;
+
+		function init() {
+			window["68k"]("_test", true);
+
+			window["#anim"](() => {
+				let delta = [1];
+				script(delta, [
+					{ delay: 0, code: () => window["68k_set"]("_test", false, [5,6]) },
+					{ delay: 0, code: () => window["68k_ln"]("_test", 5) },
+					{ delay: 60, code: () => window["68k_hi"]("_test", [1,2,3,4,5,6,7,8,9]) },
+					{ delay: 60, code: () => window["68k_ln"]("_test", 110) },
+					{ delay: 30, code: () => window["68k_lo"]("_test", [1,2,3,4,5,6,7,8,9]) },
+					{ delay: 0, code: () => window["68k_hi"]("_test", [114,115,116, 135,136,137,138,139]) },
+					{ delay: 60, code: () => window["68k_hi"]("_test", [5,6]) },
+					{ delay: 60, code: () => window["68k_ln"]("_test", 5) },
+					{ delay: 30, code: () => window["68k_set"]("_test", true, [5,6]) },
+				]);
+			});
+		}
+	</script>
+	<style>
+		m68k {
+			scroll-behavior: smooth;
+			position: absolute;
+			left: 2%;
+			right: 2%;
+			top: 5%;
+			bottom: 10%;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<m68k id="_test">MoveCameraY:
+		moveq	#0,d1					;
+		move.w	$14(a0),d0				; load player's y-position to d0
+		sub.w	(a1),d0					; subtract the camera y-position from d0
+
+		cmp.w	#-$100,d0				; check if the difference is within the vertical wrap area
+		bhs.s	.nowrap					; if yes, then it is a bad idea to wrap the camera now
+		cmpi.w	#-$100,(Camera_min_Y_pos).w		; check if screen wrapping is enabled
+		bne.s	.nowrap					; branch if no
+		and.w	(Screen_Y_wrap_value).w,d0		; wrap the screen vertically
+; ---------------------------------------------------------------------------
+
+.nowrap
+		btst	#2,$2A(a0)				; check if player is rolling
+		beq.s	.noroll					; branch if not
+		subq.w	#5,d0					; adjust camera height (this will break Tails' camera!)
+; ---------------------------------------------------------------------------
+
+.noroll
+		move.w	d3,d1					; load player vertical offset
+		tst.w	(Competition_mode).w			; check if this is the competition mode
+		beq.s	.notcomp				; branch if not
+		lsr.w	#1,d1					; halve distance
+; ---------------------------------------------------------------------------
+
+.notcomp
+		btst	#1,$2A(a0)				; check if player is in air
+		beq.s	.notinair				; branch if not
+		addi.w	#32,d0					; add 32 to height offset
+		sub.w	d1,d0					; subtract the player vertical offset from screen height offset
+		blo.s	.veryfast				; if player is above the deadzone, branch
+
+		subi.w	#32*2,d0				; subtract 64 from height offset
+		bhs.s	.veryfast				; if player is below the deadzone, branch
+		tst.b	(Camera_max_Y_pos_changing).w		; check if lower boundary is moving
+		bne.s	.poschg					; if yes, branch
+		bra.s	.camstill				; camera does not need to move
+; ---------------------------------------------------------------------------
+
+.notinair
+		sub.w	d1,d0					; subtract the player vertical offset from screen height offset
+		bne.s	.movecam				; branch if difference is not 0
+		tst.b	(Camera_max_Y_pos_changing).w		; check if lower boundary is moving
+		bne.s	.poschg					; if yes, branch
+
+.camstill
+		clr.w	(a4)					; clear v-scroll difference
+		rts
+; ---------------------------------------------------------------------------
+
+.movecam
+		cmpi.w	#96,d3					; check if the player vertical offset is at the default value
+		bne.s	.veryslow				; branch if not
+		tst.b	(Fast_V_scroll_flag).w			; check if fast v-scroll flag is set
+		bne.s	.veryfast				; if yes, go move fast
+
+		move.w	$1C(a0),d1				; load y-velocity to d1
+		bpl.s	.abs					; branch if positive
+		neg.w	d1					; negate the y-velocity
+; ---------------------------------------------------------------------------
+
+.abs
+		cmpi.w	#$800,d1				; check if we going fast
+		bhs.s	.veryfast				; branch if even faster
+		move.w	#6*$100,d1				; load medium camera speed
+		cmpi.w	#6,d0					; check the camera difference
+		bgt.s	.cameradown				; branch if forwards more than this
+		cmpi.w	#-6,d0					; check the camera difference
+		blt.s	.cameraup				; branch if backwards more than this
+		bra.s	.movesmall				; branch if movement is smaller
+; ---------------------------------------------------------------------------
+
+.veryslow
+		move.w	#2*$100,d1				; load very slow camera speed
+		cmpi.w	#2,d0					; check the camera difference
+		bgt.s	.cameradown				; branch if forwards more than this
+		cmpi.w	#-2,d0					; check the camera difference
+		blt.s	.cameraup				; branch if backwards more than this
+		bra.s	.movesmall				; branch if movement is smaller
+; ---------------------------------------------------------------------------
+
+.veryfast
+		move.w	#24*$100,d1				; load very fast camera speed
+		cmpi.w	#24,d0					; check the camera difference
+		bgt.s	.cameradown				; branch if forwards more than this
+		cmpi.w	#-24,d0					; check the camera difference
+		blt.s	.cameraup				; branch if backwards more than this
+		bra.s	.movesmall				; branch if movement is smaller
+; ---------------------------------------------------------------------------
+
+.poschg
+		moveq	#0,d0					; set camera difference to 0
+		move.b	d0,(Camera_max_Y_pos_changing).w	; set set lower boundary as not moving
+
+.movesmall
+		moveq	#0,d1					;
+		move.w	d0,d1					; load camera difference to d1
+		add.w	(a1),d1					; add camera position to it
+
+		tst.w	d0					; check which direction we're moving
+		bpl.w	.cameradown2				; branch if down
+		bra.w	.cameraup2				; branch if up
+; ---------------------------------------------------------------------------
+
+.cameraup
+		neg.w	d1
+		ext.l	d1					; extend camera speed to long
+		asl.l	#8,d1					; shift left by 8 bits (multiply by 256)
+		add.l	(a1),d1					; add camera y-pos to d1
+		swap	d1					; get the pixel position to low word
+
+.cameraup2
+		cmp.w	4(a2),d1				; check if the resulting position is above the level's upper boundary
+		bgt.s	.savecamera				; branch if not
+		cmpi.w	#-$100,d1				; check if camera is $100 pixels above the level
+		bgt.s	.highbound				; branch if not
+		and.w	(Screen_Y_wrap_value).w,d1		; keep in range of the looping level
+		bra.s	.savecamera				; go update camera position
+; ---------------------------------------------------------------------------
+
+.highbound
+		move.w	4(a2),d1				; load the level upper boundary to d1
+		bra.s	.savecamera				; go update camera position
+; ---------------------------------------------------------------------------
+
+.cameradown
+		ext.l	d1					; extend camera speed to long
+		asl.l	#8,d1					; shift left by 8 bits (multiply by 256)
+		add.l	(a1),d1					; add camera y-pos to d1
+		swap	d1					; get the pixel position to low word
+
+.cameradown2
+		cmp.w	6(a2),d1				; check if the resulting position is below the level's lower boundary
+		blt.s	.savecamera				; branch if not
+
+		move.w	(Screen_Y_wrap_value).w,d3		; load screen wrap mask to d3
+		addq.w	#1,d3					; get full level height to d3
+
+		sub.w	d3,d1					; subtract the level height from camera y-position
+		blo.s	.lowbound				; branch if it was below that value
+		sub.w	d3,(a1)					; align the camera y-position with the level height (helps with calculations below)
+		bra.s	.savecamera				; go update camera position
+; ---------------------------------------------------------------------------
+
+.lowbound
+		move.w	6(a2),d1				; load the level lower boundary to d1
+
+.savecamera
+		move.w	(a1),d4					; load camera position to d4
+		swap	d1					; get the full camera position to d1
+		move.l	d1,d3					; copy to d3
+		sub.l	(a1),d3					; get the camera y-difference to d3
+		ror.l	#8,d3					; shift right by 8 bits (divide by 256)
+		move.w	d3,(a4)					; save result in as the camera y-difference
+		move.l	d1,(a1)					; save new camera y-position from d1</m68k>
+</body>
+</html>

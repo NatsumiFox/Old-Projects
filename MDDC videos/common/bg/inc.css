@@ -1,0 +1,26 @@
+iframe.bg {
+	border: none;
+	z-index: -1;
+	transform: scale(0.666666667);
+	transform-origin: 0 0;
+	width: 3840px;
+	height: 2160px;
+}
+
+body {
+	background: black;
+	margin: 0;
+	overflow: hidden;
+	width: 2560px;
+	height: 1440px;
+}
+
+div.bg {
+	background: url(bg.png);
+	z-index: -1;
+	width: 2560px;
+	height: 1440px;
+	position: fixed;
+	top: 0;
+	left: 0;
+}

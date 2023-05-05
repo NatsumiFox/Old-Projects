@@ -1,0 +1,103 @@
+<html>
+<head>
+	<style>
+		body { 
+			background: #222222;
+			width: 100%;
+			height: 100%;
+			margin: 0;
+		}
+
+		.test {
+			width: 2013px;
+			height: 450px;
+			position: absolute;
+			top: 10%;
+			left: 2%;
+			right: 2%;
+			padding: 10vh;
+		}
+
+		img.test {
+			width: 2013px;
+			filter: brightness(60%);
+			transition: opacity .33s;
+			pointer-events: none;
+		}
+
+		div.test {
+		}
+
+		div.test > div {
+			background: url("common/bg/newlogo.svg") no-repeat;
+			background-size: contain;
+			width: 2013px;
+			height: 450px;
+		}
+
+		#overlay {
+			filter: brightness(140%);
+			opacity: 0;
+		}
+
+		#box {
+			left: 3vh;
+		}
+
+		#box2 {
+			left: 10vh;
+		}
+
+		#box3 {
+			left: 17vh;
+		}
+
+		input {
+			width: 5vh;
+			height: 5vh;
+			background: #444444;
+			position: fixed;
+			bottom: 2vh;
+			appearance: none;
+		}
+
+		input:hover:not(:checked), input:focus:not(:checked) {
+			background: #333333;
+		}
+
+		input:active:not(:checked) {
+			background: #525252;
+		}
+
+		input:checked {
+			appearance: auto;
+		}
+	</style>
+	<script>
+		function load(){
+			document.getElementById("box").addEventListener("change", function() {
+				document.getElementById("overlay").style.opacity = +this.checked;
+			});
+
+			document.getElementById("box2").addEventListener("change", function() {
+				document.getElementById("backdrop").style.display = document.getElementById("overlay").style.display = !this.checked ? "" : "none";
+			});
+
+			document.getElementById("box3").addEventListener("change", function() {
+				document.getElementById("test").style.display = !this.checked ? "" : "none";
+			});
+		}
+	</script>
+</head>
+<body onload="load()">
+	<img src="Logo_Ultrares.png" class="test" id="backdrop" style="display:none" />
+	<div class="test">
+		<div id="test"></div>
+		<x></x>
+	</div>
+	<img src="Logo_Ultrares.png" class="test" id="overlay" />
+	<input type="checkbox" id="box">
+	<input type="checkbox" id="box2">
+	<input type="checkbox" id="box3">
+</body>
+</html>

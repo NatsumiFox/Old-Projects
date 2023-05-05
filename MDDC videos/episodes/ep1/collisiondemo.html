@@ -1,0 +1,229 @@
+<html>
+<head>
+	<title>Collision demo</title>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link rel="stylesheet" href="../../common/sprites/Sonic 1/data.css">
+	<link rel="stylesheet" href="../../common/md/game.css">
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<script>
+		window["#test"] = true;
+
+		function init() {
+			window["#anim"](() => {
+				let delta = [ 1 ], p = 0;
+				script(delta, [
+					{ delay: 30, code: () => op(1, [ p++, p++ ]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 6, code: () => op(1, [p++, p++]) },
+					{ delay: 10, code: () => op(1, [p++]) },
+					{ delay: 10, code: () => op(1, [p++]) },
+					{ delay: 10, code: () => op(1, [p++]) },
+					{ delay: 10, code: () => op(1, [p++]) },
+					{ delay: 10, code: () => op(1, [p++]) },
+					{ delay: 10, code: () => op(1, [p++]) },
+					{ delay: 30, code: () => p = 0 },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 6, code: () => op(0, [p++, p++]) },
+					{ delay: 10, code: () => op(0, [p++]) },
+					{ delay: 10, code: () => op(0, [p++]) },
+					{ delay: 10, code: () => op(0, [p++]) },
+					{ delay: 10, code: () => op(0, [p++]) },
+					{ delay: 10, code: () => op(0, [p++]) },
+					{ delay: 10, code: () => op(0, [p++]) },
+
+					{ delay: 1, code: () => ms(0, 0, false) },
+					{ delay: 36, code: () => op(1, [22]) },
+					{ delay: 30, code: () => op(1, [23]) },
+					{ delay: 30, code: () => ms(30, 0) },
+					{ delay: 30, code: () => op(1, [21]) },
+					{ delay: 6, code: () => op(1, [19]) },
+					{ delay: 6, code: () => op(0, [22]) },
+					{ delay: 6, code: () => op(0, [23]) },
+					{ delay: 15, code: () => ms(32, 0) },
+					{ delay: 15, code: () => op(1, [15]) },
+					{ delay: 6, code: () => op(1, [17]) },
+					{ delay: 6, code: () => op(0, [21]) },
+					{ delay: 6, code: () => op(0, [19]) },
+					{ delay: 15, code: () => ms(32, 0) },
+					{ delay: 15, code: () => op(1, [13]) },
+					{ delay: 12, code: () => op(0, [17]) },
+					{ delay: 6, code: () => op(0, [15]) },
+					{ delay: 15, code: () => ms(16, 0) },
+					{ delay: 15, code: () => op(0, [13]) },
+					{ delay: 0, class: [{ id: "player", eq: "sonic1 xflip ani_stop" }] },
+					{ delay: 5, code: () => ms(32, 0) },
+					{ delay: 20, code: () => ms(32, 0) },
+					{ delay: 20, code: () => ms(32, 0) },
+				]);
+
+				bgs = css();
+			});
+		}
+
+		// function to set block opacity
+		function op(value, arr) {
+			// get all collision layer
+			let c = document.getElementById("colllayer").children;
+
+			for(let x of arr){
+				// loop for every target child
+				c[x].style.opacity = value;
+			}
+		}
+
+		// function to move Sonic
+		var bgs, sx = 160, sy = 99;
+
+		function ms(x,y,o) {
+			sx += x;
+			sy += y;
+
+			// update css
+			bgs.innerText = "#player{left:" + sx + "px !important;opacity:"+ (!o * 1) +"}";
+		}
+
+	</script>
+	<style>
+		.game {
+			left: 45%;
+			top: 40%;
+			z-index: 5;
+			transform: scale(5);
+			position: absolute;
+			background: rgba(128,128,128,0);
+		}
+
+		.sonic1 {
+			animation-iteration-count: infinite;
+			animation-duration: 2.1s;
+			left: 160px;
+			bottom: 99px;
+			position: absolute;
+			transition: left .3s ease-in-out, opacity .5s ease-in-out;
+			opacity: 0;
+		}
+
+		#hitbox {
+			width: 20px;
+			height: 38px;
+			margin-left: -10px;
+			margin-top: -19px;
+			background: rgba(0,255,0,.5);
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			z-index: 4;
+		}
+
+		#hitbox::after {
+			content: " ";
+			width: 4px;
+			height: 4px;
+			margin-left: -2px;
+			margin-top: -2px;
+			border-radius: 50%;
+			background: rgba(255,0,0,1);
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			z-index: 5;
+		}
+
+		.plane {
+			background: url('ghz2.png');
+			background-position: -508px 1008px;
+			transition: background-position .05s ease-in-out;
+		}
+
+		.colls {
+			width: 16px;
+			height: 16px;
+			margin-left: -0.5px;
+			background: rgba(255,255,0,.5);
+			position: absolute;
+			opacity: 0;
+			transition: opacity .5s ease-in-out;
+		}
+
+		.wall {
+			width: 32px;
+			height: 64px;
+			margin-left: -0.5px;
+			background: rgba(0,0,0,.7);
+			position: absolute;
+			opacity: 0;
+			transition: opacity .5s ease-in-out;
+		}
+
+		#colllayer {
+			left: 68px;
+			width: 192px;
+			height: 176px;
+			position: absolute;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<div class="game">
+		<div class="plane"></div>
+		<div id="player" class="sonic1 ani_push xflip">
+			<div id="hitbox"></div>
+		</div>
+		<div id="colllayer">
+			<div class="colls" style="top:  0px;left: 0px;"></div>
+			<div class="colls" style="top:  0px;left: 176px;"></div>
+			<div class="colls" style="top: 16px;left: 0px;"></div>
+			<div class="colls" style="top: 16px;left: 176px;"></div>
+			<div class="colls" style="top: 32px;left: 0px;"></div>
+			<div class="colls" style="top: 32px;left: 176px;"></div>
+			<div class="colls" style="top: 48px;left: 0px;"></div>
+			<div class="colls" style="top: 48px;left: 176px;"></div>
+			<div class="colls" style="top: 64px;left: 0px;"></div>
+			<div class="colls" style="top: 64px;left: 176px;"></div>
+			<div class="colls" style="top: 80px;left: 0px;"></div>
+			<div class="colls" style="top: 80px;left: 176px;"></div>
+
+			<div class="colls" style="top: 96px;left: 0px;"></div>
+			<div class="colls" style="top: 96px;left: 176px;"></div>
+
+			<div class="colls" style="top: 96px;left: 16px;"></div>
+			<div class="colls" style="top: 96px;left: 160px;"></div>
+			<div class="colls" style="top: 96px;left: 32px;"></div>
+			<div class="colls" style="top: 96px;left: 144px;"></div>
+			<div class="colls" style="top: 96px;left: 48px;"></div>
+			<div class="colls" style="top: 96px;left: 128px;"></div>
+			<div class="colls" style="top: 96px;left: 64px;"></div>
+			<div class="colls" style="top: 96px;left: 112px;"></div>
+			<div class="colls" style="top: 96px;left: 80px;"></div>
+			<div class="colls" style="top: 96px;left: 96px;"></div>
+
+			<div class="wall" style="top: 112px;left: 0px;"></div>
+			<div class="wall" style="top: 112px;left: 32px;"></div>
+			<div class="wall" style="top: 112px;left: 64px;"></div>
+			<div class="wall" style="top: 112px;left: 96px;"></div>
+			<div class="wall" style="top: 112px;left: 128px;"></div>
+			<div class="wall" style="top: 112px;left: 160px;"></div>
+		</div>
+	</div>
+</body>
+</html>

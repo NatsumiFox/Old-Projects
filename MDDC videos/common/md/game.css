@@ -1,0 +1,16 @@
+.game {
+	display: block;
+	position: absolute;
+	width: 320px;
+	height: 224px;
+	overflow: hidden;
+	border-radius: 10px;
+}
+
+.plane {
+	display: block;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	image-rendering: pixelated;
+}

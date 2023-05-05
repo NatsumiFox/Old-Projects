@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<title>resolution</title>
+		<style>
+			div {
+				font-size: 30pt;
+			}
+		</style>
+		<script>
+			function init() {
+				let e = document.getElementById("test");
+
+				let frames = 0, fback = 0;
+
+				setInterval(() => {
+					fback = frames;
+					frames = 0;
+				}, 1000);
+
+				let f = () => {
+					++frames;
+					requestAnimationFrame(f);
+
+					test.innerText = "current: "+ window.innerWidth +" x "+ window.innerHeight + " @ "+ fback;
+				};
+
+				requestAnimationFrame(f);
+			}
+		</script>
+	</head>
+	<body onload="init()">
+		<div id="test"></div>
+		<div>target: 2560 x 1440 @ 60</div>
+	</body>
+</html>

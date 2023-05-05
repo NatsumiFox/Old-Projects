@@ -1,0 +1,134 @@
+<html>
+<head>
+	<title>Episode 1 68000 wall collision check code</title>
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link rel="stylesheet" href="../../common/68k/68k.css">
+	<script type="text/javascript" src="../../common/68k/68k.js"></script>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+	<script>
+		window["#test"] = true;
+
+		function init() {
+			window["68k"]("_test", false);
+
+			window["#anim"](() => {
+				let delta = [1];
+				script(delta, [
+					{ delay: 0, code: () => window["68k_ln"]("_test", 5) },
+					{ delay: 60, code: () => window["68k_hi"]("_test", [1,2,3,4,5,6,7]) },
+					{ delay: 20, code: () => window["68k_hi"]("_test", [18,19,20,21,22,23,24,25,26]) },
+					{ delay: 90, code: () => window["68k_ln"]("_test", 60) },
+					{ delay: 60, code: () => window["68k_hi"]("_test", [59,60,61,62,63,64]) },
+					{ delay: 40, code: () => window["68k_hi"]("_test", [85,86,87,88,89,90]) },
+				]);
+			});
+		}
+	</script>
+	<style>
+		m68k {
+			scroll-behavior: smooth;
+			position: absolute;
+			left: 2%;
+			right: 2%;
+			top: 5%;
+			bottom: 10%;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<m68k id="_test">FindWall:
+		bsr.w	Floor_ChkTile				; find the block we're standing on
+		move.w	(a1),d0					; load its data into d0
+		move.w	d0,d4					; and d4 too
+		andi.w	#$7FF,d0				; mask the block id in d0
+		beq.s	.nextlevel				; branch if this is block 0
+		btst	d5,d4					; check if the block has either top solid/lrb solid collision, depending on the caller
+		bne.s	.issolid				; if it does, branch
+; ---------------------------------------------------------------------------
+
+.nextlevel
+		add.w	a3,d3					; add block x-offset to x-position
+		bsr.w	FindWall2				; check if there is any collision there
+		sub.w	a3,d3					; undo block x-offset from x-position
+		addi.w	#16,d1					; add the full block width from the result
+		rts
+; ---------------------------------------------------------------------------
+
+.issolid
+		movea.l	($FFFFF796).w,a2			; load level collision data to a2
+		move.b	(a2,d0.w),d0				; load the collision ID to d0
+		andi.w	#$FF,d0					; clear any extra bits away
+		beq.s	.nextlevel				; if collision was 0, there is no collision by default
+
+		lea	(AngleMap).l,a2				; load angle array address to a2
+		move.b	(a2,d0.w),(a4)				; load the current block's angle into the angle array
+		lsl.w	#4,d0					; multiply collision ID by 16 (size of each collision data array)
+; ---------------------------------------------------------------------------
+
+		move.w	d2,d1					; copy y-position to d1
+		btst	#12,d4					; check if block is y-flipped
+		beq.s	.noyflip				; branch if not
+		not.w	d1					; negate y-position
+
+		addi.b	#$40,(a4)				; rotate angle 90 degrees forwards
+		neg.b	(a4)					; negate angle
+		subi.b	#$40,(a4)				; rotate angle 90 degrees backwards
+; ---------------------------------------------------------------------------
+
+.noyflip
+		btst	#11,d4					; check if block is x-flipped
+		beq.s	.noxflip				; branch if not
+		neg.b	(a4)					; negate the angle
+; ---------------------------------------------------------------------------
+
+.noxflip
+		andi.w	#$F,d1					; keep y-position in range of a single block
+		add.w	d0,d1					; add block offset to d1
+
+		lea	(CollArray2).l,a2			; load rotated collision array to a2
+		move.b	(a2,d1.w),d0				; load the block width value to d0
+		ext.w	d0					; extend it to a word
+
+		eor.w	d6,d4					; decide whether to change the x-flip flag
+		btst	#11,d4					; check if x-flip flag is set now
+		beq.s	.nonegate				; if not, branch
+		neg.w	d0					; negate block width
+; ---------------------------------------------------------------------------
+
+.nonegate
+		tst.w	d0					; check what the block width was
+		beq.s	.nextlevel				; if 0, there is no collision
+		bmi.s	.negwidth				; if negative, branch
+		cmpi.b	#16,d0					; check if this block has full collision level
+		beq.s	.nextblock				; if so, check the next block
+
+	; this code calculates how many pixels to right or left you are from the width of the wall at this censor.
+	; for example, if a wall was 4 pixels from right, and you were 8 pixels into the wall, you would need to move 3 more pixels to be pushing against the wall.
+		move.w	d3,d1					; copy x-position to d1
+		andi.w	#$F,d1					; keep in range of the block
+		add.w	d1,d0					; add that into the block width
+		move.w	#$F,d1					; load maximum value into d1
+		sub.w	d0,d1					; subtract the result from that
+		rts
+; ---------------------------------------------------------------------------
+
+.negwidth
+		move.w	d3,d1					; copy x-position to d1
+		andi.w	#$F,d1					; keep in range of the block
+		add.w	d1,d0					; add that into the block width
+		bpl.w	.nextlevel				; if the result is positive, there is no actual collision
+
+	; continue to find the next block
+; ---------------------------------------------------------------------------
+
+.nextblock
+		sub.w	a3,d3					; subtract block x-offset to x-position
+		bsr.w	FindWall2				; check if there is any collision there
+		add.w	a3,d3					; undo block x-offset from x-position
+		subi.w	#16,d1					; subtract the full block width from the result
+		rts</m68k>
+</body>
+</html>

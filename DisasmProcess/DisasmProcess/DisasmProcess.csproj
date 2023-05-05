@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net461</TargetFramework>
+    <ApplicationIcon />
+    <StartupObject></StartupObject>
+    <Authors>Aurora*Fields</Authors>
+    <Company />
+  </PropertyGroup>
+
+</Project>

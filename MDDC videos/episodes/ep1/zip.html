@@ -1,0 +1,151 @@
+<html>
+<head>
+	<title>Zip showcase</title>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link rel="stylesheet" href="../../common/sprites/Sonic 1/data.css">
+	<link rel="stylesheet" href="../../common/md/game.css">
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<script>
+		window["#test"] = false;
+
+		function init() {
+			window["#anim"](() => {
+				let delta = [ 1 ];
+				script(delta, [
+					{ delay: 1, code: () => audio("HLW_Paragraph4.flac", .5) },
+					{ delay: 240, class: [{ id: "player", eq: "sonic1 ani_push" }], code: () => { bgm(-32, 0); dpad(4, 1); } },
+					{ delay: 4, code: () => { bgm(-32, 0); } },
+					{ delay: 4, code: () => { bgm(-32, 0); } },
+					{ delay: 0, code: () => { dpad(4, 0); } },
+					{ delay: 2, class: [{ id: "player", eq: "sonic1 ani_stand" }] },
+					{ delay: 300, code: () => { dpad(3, 1); } },
+					{ delay: 24, code: () => { dpad(3, 0); } },
+					{ delay: 24, code: () => { dpad(3, 1); } },
+					{ delay: 24, code: () => { dpad(3, 0); } },
+					{ delay: 24, code: () => { dpad(3, 1); } },
+					{ delay: 24, code: () => { dpad(3, 0); } },
+					{ delay: 24, code: () => { dpad(3, 1); } },
+					{ delay: 90, class: [{ id: "player", eq: "sonic1 ani_push xflip" }]},
+					{ delay: 30, code: () => { bgm(32, 0); } },
+					{ delay: 9, code: () => { bgm(32, 0); } },
+					{ delay: 9, code: () => { bgm(32, 0); } },
+					{ delay: 9, code: () => { bgm(32, 0); } },
+					{ delay: 0, code: () => { dpad(3, 0); } },
+					{ delay: 2, class: [{ id: "player", eq: "sonic1 ani_stand xflip" }] },
+					{ delay: 45, class: [{ id: "player", eq: "sonic1 ani_push" }], code: () => { bgm(-32, 0); dpad(4, 1); } },
+					{ delay: 9, code: () => { bgm(-32, 0); } },
+					{ delay: 9, code: () => { bgm(-32, 0); } },
+					{ delay: 9, code: () => { bgm(-32, 0); } },
+					{ delay: 0, code: () => { dpad(4, 0); } },
+					{ delay: 2, class: [{ id: "player", eq: "sonic1 ani_stand" }] },
+					{ delay: 45, class: [{ id: "player", eq: "sonic1 ani_push xflip" }], code: () => { bgm(32, 0); dpad(3, 1); }},
+					{ delay: 9, code: () => { bgm(32, 0); } },
+					{ delay: 9, code: () => { bgm(32, 0); } },
+					{ delay: 9, code: () => { bgm(32, 0); } },
+					{ delay: 0, code: () => { dpad(3, 0); } },
+					{ delay: 2, class: [{ id: "player", eq: "sonic1 ani_stand xflip" }] },
+				]);
+			});
+
+			bgs = css();
+			pgs = css();
+			dpad(0);
+		}
+
+		// function to move background
+		var bgx = -540, bgy = 1011, bgs = null;
+
+		function bgm(x,y) {
+			bgx -= x;
+			bgy -= y;
+
+			// update css
+			bgs.innerText = ".plane{background-position:"+ bgx +"px "+ bgy +"px !important;}#player{left:"+ sx +"px !important;}";
+		}
+
+		// function to move background with some velocity
+		var bgvel = 0, sx = 160;
+
+		function bgv(x) {
+			bgvel -= 0.21875;
+			bgy += bgvel;
+			bgx -= x;
+
+			// check for plane fail
+			if(bgx > 0) { sx -= bgx; bgx = 0; }
+
+			bgm(0, 0);
+		}
+
+		// function to set pad direction
+		function dpad(dr, opacity) {
+			pgs.innerText = "#pad::after{opacity:" + opacity +";"+ [
+				"display:none;",
+				"left:50%;top:13%;",
+				"left:50%;bottom:13%;",
+				"top:50%;left:13%;",
+				"top:50%;right:13%;"
+			][dr] +"}";
+		}
+	</script>
+	<style>
+		.game {
+			left: 35%;
+			top: 40%;
+			z-index: 5;
+			transform: scale(5);
+			position: absolute;
+			background: rgba(128,128,128,0);
+		}
+
+		.sonic1 {
+			animation-iteration-count: infinite;
+			animation-duration: 2.1s;
+			left: 192px;
+			bottom: 96px;
+			position: absolute;
+			transition: left .05s linear;
+		}
+
+		.plane {
+			background: url('ghz2.png');
+			background-position: -508px 1011px;
+			transition: background-position .05s ease-in-out;
+		}
+
+		#pad {
+			right: 10%;
+			left: 75%;
+			top: 36.7%;
+			bottom: 36.6%;
+			z-index: 5;
+			position: absolute;
+			background: #a8a8b9 url("../../common/md/dpad.svg") no-repeat;
+			background-size: cover;
+			border-radius: 50%;
+			border: black 8px solid;
+		}
+
+		#pad::after {
+			content: " ";
+			position: absolute;
+			background: #b78a26;
+			border-radius: 50%;
+			width: 50px;
+			height: 50px;
+			margin-left: -25px;
+			margin-top: -25px;
+			transition: opacity .4s ease-in-out;
+			opacity: 1;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<div class="game">
+		<div class="plane"></div>
+		<div id="player" class="sonic1 ani_stand"></div>
+	</div>
+	<div id="pad"></div>
+</body>
+</html>

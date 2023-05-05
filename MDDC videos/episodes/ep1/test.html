@@ -1,0 +1,42 @@
+<html>
+	<style>
+		body {
+			background: gray;
+		}
+
+		div {
+			position:absolute;
+			left: 10%;
+			right: 10%;
+			top: 30%;
+			height: 48px;
+			background: darkgray;
+			overflow: hidden;
+			background: linear-gradient(-90deg, #70327c 0%, #3f1c45 100%);;
+		}
+
+		div::after {
+			content: '';
+			background: url("grid.png");
+			background-size: cover;
+			background-position: center;
+			position: absolute;
+			height: 100%;
+			width: 100%;
+			z-index: 1;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			display: block;
+			mix-blend-mode: overlay;
+			pointer-events: none;
+			mask-image: linear-gradient(-90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 86%);
+			-webkit-mask-image: linear-gradient(-90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 86%);
+		}
+	</style>
+	<body>
+		<div></div>
+		<div style="height: 173px; top: 60%"></div>
+	</body>
+</html>

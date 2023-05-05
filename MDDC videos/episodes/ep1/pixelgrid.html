@@ -1,0 +1,165 @@
+<html>
+<head>
+	<title>Pixel grid example</title>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<script>
+		window["#test"] = false;
+
+		function init() {
+			window["#anim"](() => {
+				let delta = [1], p = 0;
+				script(delta, [		// allocate 1000 frames!
+					{ delay: 30, code: () => bg(-200, -100, 4.75) },
+					{ delay: 360, code: () => cd(0x20, 0x20) },
+					{ delay: 0, code: () => size(2000, 1536) },
+					{ delay: 30, code: () => bg(-200, -100, 3) },
+					{ delay: 120, code: () => cd(-0x60, -0x40) },
+					{ delay: 80, code: () => size(8448, 1536) },
+					{ delay: 100, code: () => { bg(1000, 400, 3); cd(0x5B0, 0x320); } },
+					{ delay: 100, code: () => { bg(1850, 300, 3); cd(0x886, 0x20E); } },
+					{ delay: 120, code: () => { bg(4620, 256, 3); cd(0x1240, 0x130); } },
+					{ delay: 60, code: () => cd(0x12C0, 0x200) },
+				]);
+			});
+
+			bgs = css();
+			cgs = css();
+			hgs = css();
+			bg(0, 0, 1);
+			cd(0, 0);
+			size(2600, 1536);
+		}
+
+		// function to set plane size
+		function size(w,h) {
+			hgs.innerText = "#space,.plane{width:"+ w +"px;height:"+ h +"px;}"
+		}
+
+		// function to set the bg stats
+		var bgs, cgs, hgs;
+
+		function bg(x,y,s) {
+			bgs.innerText = "#space>div{left:" + ((-x * 1) - 400) + "px;top:" + ((-y * 1) - 400) + "px;}#space{transform:scale("+ s +")}";
+		}
+
+		// function to set the coords
+		function cd(x, y) {
+			cgs.innerText = "#coords{left:" + (x + 403) + "px;top:" + (y + 397) + "px;}";
+		}
+
+		// function to update coords text
+		function cu(){
+			let e = document.getElementById("coords");
+			e.innerText = hx(e.offsetLeft - 403) + "x" + hx(e.offsetTop - 397);
+			requestAnimationFrame(cu);
+		}
+
+		function hx(x){
+			return x.toString(16).toUpperCase();
+		}
+
+		requestAnimationFrame(cu);
+	</script>
+	<style>
+		body {
+			z-index: 100;
+		}
+
+		.sonic1 {
+			left: 50%;
+			top: 25%;
+			z-index: 5;
+			transform: scale(11);
+			position: absolute;
+			animation-iteration-count: infinite;
+			animation-duration: 1s;
+		}
+
+		.plane {
+			background: url('ghz2.png'), rgba(0,0,0,.3) no-repeat;
+			position: absolute;
+			left: 400px;
+			top: 400px;
+			z-index: 3;
+			image-rendering: pixelated;
+		}
+
+		#space {
+			position: absolute;
+			transition: transform 1s ease-in-out;
+			top: 0;
+			left: 0;
+			transform-origin: 0 0;
+		}
+
+		#space > div {
+			position: relative;
+			width: 100%;
+			height: 100%;
+			transform-origin: 0 0;
+		}
+
+		#space > div::after {
+			content: " ";
+			position: absolute;
+			right: -400px;
+			bottom: -400px;
+			left: 400px;
+			top: 400px;
+			z-index: 2;
+			background: linear-gradient(0deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.5) 4%,rgba(255,255,255,.5) 6%, rgba(255,255,255,0) 10%), linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.5) 4%,rgba(255,255,255,.5) 6%, rgba(255,255,255,0) 10%) repeat;
+			background-size: 16px 16px;
+			background-position: 0px 1px;
+			opacity: .55;
+		}
+
+		.line {
+			background: rgb(212, 212, 212);
+			position: absolute;
+			z-index: 5;
+			height: 2px;
+			width: 2px;
+		}
+
+		.text {
+			color: white;
+			font-family: monospace;
+			font-size: 15pt;
+			position: absolute;
+			z-index: 6;
+		}
+
+		#coords, #space > div {
+			transition: left .75s ease, top .75s ease;
+		}
+
+		#coords::after {
+			content: " ";
+			position: absolute;
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: red;
+			opacity: .9;
+			left: -6px;
+			top: 0;
+		}
+	</style>
+</head>
+
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<div id="space">
+		<div>
+			<div class="plane"></div>
+			<div class="line" style="width: 150%;left: 0; top: 399px;"></div>
+			<div class="line" style="height: 150%;top: 0; left: 399px;"></div>
+			<div class="text" style="top: 370px; left: 250px;">16x16 px grid</div>
+			<div class="text" id="coords">0x0</div>
+			<div class="text" style="top: 370px; left: 410px;">x→</div>
+			<div class="text" style="top: 410px; left: 370px;transform:rotate(90deg)">y→</div>
+		</div>
+	</div>
+</body>
+</html>

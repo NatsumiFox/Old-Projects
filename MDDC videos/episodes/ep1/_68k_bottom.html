@@ -1,0 +1,95 @@
+<html>
+<head>
+	<title>Episode 1 68000 boundary bottom and move code</title>
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link rel="stylesheet" href="../../common/68k/68k.css">
+	<script type="text/javascript" src="../../common/68k/68k.js"></script>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+	<script>
+		window["#test"] = true;
+
+		function init() {
+			window["68k"]("_test", false);
+
+			window["#anim"](() => {
+				let delta = [1];
+				script(delta, [
+					{ delay: 0, code: () => window["68k_ln"]("_test", 5) },
+					{ delay: 60, code: () => window["68k_hi"]("_test", [1,2,3,4, 8,9,10]) },
+					{ delay: 60, code: () => window["68k_lo"]("_test", [1,2,3,4, 8,9,10]) },
+					{ delay: 0, code: () => window["68k_ln"]("_test", 20) },
+					{ delay: 60, code: () => window["68k_hi"]("_test", [14,15,16,17,18]) },
+					{ delay: 0, code: () => window["68k_hi"]("_test", [37,38,38,39,40,41, 48,49,50,51]) },
+				]);
+			});
+		}
+	</script>
+	<style>
+		m68k {
+			scroll-behavior: smooth;
+			position: absolute;
+			left: 2%;
+			right: 2%;
+			top: 5%;
+			bottom: 10%;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<m68k id="_test">loc_13336:
+		move.w	($FFFFF72E).w,d0			; load current y-boundary position to d0
+		addi.w	#224,d0					; add the screen height to d0
+		cmp.w	$C(a0),d0				; compare with Sonic's y-position
+		blt.s	Boundary_Bottom				; if Sonic's middle goes below the screen bottom boundary, branch
+		rts
+; ---------------------------------------------------------------------------
+
+Boundary_Bottom:
+		cmpi.w	#$501,($FFFFFE10).w			; check if the current level is Scrap Brain act 2
+		bne.w	KillSonic				; if not, kill Sonic
+	
+	...
+
+		moveq	#2,d1					; prepare the boundary displacement to d1
+		move.w	($FFFFF726).w,d0			; load target y-boundary position to d0
+		sub.w	($FFFFF72E).w,d0			; subtract the current y-boundary position from d0
+		beq.s	.rts					; branch if the result is 0 (no difference)
+		bhs.s	.movedown				; branch if the target boundary was lower down than current
+; ---------------------------------------------------------------------------
+
+		neg.w	d1					; negate the offset (move camera upwards)
+		move.w	($FFFFF704).w,d0			; load current camera y-position to d0
+		cmp.w	($FFFFF726).w,d0			; compare with the target y-boundary position
+		bls.s	.camerasafe				; branch if the camera is at or below the target y-boundary position
+
+		move.w	d0,($FFFFF72E).w			; save the camera y-position as the current y-boundary position, so it can catch up with the camera at all times
+		andi.w	#$FFFE,($FFFFF72E).w			; align to only even pixels (boundary moves 2 pixels at once)
+
+.camerasafe
+		add.w	d1,($FFFFF72E).w			; move the camera up
+		move.b	#1,($FFFFF75C).w			; indicate the lower boundary is currently moving
+
+.rts
+		rts
+; ---------------------------------------------------------------------------
+
+.movedown
+		move.w	($FFFFF704).w,d0			; load current camera y-position to d0
+		addq.w	#8,d0					; add 8 to it
+		cmp.w	($FFFFF72E).w,d0			; compare with the current y-boundary position
+		blo.s	.nofast					; branch if the difference in position is higher (because of the code below)
+
+		btst	#1,($FFFFD000+$22).w			; check if player is on air
+		beq.s	.nofast					; if not, branch
+		add.w	d1,d1					; double moving speed
+		add.w	d1,d1					; double moving speed again (4x in total)
+
+.nofast
+		add.w	d1,($FFFFF72E).w			; move the camera down
+		move.b	#1,($FFFFF75C).w			; indicate the lower boundary is currently moving
+		rts</m68k>
+</body>
+</html>

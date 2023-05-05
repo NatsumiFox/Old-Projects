@@ -1,0 +1,87 @@
+<html>
+<head>
+	<title>Episode 1 68000 boundary bottom and move code</title>
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link rel="stylesheet" href="../../common/68k/68k.css">
+	<script type="text/javascript" src="../../common/68k/68k.js"></script>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+	<script>
+		window["#test"] = true;
+
+		function init() {
+			window["68k"]("_test", true);
+
+			window["#anim"](() => {
+				let delta = [1];
+				script(delta, [
+					{ delay: 0, code: () => window["68k_set"]("_test", false, [33,34,35,36,37]) },
+					{ delay: 0, code: () => window["68k_ln"]("_test", 8) },
+					{ delay: 60, code: () => window["68k_hi"]("_test", [32, 38,39,40,41,42]) },
+					{ delay: 60, code: () => window["68k_set"]("_test", true, [33,34,35,36,37]) },
+					{ delay: 0, code: () => window["68k_ln"]("_test", 10) },
+					{ delay: 0, code: () => window["68k_hi"]("_test", [33,34,35,36,37]) },
+					{ delay: 20, code: () => window["68k_lo"]("_test", [32, 38,39,40,41,42]) },
+				]);
+			});
+		}
+	</script>
+	<style>
+		m68k {
+			scroll-behavior: smooth;
+			position: absolute;
+			left: 2%;
+			right: 2%;
+			top: 10%;
+			bottom: 10%;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<m68k id="_test">ScrollHoriz2:
+		move.w	($FFFFD008).w,d0			; load Sonic's x-position to d0
+		sub.w	($FFFFF700).w,d0			; subtract the camera x-position from d0
+		subi.w	#160-16,d0				; check if we're past the left edge of the deadzone
+		blo.s	.doleft					; if yes, branch
+
+		subi.w	#16,d0					; check if we're past the right edge of the deadzone
+		bhs.s	.doright				; if yes, branch
+		clr.w	($FFFFF73A).w				; set camera scroll difference to 0
+		rts
+; ---------------------------------------------------------------------------
+
+.doright
+		cmpi.w	#16,d0					; check the amount of difference
+		blo.s	.notmax					; branch if less than 16
+		move.w	#16,d0					; limit to maximum of 16 pixels of difference
+
+.notmax
+		add.w	($FFFFF700).w,d0			; add the camera x-position to difference
+		cmp.w	($FFFFF72A).w,d0			; check with the right boundary of the level
+		blt.s	.docamera				; if still behind it, branch
+		move.w	($FFFFF72A).w,d0			; force camera to the boundary
+
+.docamera
+		move.w	d0,d1					; copy final position to d1
+		sub.w	($FFFFF700).w,d1			; get the difference from camera
+		asl.w	#8,d1					; shift left by 8 (multiply by 256)
+		move.w	d0,($FFFFF700).w			; save camera x-position
+		move.w	d1,($FFFFF73A).w			; save the camera x-difference for this frame
+		rts
+; ---------------------------------------------------------------------------
+
+.doleft
+		cmpi.w	#-16,d0					; check the amount of difference
+		bhs.s	.notmax					; branch if more than -16
+		move.w	#-16,d0					; limit to maximum of -16 pixels of difference
+
+.notmax
+		add.w	($FFFFF700).w,d0			; add the camera x-position to difference
+		cmp.w	($FFFFF728).w,d0			; check with the left boundary of the level
+		bgt.s	.docamera				; if still ahead it, branch
+		move.w	($FFFFF728).w,d0			; force camera to the boundary
+		bra.s	.docamera				;</m68k>
+</body>
+</html>

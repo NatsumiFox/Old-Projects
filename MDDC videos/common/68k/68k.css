@@ -1,0 +1,33 @@
+m68k {
+	display: block;
+	border: .2vh solid white;
+	background: #272822E8;
+	font: 1.3vh 'Roboto Mono', monospace;
+	color: white;
+	padding: 20vh .8vh;
+	overflow: hidden;
+}
+
+m68k > p_line {
+	display: block;
+	white-space: pre;
+	tab-size: 8;
+}
+
+m68k > * {
+	transition: background-color 0.5s, height .75s;
+	overflow: hidden;
+	height: 1.737vh;
+}
+
+m68k .p_hilite { background: #30301c; }
+m68k p_label { color: #D4D4D4; font-weight: bold; }
+m68k p_ins { color: #A8BFFF; }
+m68k p_reg { color: #4CBD00; }
+m68k p_unk { color: #F8F8F2; }
+m68k p_cmt { color: #adadad; }
+m68k p_num { color: #FF7575; }
+m68k p_str { color: #FF8597; background: #5729467D; }
+m68k p_math { color: #FFC273; }
+m68k p_lnum { color: rgba(255, 255, 255, 0.158); float: left; width: 2vh; }
+m68k .p_hidden { height: 0; }

@@ -1,0 +1,307 @@
+.sonic3{width:64px;height:64px;margin-left:-32px;margin-top:-32px;image-rendering:pixelated;background-image:url(data.png);background-repeat:no-repeat;background-position:center;}
+.sonic3.xflip{transform:rotateY(180deg);}.sonic3.yflip{transform:rotateX(180deg);}
+@keyframes asonic3_none{
+0%,100%{background-position-x:-0px;}
+}
+.sonic3.ani_none{animation-name:asonic3_none;animation-duration:1667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_stand{
+0%,100%{background-position-x:-11904px;}
+}
+.sonic3.ani_stand{animation-name:asonic3_stand;animation-duration:1667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_walk0{
+0%{background-position-x:-448px;}
+12.5%{background-position-x:-512px;}
+25%{background-position-x:-64px;}
+37.5%{background-position-x:-128px;}
+50%{background-position-x:-192px;}
+62.5%{background-position-x:-256px;}
+75%{background-position-x:-320px;}
+87.5%,100%{background-position-x:-384px;}
+}
+.sonic3.ani_walk0{animation-name:asonic3_walk0;animation-duration:1200ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_walk1{
+0%{background-position-x:-960px;}
+12.5%{background-position-x:-1024px;}
+25%{background-position-x:-576px;}
+37.5%{background-position-x:-640px;}
+50%{background-position-x:-704px;}
+62.5%{background-position-x:-768px;}
+75%{background-position-x:-832px;}
+87.5%,100%{background-position-x:-896px;}
+}
+.sonic3.ani_walk1{animation-name:asonic3_walk1;animation-duration:1200ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_walk2{
+0%{background-position-x:-1472px;}
+12.5%{background-position-x:-1536px;}
+25%{background-position-x:-1088px;}
+37.5%{background-position-x:-1152px;}
+50%{background-position-x:-1216px;}
+62.5%{background-position-x:-1280px;}
+75%{background-position-x:-1344px;}
+87.5%,100%{background-position-x:-1408px;}
+}
+.sonic3.ani_walk2{animation-name:asonic3_walk2;animation-duration:1200ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_walk3{
+0%{background-position-x:-1984px;}
+12.5%{background-position-x:-2048px;}
+25%{background-position-x:-1600px;}
+37.5%{background-position-x:-1664px;}
+50%{background-position-x:-1728px;}
+62.5%{background-position-x:-1792px;}
+75%{background-position-x:-1856px;}
+87.5%,100%{background-position-x:-1920px;}
+}
+.sonic3.ani_walk3{animation-name:asonic3_walk3;animation-duration:1200ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_run0{
+0%{background-position-x:-2112px;}
+25%{background-position-x:-2176px;}
+50%{background-position-x:-2240px;}
+75%,100%{background-position-x:-2304px;}
+}
+.sonic3.ani_run0{animation-name:asonic3_run0;animation-duration:600ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_run1{
+0%{background-position-x:-2368px;}
+25%{background-position-x:-2432px;}
+50%{background-position-x:-2496px;}
+75%,100%{background-position-x:-2560px;}
+}
+.sonic3.ani_run1{animation-name:asonic3_run1;animation-duration:600ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_run2{
+0%{background-position-x:-2624px;}
+25%{background-position-x:-2688px;}
+50%{background-position-x:-2752px;}
+75%,100%{background-position-x:-2816px;}
+}
+.sonic3.ani_run2{animation-name:asonic3_run2;animation-duration:600ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_run3{
+0%{background-position-x:-2880px;}
+25%{background-position-x:-2944px;}
+50%{background-position-x:-3008px;}
+75%,100%{background-position-x:-3072px;}
+}
+.sonic3.ani_run3{animation-name:asonic3_run3;animation-duration:600ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_roll1{
+0%{background-position-x:-9600px;}
+12.5%{background-position-x:-9664px;}
+25%{background-position-x:-9600px;}
+37.5%{background-position-x:-9728px;}
+50%{background-position-x:-9600px;}
+62.5%{background-position-x:-9792px;}
+75%{background-position-x:-9600px;}
+87.5%,100%{background-position-x:-9856px;}
+}
+.sonic3.ani_roll1{animation-name:asonic3_roll1;animation-duration:667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_roll2{
+0%{background-position-x:-9600px;}
+12.5%{background-position-x:-9664px;}
+25%{background-position-x:-9600px;}
+37.5%{background-position-x:-9728px;}
+50%{background-position-x:-9600px;}
+62.5%{background-position-x:-9792px;}
+75%{background-position-x:-9600px;}
+87.5%,100%{background-position-x:-9856px;}
+}
+.sonic3.ani_roll2{animation-name:asonic3_roll2;animation-duration:667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_push{
+0%{background-position-x:-11648px;}
+25%{background-position-x:-11712px;}
+50%{background-position-x:-11776px;}
+75%,100%{background-position-x:-11840px;}
+}
+.sonic3.ani_push{animation-name:asonic3_push;animation-duration:2200ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_wait1{
+0%,46.667%{background-position-x:-11904px;}
+47.619%{background-position-x:-11968px;}
+48.571%,49.524%{background-position-x:-12032px;}
+50.476%,51.429%{background-position-x:-12096px;}
+52.381%,53.333%{background-position-x:-12160px;}
+54.286%,55.238%{background-position-x:-12096px;}
+56.19%,57.143%{background-position-x:-12160px;}
+58.095%,59.048%{background-position-x:-12096px;}
+60%,60.952%{background-position-x:-12160px;}
+61.905%,62.857%{background-position-x:-12096px;}
+63.81%,64.762%{background-position-x:-12160px;}
+65.714%,66.667%{background-position-x:-12096px;}
+67.619%,68.571%{background-position-x:-12160px;}
+69.524%,70.476%{background-position-x:-12096px;}
+71.429%,72.381%{background-position-x:-12160px;}
+73.333%,74.286%{background-position-x:-12096px;}
+75.238%,76.19%{background-position-x:-12160px;}
+77.143%,78.095%{background-position-x:-12096px;}
+79.048%,80%{background-position-x:-12160px;}
+80.952%,85.714%{background-position-x:-11072px;}
+86.667%,91.429%{background-position-x:-11136px;}
+92.381%{background-position-x:-11200px;}
+93.333%,98.095%{background-position-x:-13888px;}
+99.048%,100%{background-position-x:-11200px;}
+}
+.sonic3.ani_wait1{animation-name:asonic3_wait1;animation-duration:10500ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_wait2{
+0%{background-position-x:-12032px;}
+1.887%,3.774%{background-position-x:-12096px;}
+5.66%,7.547%{background-position-x:-12160px;}
+9.434%,11.321%{background-position-x:-12096px;}
+13.208%,15.094%{background-position-x:-12160px;}
+16.981%,18.868%{background-position-x:-12096px;}
+20.755%,22.642%{background-position-x:-12160px;}
+24.528%,26.415%{background-position-x:-12096px;}
+28.302%,30.189%{background-position-x:-12160px;}
+32.075%,33.962%{background-position-x:-12096px;}
+35.849%,37.736%{background-position-x:-12160px;}
+39.623%,41.509%{background-position-x:-12096px;}
+43.396%,45.283%{background-position-x:-12160px;}
+47.17%,49.057%{background-position-x:-12096px;}
+50.943%,52.83%{background-position-x:-12160px;}
+54.717%,56.604%{background-position-x:-12096px;}
+58.491%,60.377%{background-position-x:-12160px;}
+62.264%,71.698%{background-position-x:-11072px;}
+73.585%,83.019%{background-position-x:-11136px;}
+84.906%{background-position-x:-11200px;}
+86.792%,96.226%{background-position-x:-13888px;}
+98.113%,100%{background-position-x:-11200px;}
+}
+.sonic3.ani_wait2{animation-name:asonic3_wait2;animation-duration:5300ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_balance1{
+0%{background-position-x:-10304px;}
+33.333%{background-position-x:-10368px;}
+66.667%,100%{background-position-x:-10432px;}
+}
+.sonic3.ani_balance1{animation-name:asonic3_balance1;animation-duration:300ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_balance2{
+0%{background-position-x:-10496px;}
+33.333%{background-position-x:-10560px;}
+66.667%,100%{background-position-x:-10624px;}
+}
+.sonic3.ani_balance2{animation-name:asonic3_balance2;animation-duration:400ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_lookup{
+0%{background-position-x:-12480px;}
+50%,100%{background-position-x:-12544px;}
+}
+.sonic3.ani_lookup{animation-name:asonic3_lookup;animation-duration:200ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_duck{
+0%{background-position-x:-9920px;}
+50%,100%{background-position-x:-9984px;}
+}
+.sonic3.ani_duck{animation-name:asonic3_duck;animation-duration:200ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_spindash{
+0%{background-position-x:-8576px;}
+10%{background-position-x:-8640px;}
+20%{background-position-x:-8576px;}
+30%{background-position-x:-8704px;}
+40%{background-position-x:-8576px;}
+50%{background-position-x:-8768px;}
+60%{background-position-x:-8576px;}
+70%{background-position-x:-8832px;}
+80%{background-position-x:-8576px;}
+90%,100%{background-position-x:-8896px;}
+}
+.sonic3.ani_spindash{animation-name:asonic3_spindash;animation-duration:167ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_whistle{
+0%{background-position-x:-11904px;}
+11.111%{background-position-x:-12608px;}
+22.222%,77.778%{background-position-x:-12672px;}
+88.889%,100%{background-position-x:-12736px;}
+}
+.sonic3.ani_whistle{animation-name:asonic3_whistle;animation-duration:1500ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_stop{
+0%{background-position-x:-10048px;}
+25%{background-position-x:-10112px;}
+50%{background-position-x:-10176px;}
+75%,100%{background-position-x:-10240px;}
+}
+.sonic3.ani_stop{animation-name:asonic3_stop;animation-duration:267ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_float1{
+0%{background-position-x:-12800px;}
+12.5%{background-position-x:-12864px;}
+25%{background-position-x:-12928px;}
+37.5%{background-position-x:-12992px;}
+50%{background-position-x:-13056px;}
+62.5%{background-position-x:-13120px;}
+75%{background-position-x:-13184px;}
+87.5%,100%{background-position-x:-13248px;}
+}
+.sonic3.ani_float1{animation-name:asonic3_float1;animation-duration:1067ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_spring{
+0%,100%{background-position-x:-9088px;}
+}
+.sonic3.ani_spring{animation-name:asonic3_spring;animation-duration:1667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_hang1{
+0%{background-position-x:-10880px;}
+50%,100%{background-position-x:-10944px;}
+}
+.sonic3.ani_hang1{animation-name:asonic3_hang1;animation-duration:67ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_win1{
+0%{background-position-x:-11264px;}
+9.091%,54.545%{background-position-x:-11392px;}
+63.636%,63.636%{background-position-x:-11328px;}
+72.727%{background-position-x:-11392px;}
+81.818%{background-position-x:-11456px;}
+90.909%,100%{background-position-x:-11392px;}
+}
+.sonic3.ani_win1{animation-name:asonic3_win1;animation-duration:1467ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_win2{
+0%{background-position-x:-11328px;}
+25%{background-position-x:-11392px;}
+50%{background-position-x:-11456px;}
+75%,100%{background-position-x:-11392px;}
+}
+.sonic3.ani_win2{animation-name:asonic3_win2;animation-duration:533ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_hangstill{
+0%,100%{background-position-x:-9280px;}
+}
+.sonic3.ani_hangstill{animation-name:asonic3_hangstill;animation-duration:1667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_bubble{
+0%,100%{background-position-x:-11008px;}
+}
+.sonic3.ani_bubble{animation-name:asonic3_bubble;animation-duration:1667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_drown{
+0%,100%{background-position-x:-10816px;}
+}
+.sonic3.ani_drown{animation-name:asonic3_drown;animation-duration:1667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_death{
+0%,100%{background-position-x:-10688px;}
+}
+.sonic3.ani_death{animation-name:asonic3_death;animation-duration:1667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_hurt{
+0%,100%{background-position-x:-8000px;}
+}
+.sonic3.ani_hurt{animation-name:asonic3_hurt;animation-duration:1667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_slide1{
+0%{background-position-x:-7936px;}
+50%,100%{background-position-x:-8000px;}
+}
+.sonic3.ani_slide1{animation-name:asonic3_slide1;animation-duration:300ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_slide2{
+0%{background-position-x:-13312px;}
+50%,100%{background-position-x:-13376px;}
+}
+.sonic3.ani_slide2{animation-name:asonic3_slide2;animation-duration:667ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_float2{
+0%{background-position-x:-13248px;}
+20%{background-position-x:-12800px;}
+40%{background-position-x:-12864px;}
+60%{background-position-x:-12928px;}
+80%,100%{background-position-x:-12992px;}
+}
+.sonic3.ani_float2{animation-name:asonic3_float2;animation-duration:333ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_hang2{
+0%{background-position-x:-9216px;}
+25%{background-position-x:-9280px;}
+50%{background-position-x:-9344px;}
+75%,100%{background-position-x:-9280px;}
+}
+.sonic3.ani_hang2{animation-name:asonic3_hang2;animation-duration:800ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic3_transform{
+0%,7.692%{background-position-x:-13440px;}
+15.385%,23.077%{background-position-x:-13504px;}
+30.769%,30.769%{background-position-x:-13568px;}
+38.462%{background-position-x:-13632px;}
+46.154%{background-position-x:-13696px;}
+53.846%{background-position-x:-13632px;}
+61.538%,61.538%{background-position-x:-13696px;}
+69.231%{background-position-x:-13632px;}
+76.923%{background-position-x:-13696px;}
+84.615%{background-position-x:-13632px;}
+92.308%,100%{background-position-x:-13696px;}
+}
+.sonic3.ani_transform{animation-name:asonic3_transform;animation-duration:650ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}

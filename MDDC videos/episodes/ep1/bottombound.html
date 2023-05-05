@@ -1,0 +1,114 @@
+<html>
+<head>
+	<title>Bottom boundary demo</title>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link rel="stylesheet" href="../../common/sprites/Sonic 1/data.css">
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<link rel="stylesheet" href="../../common/md/game.css">
+	<script>
+		window["#test"] = true;
+
+		function init() {
+			window["#anim"](() => {
+				let delta = [0.8], p = 0;
+				script(delta, [
+					{ delay: 00, code: () => pset(4520, 46, 1200, 460, 768, 112) },
+					{ delay: 30, code: () => pset(4650, 46, 1200, 460, 790, 112) },
+					{ delay: 0, class: [{ id: "player", eq: "sonic1 ani_walk0" }] },
+					{ delay: 20, code: () => pset(4780, 46, 1200, 460, 806, 112) },
+					{ delay: 20, class: [{ id: "player", eq: "sonic1 ani_roll1" }] },
+					{ delay: 0, code: () => pset(4908, 112, 1190, 508, 822, 112) },
+					{ delay: 20, code: () => pset(5050, 200, 1190, 568, 838, 112) },
+					{ delay: 20, code: () => pset(5170, 200, 1190, 568, 854, 112) },
+					{ delay: 20, code: () => pset(5320, 200, 1190, 568, 870, 112) },
+					{ delay: 20, code: () => pset(5426, 260, 1190, 604, 886, 112) },
+					{ delay: 20, code: () => pset(5560, 294, 1190, 632, 902, 210) },
+					{ delay: 20, code: () => pset(5660, 294, 1190, 652, 918, 200) },
+					{ delay: 20, code: () => pset(5740, 294, 1190, 670, 934, 220) },
+					{ delay: 20, class: [{ id: "player", eq: "sonic1 ani_death" }] },
+					{ delay: 0, code: () => pset(5740, 294, 1190, 690, 950, 120) },
+					{ delay: 20, code: () => pset(5740, 294, 1190, 690, 966, 200) },
+					{ delay: 20, code: () => pset(5740, 294, 1190, 690, 982, 280) },
+					{ delay: 20, code: () => pset(5740, 294, 1190, 690, 998, 350) },
+					{ delay: 20, code: () => pset(5740, 294, 1190, 690, 1014, 350) },
+					{ delay: 20, code: () => pset(5740, 294, 1190, 690, 1024, 350) },
+				]);
+			});
+
+			bgs = css();
+		}
+
+		var bgs;
+		function pset(x, y, xo, yo, b, sy){
+			bgs.innerText = "#bar{top:"+ (b - y + 254) +"px;}#p1{background-position:"+ (-x) +"px "+ (-y) +"px!important;}#p2{top:"+ yo +"px;left:"+ xo +"px;background-position:"+ (-x - xo) +"px "+ (-y - yo) +"px!important}.sonic1{top:" + (yo + sy) + "px;left:" + (xo + 160) + "px;}";
+		}
+	</script>
+	<style>
+		#scalar {
+			transform: scale(2.7);
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			transform-origin: 50% 50%;
+		}
+
+		#p1 {
+			width: 100%;
+			height: 100%;
+			left: 0;
+			top: 0;
+			opacity: .7;
+			filter: saturate(.6) brightness(.6);
+		}
+
+		#p2 {
+			width: 320px;
+			height: 224px;
+			opacity: 1;
+			border-radius: 20px;
+		}
+
+		#bar {
+			position: absolute;
+			left: 0;
+			right: 0;
+			height: 4px;
+			background: rgb(255,255,255);
+			transition: top .4s linear;
+		}
+
+		#bar::after {
+			position: absolute;
+			top: 2;
+			left: 0;
+			right: 0;
+			padding-bottom: 20vh;
+			backdrop-filter: sepia(.8);
+			content: " ";
+		}
+
+		.plane {
+			background: url('ghz1.png') no-repeat;
+			position: absolute;
+			image-rendering: pixelated;
+			transition: top .4s linear, left .4s linear, background-position .4s linear;
+		}
+
+		.sonic1 {
+			position: absolute;
+			transition: top .4s linear, left .4s linear;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<div id="scalar">
+		<div id="p1" class="plane"></div>
+		<div id="p2" class="plane"></div>
+		<div id="bar"></div>
+		<div id="player" class="sonic1 ani_stand"></div>
+	</div>
+</body>
+</html>

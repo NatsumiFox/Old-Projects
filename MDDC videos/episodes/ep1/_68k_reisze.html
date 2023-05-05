@@ -1,0 +1,93 @@
+<html>
+<head>
+	<title>Episode 1 68000 GHZ resize code</title>
+	<link rel="stylesheet" href="../../common/bg/inc.css">
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link rel="stylesheet" href="../../common/68k/68k.css">
+	<link rel="stylesheet" href="../../common/md/game.css">
+	<script type="text/javascript" src="../../common/68k/68k.js"></script>
+	<script type="text/javascript" src="../../common/animation.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+	<script>
+		var bgs;
+		window["#test"] = true;
+
+		function init() {
+			window["68k"]("_test", false);
+
+			window["#anim"](() => {
+				let delta = [1];
+				script(delta, [
+					{ delay: 0, code: () => window["68k_set"]("_test", false, [5]) },
+					{ delay: 60, code: () => window["68k_hi"]("_test", [2,3]) },
+					{ delay: 0, code: () => bgs.innerText = "#level{opacity:1;}" },
+					{ delay: 120, code: () => bgs.innerText = "#greenscreen{opacity:1;}" },
+					{ delay: 60, code: () => window["68k_lo"]("_test", [2,3]) },
+					{ delay: 0, code: () => window["68k_hi"]("_test", [4,5]) },
+					{ delay: 60, code: () => { window["68k_set"]("_test", false, [4]); window["68k_set"]("_test", true, [5]) } },
+				]);
+			});
+
+			bgs = css();
+		}
+	</script>
+	<style>
+		m68k {
+			scroll-behavior: smooth;
+			position: absolute;
+			left: 2%;
+			right: 2%;
+			top: 5%;
+			bottom: 79.5%;
+			padding: 1vh .8vh;
+		}
+
+		.game {
+			left: 42%;
+			top: 50%;
+			z-index: 5;
+			transform: scale(4);
+			position: absolute;
+			background: rgba(128, 128, 128, 0);
+		}
+
+		.game > * {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: 4;
+			opacity: 0;
+		}
+
+		#greenscreen {
+			background: green;
+		}
+
+		#level {
+			transition: opacity 1s ease-in-out;
+			background: url('ghz1.png') no-repeat;
+			image-rendering: pixelated;
+			background-position: -2850px -220px;
+			background-size: 5120px 640px;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<iframe class="bg" src="../../common/bg/background.html"></iframe>
+	<m68k id="_test">Resize_GHZ1:
+		move.w	#$300,($FFFFF726).w			; set camera y-boundary to be higher up
+		cmpi.w	#$1780,($FFFFF700).w			; is the camera near the double S-tube area?
+		bcs.s	.rts					; if not yet, keep the higher boundary
+		move.w	#$400,($FFFFF726).w			; set camera y-boundary to be lower down
+		move.w	#$400,($FFFFF72E).w			; allow the lower boundary to immediately snap to the target position
+
+.rts
+		rts</m68k>
+	<div class="game">
+		<div id="level"></div>
+		<div id="greenscreen"></div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,172 @@
+.sonic1{width:64px;height:64px;margin-left:-32px;margin-top:-32px;image-rendering:pixelated;background-image:url(data.png);background-repeat:no-repeat;background-position:center;}
+.sonic1.xflip{transform:rotateY(180deg);}.sonic1.yflip{transform:rotateX(180deg);}
+@keyframes asonic1_none{
+0%{background-position-x:-0px;}
+}
+.sonic1.ani_none{animation-name:asonic1_none;animation-duration:1650ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_stand{
+0%{background-position-x:-64px;}
+}
+.sonic1.ani_stand{animation-name:asonic1_stand;animation-duration:1650ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_wait1{
+0%,61.111%{background-position-x:-64px;}
+66.667%{background-position-x:-192px;}
+72.222%,83.333%{background-position-x:-128px;}
+88.889%{background-position-x:-192px;}
+94.444%{background-position-x:-256px;}
+}
+.sonic1.ani_wait1{animation-name:asonic1_wait1;animation-duration:6900ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_wait2{
+0%{background-position-x:-192px;}
+50%{background-position-x:-256px;}
+}
+.sonic1.ani_wait2{animation-name:asonic1_wait2;animation-duration:767ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_walk0{
+0%{background-position-x:-512px;}
+16.667%{background-position-x:-576px;}
+33.333%,33.333%{background-position-x:-640px;}
+50%{background-position-x:-704px;}
+66.667%{background-position-x:-384px;}
+83.333%{background-position-x:-448px;}
+}
+.sonic1.ani_walk0{animation-name:asonic1_walk0;animation-duration:800ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_walk1{
+0%{background-position-x:-896px;}
+16.667%{background-position-x:-960px;}
+33.333%,33.333%{background-position-x:-1024px;}
+50%{background-position-x:-1088px;}
+66.667%{background-position-x:-768px;}
+83.333%{background-position-x:-832px;}
+}
+.sonic1.ani_walk1{animation-name:asonic1_walk1;animation-duration:800ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_walk2{
+0%{background-position-x:-1280px;}
+16.667%{background-position-x:-1344px;}
+33.333%,33.333%{background-position-x:-1408px;}
+50%{background-position-x:-1472px;}
+66.667%{background-position-x:-1152px;}
+83.333%{background-position-x:-1216px;}
+}
+.sonic1.ani_walk2{animation-name:asonic1_walk2;animation-duration:800ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_walk3{
+0%{background-position-x:-1664px;}
+16.667%{background-position-x:-1728px;}
+33.333%,33.333%{background-position-x:-1792px;}
+50%{background-position-x:-1856px;}
+66.667%{background-position-x:-1536px;}
+83.333%{background-position-x:-1600px;}
+}
+.sonic1.ani_walk3{animation-name:asonic1_walk3;animation-duration:800ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_run0{
+0%{background-position-x:-1920px;}
+25%{background-position-x:-1984px;}
+50%{background-position-x:-2048px;}
+75%{background-position-x:-2112px;}
+}
+.sonic1.ani_run0{animation-name:asonic1_run0;animation-duration:533ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_run1{
+0%{background-position-x:-2176px;}
+25%{background-position-x:-2240px;}
+50%{background-position-x:-2304px;}
+75%{background-position-x:-2368px;}
+}
+.sonic1.ani_run1{animation-name:asonic1_run1;animation-duration:533ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_run2{
+0%{background-position-x:-2432px;}
+25%{background-position-x:-2496px;}
+50%{background-position-x:-2560px;}
+75%{background-position-x:-2624px;}
+}
+.sonic1.ani_run2{animation-name:asonic1_run2;animation-duration:533ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_run3{
+0%{background-position-x:-2688px;}
+25%{background-position-x:-2752px;}
+50%{background-position-x:-2816px;}
+75%{background-position-x:-2880px;}
+}
+.sonic1.ani_run3{animation-name:asonic1_run3;animation-duration:533ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_roll1{
+0%{background-position-x:-2944px;}
+20%{background-position-x:-3008px;}
+40%{background-position-x:-3072px;}
+60%{background-position-x:-3136px;}
+80%{background-position-x:-3200px;}
+}
+.sonic1.ani_roll1{animation-name:asonic1_roll1;animation-duration:333ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_roll2{
+0%{background-position-x:-2944px;}
+16.667%{background-position-x:-3008px;}
+33.333%,33.333%{background-position-x:-3200px;}
+50%{background-position-x:-3072px;}
+66.667%{background-position-x:-3136px;}
+83.333%{background-position-x:-3200px;}
+}
+.sonic1.ani_roll2{animation-name:asonic1_roll2;animation-duration:400ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_push{
+0%{background-position-x:-4416px;}
+25%{background-position-x:-4480px;}
+50%{background-position-x:-4544px;}
+75%{background-position-x:-4608px;}
+}
+.sonic1.ani_push{animation-name:asonic1_push;animation-duration:2133ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_balance{
+0%{background-position-x:-3712px;}
+50%{background-position-x:-3776px;}
+}
+.sonic1.ani_balance{animation-name:asonic1_balance;animation-duration:1033ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_lookup{
+0%{background-position-x:-320px;}
+}
+.sonic1.ani_lookup{animation-name:asonic1_lookup;animation-duration:1650ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_duck{
+0%{background-position-x:-3648px;}
+}
+.sonic1.ani_duck{animation-name:asonic1_duck;animation-duration:1650ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_stop{
+0%{background-position-x:-3520px;}
+50%{background-position-x:-3584px;}
+}
+.sonic1.ani_stop{animation-name:asonic1_stop;animation-duration:233ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_float1{
+0%{background-position-x:-3840px;}
+50%{background-position-x:-4032px;}
+}
+.sonic1.ani_float1{animation-name:asonic1_float1;animation-duration:233ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_float2{
+0%{background-position-x:-3840px;}
+20%{background-position-x:-3904px;}
+40%{background-position-x:-5312px;}
+60%{background-position-x:-3968px;}
+80%{background-position-x:-5376px;}
+}
+.sonic1.ani_float2{animation-name:asonic1_float2;animation-duration:583ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_spring{
+0%{background-position-x:-4096px;}
+}
+.sonic1.ani_spring{animation-name:asonic1_spring;animation-duration:1650ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_hang{
+0%{background-position-x:-4160px;}
+50%{background-position-x:-4224px;}
+}
+.sonic1.ani_hang{animation-name:asonic1_hang;animation-duration:133ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_bubble{
+0%{background-position-x:-5504px;}
+}
+.sonic1.ani_bubble{animation-name:asonic1_bubble;animation-duration:1650ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_drown{
+0%{background-position-x:-4864px;}
+}
+.sonic1.ani_drown{animation-name:asonic1_drown;animation-duration:1650ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_death{
+0%{background-position-x:-4928px;}
+}
+.sonic1.ani_death{animation-name:asonic1_death;animation-duration:1650ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_hurt{
+0%{background-position-x:-5440px;}
+}
+.sonic1.ani_hurt{animation-name:asonic1_hurt;animation-duration:1650ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}
+@keyframes asonic1_slide{
+0%{background-position-x:-5440px;}
+50%{background-position-x:-5568px;}
+}
+.sonic1.ani_slide{animation-name:asonic1_slide;animation-duration:233ms;animation-timing-function:steps(1);animation-iteration-count:infinite;}

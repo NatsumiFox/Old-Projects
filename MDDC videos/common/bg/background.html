@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>MDDC video background</title>
+	<style>
+		html {
+			width: 3840px;
+			height: 2160px;
+			background: black;
+			position: relative;
+			overflow: hidden;
+		}
+
+		body {
+			opacity: 0.5;
+		}
+
+		@keyframes bg_fdin {
+			0% { opacity: 0; }
+			100% { opacity: 1; }
+		}
+
+		@keyframes bg_dark {
+			0% { opacity: 1; }
+			100% { opacity: 0.5; }
+		}
+
+		@keyframes bg_bright {
+			0% { opacity: 0.5; }
+			100% { opacity: 1; }
+		}
+
+		@keyframes bg_fdout {
+			0% { opacity: 0.5; }
+			100% { opacity: 0; }
+		}
+
+		@keyframes bg_full {
+			0% { opacity: 1; }
+			100% { opacity: 0; }
+		}
+
+		#bg_grid {
+			position: absolute;
+			bottom: 0;
+			top: 0;
+			left: 0;
+			right: 0;
+			perspective-origin: 50% 40%;
+			perspective: 200px;
+			overflow: hidden;
+			background: linear-gradient(to bottom, rgb(156 20 152) 50%, rgb(10 6 72));
+		}
+
+		#bg_grid > div {
+			position: absolute;
+			width: 350%;
+			height: 50%;
+			top: 50%;
+			background:  
+linear-gradient(90deg,rgba(241, 119, 203, 0) 0%,rgba(241, 119, 203, 0.33) 15%,rgb(248, 209, 236) 15%,rgb(248, 209, 236) 20%,rgba(241, 119, 203, 0.33) 20%,rgba(241, 119, 203, 0) 35%),
+linear-gradient(0deg, rgba(241, 119, 203, 0) 0%,rgba(241, 119, 203, 0.33) 15%,rgb(212, 155, 194) 15%,rgb(212, 155, 194) 22%,rgba(241, 119, 203, 0.33) 22%,rgba(241, 119, 203, 0) 37%);
+			background-size: 160px 30px;
+			image-rendering: pixelated;
+
+			transform: rotateX(100deg);
+			transform-style: preserve-3d;
+			transform-origin: 50% 100%;
+			-webkit-mask-image: linear-gradient(rgba(0, 0, 0, 0.1) 60%, rgba(0, 0, 0, 1));
+			mask-image: linear-gradient(rgba(0, 0, 0, 0.1) 60%, rgba(0, 0, 0, 1));
+		}
+
+		#bg_flare {
+			position: absolute;
+			display: block;
+			left: 0;
+			right: 0;
+			top: 49%;
+			height: 2%;
+			filter: drop-shadow(0 0 200px rgb(235, 108, 195)) drop-shadow(0 0 60px rgb(212, 155, 194));
+			background: linear-gradient(to bottom,
+			rgba(255, 255, 255, 0) 0%,rgba(255, 255, 255, .25) 10%,rgba(255, 255, 255, 1) 45%,rgba(255, 255, 255, 1) 55%,rgba(255, 255, 255, .25) 90%,rgba(255, 255, 255, 0) 100%);
+		}
+
+		#bg_sky {
+			position: absolute;
+			display: block;
+			left: 0;
+			right: 0;
+			top: 0;
+			bottom: 50%;
+			background: linear-gradient(0deg, #3f07a7, #04012c);
+		}
+
+		.bg_stars {
+			position: absolute;
+			display: block;
+			width: .1%;
+			padding-top: .1%;
+			background: transparent;
+		}
+
+		.bg_mnt {
+			position: absolute;
+			display: block;
+			left: 0;
+			right: 0;
+			bottom: 50%;
+		}
+
+		.bg_logo {
+			position: absolute;
+			left: 20%;
+			width: 60%;
+			top: 5%;
+			opacity: 0;
+		}
+
+		.bg_title {
+			position: absolute;
+			width: 100%;
+			text-align: center;
+			color: white;
+			-webkit-text-stroke: .15vw #000000;
+			top: 65%;
+			left: 0;
+			font: 150pt 'NiseSegaSaturn', cursive;
+			opacity: 0;
+		}
+
+		@keyframes bg_logofade {
+			0%, 100% { opacity: 0; }
+			20%, 80% { opacity: 1; }
+		}
+
+		@keyframes bg_titlefade {
+			0%, 100% { opacity: 0; }
+			10%, 90% { opacity: 1; }
+		}
+
+		.bg_credit {
+			position: absolute;
+			width: 29% !important;
+			left: 1%;
+			bottom: 3%;
+			height: max-content;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			overflow: hidden;
+			font: 50pt 'Bungee', cursive;
+			line-height: 2.2vw;
+			border: .3vw solid rgba(224, 224, 224, .5);
+			color:azure;
+			padding: .5%;
+			backdrop-filter: hue-rotate(30deg) saturate(.7) brightness(.4) blur(4px);
+			box-sizing: border-box;
+			margin: 0;
+			opacity: 0;
+		}
+
+		.bg_credit b {
+			position: absolute;
+			text-align: center;
+			color: #f3da4e;
+			width: 100%;
+			text-decoration: underline;
+		}
+
+		.bg_icon {
+			position: absolute;
+			height: 20%;
+			opacity: 0;
+			object-fit: contain;
+		}
+
+		#bg_discord {
+			left: 30%;
+			bottom: 3%;
+		}
+
+		#bg_Sonic {
+			height: 65%;
+			right: -2%;
+			bottom: 5%;
+			width: 40%;
+			background: url("../../episodes/ep1/SonicCamera.png") no-repeat;
+			background-size: contain;
+		}
+
+		#bg_Sonic::after {
+			content: "Iso Kilo";
+			font: 180pt 'Andes', cursive;
+			color:rgb(255, 255, 255);
+			-webkit-text-stroke-width: .3vh;
+			-webkit-text-stroke-color: rgb(29, 77, 165);
+			position:absolute;
+			top: -12%;
+			left: 0%;
+			right: 20%;
+			text-align: center;
+		}
+	</style>
+	<link rel="stylesheet" href="stars.css">
+	<link href="..\font\font.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+	<script>
+		function load() {
+			return /*animate(false)*/;
+			let content = "";
+			for(let a = 0;a < 3;a ++){
+				content += "#bg_star"+ a +"{box-shadow:";
+				let prox = [], start = false;
+
+				for (let i = 0; i < [1000,500,120][a]; i++) {
+					let x = 0, y = 0, done = false;
+					x = Math.abs(Math.random() * 100)
+					y = (Math.log(Math.abs((Math.random()) * .90) + .08)  * -17) - .5;
+
+					x = Math.round(x * 10000) / 10000;
+					y = Math.round(y * 10000) / 10000;
+
+					if (start) content += ",";
+					else start = true;
+					content += x + "vw " + y + "vh "+ [2, 3, 5][a] +"px #fff";
+				}
+
+				content += ";}";
+			}
+
+			let style = document.createElement('style');
+			document.head.appendChild(style);
+			style.type = 'text/css';
+			style.innerHTML = content;
+		}
+
+		function animate (intro) {
+			let style = document.createElement('style');
+			document.head.appendChild(style);
+			style.type = 'text/css';
+
+			let st = "";
+			if(intro) {
+				st += "body{opacity:0;animation:bg_fdin 1s forwards ease-in-out, bg_dark .5s 11s forwards ease-in-out, bg_fdout .5s 15s forwards ease-in-out; }";
+				st += ".bg_title{animation:bg_titlefade 10s 1s forwards;}#bg_logo1{animation: bg_logofade 5s 1s forwards;}#bg_logo2 {animation: bg_logofade 5s 6s forwards;}";
+	
+			} else {
+				st += "body{animation:bg_bright 1s .5s forwards ease-in-out, bg_full 1s 17s forwards ease-in-out;}";
+				st += "#bg_logo2{left:30%;top:55%;}.bg_icon,#bg_logo2,.bg_credit{width:20%;animation:bg_logofade 15s 1.5s forwards;}";
+			}
+			style.innerHTML = st;
+		}
+	</script>
+</head>
+<body onload="load()">
+	<div id="bg_grid">
+		<div style="margin-left: -300%;"></div>
+		<div style="margin-left: 50%;"></div>
+	</div>
+	<div id="bg_sky"></div>
+	<div id="bg_star0" style="width:.05%;padding-top:.05%;" class="bg_stars"></div>
+	<div id="bg_star1" style="width:.1%;padding-top:.1%;" class="bg_stars"></div>
+	<div id="bg_star2" style="width:.17%;padding-top:.17%;" class="bg_stars"></div>
+	<div class="bg_mnt" style="background:#160441;top:28%; clip-path:polygon(0 100%, 0 40%, 10% 20%, 14% 30%, 18% 15%, 24% 35%, 28% 24%, 31% 30%, 36% 20%, 43% 23%, 50% 35%, 52% 26%, 60% 40%, 66% 30%, 69% 20%, 74% 30%, 80% 12%, 85% 5%, 90% 9%, 93% 15%, 97% 5%, 100% 0, 100% 100%);"></div>
+	<div class="bg_mnt" style="background:#0c0125;top:35%; clip-path:polygon(0 100%, 0 8%, 7% 0, 13% 15%, 17% 7%, 21% 22%, 26% 0, 32% 30%, 37% 40%, 42% 40%, 45% 25%, 52% 70%, 58% 70%, 62% 50%, 66% 45%, 69% 30%, 72% 25%, 76% 35%, 80% 10%, 83.5% 28%, 85% 17%, 89% 40%, 91% 40%, 94% 25%, 97% 10%, 100% 20%, 100% 100%);"></div>
+	<div class="bg_mnt" style="background:#04000f;top:40%; clip-path:polygon(0 100%, 0 20%, 5% 0, 8% 16%, 10% 5%, 16% 30%, 20% 30%, 25% 60%, 28% 60%, 33% 22%, 34% 40%, 37% 20%, 39% 10%, 42% 14%, 46% 38%, 49% 24%, 52% 54%, 54% 40%, 59% 70%, 63% 70%, 68% 45%, 71% 22%, 73% 40%, 75% 30%, 79% 20%, 83% 34%, 86% 10%, 90% 25%, 94% 0%, 100% 6%, 100% 100%);"></div>
+	<div id="bg_flare"></div>
+	<img src="MDDC_Logo.png" id="bg_logo1" class="bg_logo" />
+	<img src="MDDC_Logo.png" id="bg_logo2" class="bg_logo" />
+	<img src="discord.svg" id="bg_discord" class="bg_icon" />
+	<div id="bg_Sonic" class="bg_icon" ></div>
+	<p class="bg_title">Zips and Camera Tricks</p>
+	<p class="bg_credit">
+		<b>Credits:</b><br/>
+		AURORA☆FIELDS<br/>
+		Nat The Porcupine<br/>
+		Iso Kilo<br/>
+		Selbi<br/>
+		Ozaleto<br/>
+		LazloPsylus<br/>
+		redhotsonic<br/>
+		MD Developers Collective<br/>
+	</p>
+</body>
+</html>
