@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AMPS Optimizer Console": {
+      "commandName": "Project",
+      "commandLineArgs": "\"G:\\hacks\\not mine\\Hellfire Saga\\AMPS\\music\\scz2.s2a\" \"G:\\hacks\\not mine\\Hellfire Saga\\AMPS\\music\\optimize_scz2.s2a\""
+    }
+  }
+}

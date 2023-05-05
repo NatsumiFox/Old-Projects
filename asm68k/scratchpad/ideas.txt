@@ -1,0 +1,3 @@
+- Add a column in the listings file that marks an instruction with a "*" if it's been optimized according to optimization options
+- movem can use a raw bit mask for register list
+- using built-in instructions and directives with the syntax of a function (this is a HUGE maybe)

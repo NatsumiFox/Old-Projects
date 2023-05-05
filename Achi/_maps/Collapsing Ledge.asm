@@ -1,0 +1,92 @@
+; ---------------------------------------------------------------------------
+; Sprite mappings - GHZ	collapsing ledge
+; ---------------------------------------------------------------------------
+Map_Ledge:	dc.w @left-Map_Ledge, @right-Map_Ledge
+		dc.w @leftsmash-Map_Ledge, @rightsmash-Map_Ledge
+@left:		dc.w $10
+		dc.b $C8, $E, 0, $57, $00, $10 ; ledge facing left
+		dc.b $D0, $D, 0, $63, $FF, $F0
+		dc.b $E0, $D, 0, $6B, $00, $10
+		dc.b $E0, $D, 0, $73, $FF, $F0
+		dc.b $D8, 6, 0,	$7B, $FF, $E0
+		dc.b $D8, 6, 0,	$81, $FF, $D0
+		dc.b $F0, $D, 0, $87, $00, $10
+		dc.b $F0, $D, 0, $8F, $FF, $F0
+		dc.b $F0, 5, 0,	$97, $FF, $E0
+		dc.b $F0, 5, 0,	$9B, $FF, $D0
+		dc.b 0,	$D, 0, $9F, $00, $10
+		dc.b 0,	5, 0, $A7, $00, 0
+		dc.b 0,	$D, 0, $AB, $FF, $E0
+		dc.b 0,	5, 0, $B3, $FF, $D0
+		dc.b $10, $D, 0, $AB, $00, $10
+		dc.b $10, 5, 0,	$B7, $00, 0
+@right:		dc.w $10
+		dc.b $C8, $E, 0, $57, $00, $10 ; ledge facing right
+		dc.b $D0, $D, 0, $63, $FF, $F0
+		dc.b $E0, $D, 0, $6B, $00, $10
+		dc.b $E0, $D, 0, $73, $FF, $F0
+		dc.b $D8, 6, 0,	$7B, $FF, $E0
+		dc.b $D8, 6, 0,	$BB, $FF, $D0
+		dc.b $F0, $D, 0, $87, $00, $10
+		dc.b $F0, $D, 0, $8F, $FF, $F0
+		dc.b $F0, 5, 0,	$97, $FF, $E0
+		dc.b $F0, 5, 0,	$C1, $FF, $D0
+		dc.b 0,	$D, 0, $9F, $00, $10
+		dc.b 0,	5, 0, $A7, $00, 0
+		dc.b 0,	$D, 0, $AB, $FF, $E0
+		dc.b 0,	5, 0, $B7, $FF, $D0
+		dc.b $10, $D, 0, $AB, $00, $10
+		dc.b $10, 5, 0,	$B7, $00, 0
+@leftsmash:	dc.w $19
+		dc.b $C8, 6, 0,	$5D, $00, $20 ; ledge facing	left in	pieces
+		dc.b $C8, 6, 0,	$57, $00, $10
+		dc.b $D0, 5, 0,	$67, $00, 0
+		dc.b $D0, 5, 0,	$63, $FF, $F0
+		dc.b $E0, 5, 0,	$6F, $00, $20
+		dc.b $E0, 5, 0,	$6B, $00, $10
+		dc.b $E0, 5, 0,	$77, $00, 0
+		dc.b $E0, 5, 0,	$73, $FF, $F0
+		dc.b $D8, 6, 0,	$7B, $FF, $E0
+		dc.b $D8, 6, 0,	$81, $FF, $D0
+		dc.b $F0, 5, 0,	$8B, $00, $20
+		dc.b $F0, 5, 0,	$87, $00, $10
+		dc.b $F0, 5, 0,	$93, $00, 0
+		dc.b $F0, 5, 0,	$8F, $FF, $F0
+		dc.b $F0, 5, 0,	$97, $FF, $E0
+		dc.b $F0, 5, 0,	$9B, $FF, $D0
+		dc.b 0,	5, 0, $8B, $00, $20
+		dc.b 0,	5, 0, $8B, $00, $10
+		dc.b 0,	5, 0, $A7, $00, 0
+		dc.b 0,	5, 0, $AB, $FF, $F0
+		dc.b 0,	5, 0, $AB, $FF, $E0
+		dc.b 0,	5, 0, $B3, $FF, $D0
+		dc.b $10, 5, 0,	$AB, $00, $20
+		dc.b $10, 5, 0,	$AB, $00, $10
+		dc.b $10, 5, 0,	$B7, $00, 0
+@rightsmash:	dc.w $19
+		dc.b $C8, 6, 0,	$5D, $00, $20 ; ledge facing	right in pieces
+		dc.b $C8, 6, 0,	$57, $00, $10
+		dc.b $D0, 5, 0,	$67, $00, 0
+		dc.b $D0, 5, 0,	$63, $FF, $F0
+		dc.b $E0, 5, 0,	$6F, $00, $20
+		dc.b $E0, 5, 0,	$6B, $00, $10
+		dc.b $E0, 5, 0,	$77, $00, 0
+		dc.b $E0, 5, 0,	$73, $FF, $F0
+		dc.b $D8, 6, 0,	$7B, $FF, $E0
+		dc.b $D8, 6, 0,	$BB, $FF, $D0
+		dc.b $F0, 5, 0,	$8B, $00, $20
+		dc.b $F0, 5, 0,	$87, $00, $10
+		dc.b $F0, 5, 0,	$93, $00, 0
+		dc.b $F0, 5, 0,	$8F, $FF, $F0
+		dc.b $F0, 5, 0,	$97, $FF, $E0
+		dc.b $F0, 5, 0,	$C1, $FF, $D0
+		dc.b 0,	5, 0, $8B, $00, $20
+		dc.b 0,	5, 0, $8B, $00, $10
+		dc.b 0,	5, 0, $A7, $00, 0
+		dc.b 0,	5, 0, $AB, $FF, $F0
+		dc.b 0,	5, 0, $AB, $FF, $E0
+		dc.b 0,	5, 0, $B7, $FF, $D0
+		dc.b $10, 5, 0,	$AB, $00, $20
+		dc.b $10, 5, 0,	$AB, $00, $10
+		dc.b $10, 5, 0,	$B7, $00, 0
+		even

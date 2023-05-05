@@ -1,0 +1,26 @@
+#if !defined(INCLUDE_LIB_DEBUG_TRACER_H)
+#define INCLUDE_LIB_DEBUG_TRACER_H
+
+#define Tracer_OpenFile()
+#define Tracer_CloseFile()
+#define Tracer_WriteFileMode(a, b, c)
+#define Tracer_WriteLine(a, b)
+#define Tracer_WritePassNumber(a)
+#define Tracer_WriteSymbolAction(a, b, c)
+#define Tracer_WriteSymbolTableAction(a, b)
+#define Tracer_WriteBinaryOperator(a, b, c, d)
+#define Tracer_WriteUnaryOperator(a, b, c)
+#define Tracer_GetValueNumber(a)
+#define Tracer_GetSymbolNumber(a, b)
+#define Tracer_GetValueStringToNumber(a, b)
+#define Tracer_GetSymbolStringToNumber(a, b)
+#define Tracer_WritePass2ValueEqu(a, b)
+#define Tracer_WritePass2StringEqu(a, b)
+#define Tracer_WritePass2ReplaceBytes(a, b)
+#define Tracer_WriteFunctionSize(a, b)
+#define Tracer_WriteFunctionArgument(a, b, c)
+#define Tracer_WriteAddressingModeM68k(a)
+#define Tracer_WriteIncbin(a, b)
+#define Tracer_WriteRename(a, b)
+
+#endif // INCLUDE_LIB_DEBUG_TRACER_H

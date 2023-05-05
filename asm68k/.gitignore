@@ -1,0 +1,12 @@
+*.exe
+*.dat
+*.lst
+*.s
+*.o
+*.sym
+build/**
+.vscode/
+build_linux/
+Testing/
+tests/**/test.*
+!tests/**/main.dat

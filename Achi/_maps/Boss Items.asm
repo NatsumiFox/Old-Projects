@@ -1,0 +1,33 @@
+; ---------------------------------------------------------------------------
+; Sprite mappings - extra boss items (e.g. swinging ball on a chain in GHZ)
+; ---------------------------------------------------------------------------
+Map_BossItems:	dc.w @chainanchor1-Map_BossItems, @chainanchor2-Map_BossItems
+		dc.w @cross-Map_BossItems, @widepipe-Map_BossItems
+		dc.w @pipe-Map_BossItems, @spike-Map_BossItems
+		dc.w @legmask-Map_BossItems, @legs-Map_BossItems
+@chainanchor1:	dc.w 1
+		dc.b $F8, 5, 0,	0, $FF, $F8	; GHZ boss
+@chainanchor2:	dc.w 2
+		dc.b $FC, 4, 0,	4, $FF, $F8	; GHZ boss
+		dc.b $F8, 5, 0,	0, $FF, $F8
+		even
+@cross:		dc.w 1
+		dc.b $FC, 0, 0,	6, $FF, $FC	; unknown
+@widepipe:	dc.w 1
+		dc.b $14, 9, 0,	7, $FF, $F4	; SLZ boss
+@pipe:		dc.w 1
+		dc.b $14, 5, 0,	$D, $FF, $F8	; MZ boss
+@spike:		dc.w 4
+		dc.b $F0, 4, 0,	$11, $FF, $F8 ; SYZ boss
+		dc.b $F8, 1, 0,	$13, $FF, $F8
+		dc.b $F8, 1, 8,	$13, $00, 0
+		dc.b 8,	4, 0, $15, $FF, $F8
+		even
+@legmask:	dc.w 2
+		dc.b 0,	5, 0, $17, $00, 0	; FZ post-boss: sprite covering part of legs
+		dc.b 0,	0, 0, $1B, $00, $10
+		even
+@legs:		dc.w 2
+		dc.b $18, 4, 0,	$1C, $00, 0	; FZ post-boss
+		dc.b 0,	$B, 0, $1E, $00, $10
+		even

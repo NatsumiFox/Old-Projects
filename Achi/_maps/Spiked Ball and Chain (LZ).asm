@@ -1,0 +1,13 @@
+; ---------------------------------------------------------------------------
+; Sprite mappings - spiked ball	on a chain (LZ)
+; ---------------------------------------------------------------------------
+Map_SBall2:	dc.w @chain-Map_SBall2
+		dc.w @spikeball-Map_SBall2
+		dc.w @base-Map_SBall2
+@chain:		dc.w 1
+		dc.b $F8, 5, 0,	0, $FF, $F8	; chain link
+@spikeball:	dc.w 1
+		dc.b $F0, $F, 0, 4, $FF, $F0	; spikeball
+@base:		dc.w 1
+		dc.b $F8, 5, 0,	$14, $FF, $F8 ; wall attachment
+		even

@@ -1,0 +1,9 @@
+Hedgehogsoup is comprised of the following; one spiked hermit. It also has two fast eggs, with seasoning on garlic. Add a grumpy moose on tarmac flooring. Watch the road go boom with paprika. Remember, set the oven to 4000 Kelvin, and put greese inside the hermits ass. After it has reached the boiling temperature, stick a mooses horn into the hermit, and wash carefully for 3 weeks. Now turn left and crash into a stove. Eat with chainsaw at noon, but leave the car running.
+
+Bleach bread surprise? What would you say about surprises, with the best bread having Chlorine in abundance? Yes. Well, we have bleach dessert recipes too. Would you wish for some tips on making nice cardboard boxes edible for trees? My dear reader, what a treat for your mouth. Ingredients cost as little as a soul music. Groovy~
+
+My liver is really green, because of all of the pirates feeding me artificial bleach. Thankfully, it has bread, giving it free fortunecookies! I prefer making a funny mousetrap from jelly beans, by using some green sperm. It really is tasty in my pants. Don't ever make women spoons, or plastic bags, because they suck fingers tightly. It is quite enjoyable, but watch out for their teeth. You are an exquisite little shit, in our fantasy toilet, you moron.
+
+Do what men do, and stick your penis inside a toaster in funny bathtubs. Penises are very cute to suck on deeply. My view inside the gay anus has served me justice. Have you ever tried buttstuff before? My experience with buttstuff is interestingly private. So do not ask about homosexual lawn-mowing from Africa, did not expect them tenthousand yen to remove my face, to feed their people. Oh my goodness, I just made popcorn using alligator farts. mmmmm~
+
+More hedgehog news next monday, featuring Shadow the Hermit Crab. Thanks for reading this informative and see ingredients on echidna news.

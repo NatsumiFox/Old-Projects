@@ -1,0 +1,100 @@
+stages:
+- build
+
+build-windows_x86_64:
+  stage: build
+
+  script:
+    - cmake -B build-windows_x86_64 -DCMAKE_TOOLCHAIN_FILE=/home/ubuntu/cmake-toolchains/toolchain-x86_64-w64-mingw32-gcc.cmake -DCMAKE_BUILD_TYPE=Debug
+    - cmake --build build-windows_x86_64 --target asm
+    - cmake --build build-windows_x86_64 --target diff
+
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - build-windows_x86_64/asm.exe
+     - build-windows_x86_64/diff.exe
+
+build-windows_i686:
+  stage: build
+
+  script:    
+    - cmake -B build-windows_i686 -DCMAKE_TOOLCHAIN_FILE=/home/ubuntu/cmake-toolchains/toolchain-i686-w64-mingw32-gcc.cmake -DCMAKE_BUILD_TYPE=Debug
+    - cmake --build build-windows_i686 --target asm
+    - cmake --build build-windows_i686 --target diff
+
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - build-windows_i686/asm.exe
+     - build-windows_i686/diff.exe
+
+build-linux_x86_64:
+  stage: build
+
+  script:    
+    - cmake -B build-linux_x86_64 -DCMAKE_TOOLCHAIN_FILE=/home/ubuntu/cmake-toolchains/toolchain-i686-linux-gnu-gcc.cmake -DCMAKE_BUILD_TYPE=Debug
+    - cmake --build build-linux_x86_64 --target asm
+    - cmake --build build-linux_x86_64 --target diff
+
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - build-linux_x86_64/asm
+     - build-linux_x86_64/diff
+
+build-linux_i686:
+  stage: build
+
+  script:     
+    - cmake -B build-linux_i686 -DCMAKE_TOOLCHAIN_FILE=/home/ubuntu/cmake-toolchains/toolchain-i686-linux-gnu-gcc.cmake -DCMAKE_BUILD_TYPE=Debug
+    - cmake --build build-linux_i686 --target asm
+    - cmake --build build-linux_i686 --target diff
+ 
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - build-linux_i686/asm
+     - build-linux_i686/diff
+
+build-linux_aarch64:
+  stage: build
+
+  script:     
+    - cmake -B build-linux_aarch64 -DCMAKE_TOOLCHAIN_FILE=/home/ubuntu/cmake-toolchains/toolchain-aarch64-linux-gnu-gcc.cmake -DCMAKE_BUILD_TYPE=Debug
+    - cmake --build build-linux_aarch64 --target asm
+    - cmake --build build-linux_aarch64 --target diff
+ 
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - build-linux_aarch64/asm
+     - build-linux_aarch64/diff
+
+build-linux_armeabihf:
+  stage: build
+
+  script:     
+    - cmake -B build-linux_armeabihf -DCMAKE_TOOLCHAIN_FILE=/home/ubuntu/cmake-toolchains/toolchain-armeabihf-linux-gnu-gcc.cmake -DCMAKE_BUILD_TYPE=Debug
+    - cmake --build build-linux_armeabihf --target asm
+    - cmake --build build-linux_armeabihf --target diff
+ 
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - build-linux_armeabihf/asm
+     - build-linux_armeabihf/diff
+
+build-linux_armeabi:
+  stage: build
+
+  script:     
+    - cmake -B build-linux_armeabi -DCMAKE_TOOLCHAIN_FILE=/home/ubuntu/cmake-toolchains/toolchain-armeabi-linux-gnu-gcc.cmake -DCMAKE_BUILD_TYPE=Debug
+    - cmake --build build-linux_armeabi --target asm
+    - cmake --build build-linux_armeabi --target diff
+ 
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - build-linux_armeabi/asm
+     - build-linux_armeabi/diff

@@ -1,0 +1,213 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE project PUBLIC "-//audacityproject-1.3.0//DTD//EN" "http://audacity.sourceforge.net/xml/audacityproject-1.3.0.dtd" >
+<project xmlns="http://audacity.sourceforge.net/xml/" projname="Amen-break-old_data" version="1.3.0" audacityversion="2.1.2" sel0="0.0000000000" sel1="0.1633571429" vpos="384" h="0.0000000000" zoom="689.0625000000" rate="44100.0" snapto="off" selectionformat="hh:mm:ss + milliseconds" frequencyformat="Hz" bandwidthformat="octaves">
+	<tags/>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="4817">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000e4f.au" len="4817" min="-1.0" max="0.999969" rms="0.087361"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="1272">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000cb9.au" len="1272" min="-0.452676" max="0.388345" rms="0.016322"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="2690">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000f2a.au" len="2690" min="-1.598238" max="1.921152" rms="0.091796"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+		<waveclip offset="2.70512472">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="2">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000f98.au" len="2" min="0.108974" max="0.108974" rms="0.006811"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="292">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000e9f.au" len="292" min="-0.48516" max="0.384302" rms="0.018668"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="2043">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000b5a.au" len="2043" min="-1.84441" max="2.200022" rms="0.096555"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="952">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000848.au" len="952" min="-0.353132" max="0.365391" rms="0.016801"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="1" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="2287">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000575.au" len="2287" min="-1.795393" max="1.706942" rms="0.06461"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="709">
+				<waveblock start="0">
+					<simpleblockfile filename="e00005d8.au" len="709" min="-0.274314" max="0.270747" rms="0.006956"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="2287">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000e59.au" len="2287" min="-1.917928" max="1.824665" rms="0.063719"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="945">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000240.au" len="945" min="-0.194791" max="0.202926" rms="0.008182"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="841">
+				<waveblock start="0">
+					<simpleblockfile filename="e00003f3.au" len="841" min="-0.512432" max="0.488647" rms="0.01529"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="633">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000e1b.au" len="633" min="-0.28988" max="0.265475" rms="0.009915"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="1189">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000eb4.au" len="1189" min="-0.870312" max="0.855817" rms="0.03396"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="542">
+				<waveblock start="0">
+					<simpleblockfile filename="e00002c7.au" len="542" min="-0.250773" max="0.253051" rms="0.009538"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="1008">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000c4b.au" len="1008" min="-0.788182" max="0.766" rms="0.017659"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="368">
+				<waveblock start="0">
+					<simpleblockfile filename="e00002a8.au" len="368" min="-0.237572" max="0.24647" rms="0.007388"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="1189">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000feb.au" len="1189" min="-0.647743" max="0.713344" rms="0.025872"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="348">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000b0e.au" len="348" min="-0.185869" max="0.162793" rms="0.004832"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="1696">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000b0a.au" len="1696" min="-0.957106" max="0.73354" rms="0.023592"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="Amen-break" channel="2" linked="0" mute="1" solo="0" height="150" minimized="0" isSelected="0" rate="14000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="1210">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000319.au" len="1210" min="-0.21951" max="0.205455" rms="0.009582"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+</project>

@@ -1,0 +1,6 @@
+#if !defined(INCLUDE_LSTDIFF_UIMODE_H)
+#define INCLUDE_LSTDIFF_UIMODE_H
+
+void runUiMode();
+
+#endif // INCLUDE_LSTDIFF_UIMODE_H
