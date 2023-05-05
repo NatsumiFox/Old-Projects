@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ObjDef xmlns="http://www.sonicretro.org" Namespace="S12005ObjectDefinitions.Common" TypeName="Signs" Language="cs" Name="Signs" Image="a1" Debug="false">
+  <Images>
+    <ImageFromMappings id="OW">
+      <ArtFile filename="../artnem/8x8.bin" />
+      <MapFile type="ASM" filename="../_maps/Signs.asm" frame="0" startpal="0" />
+    </ImageFromMappings>
+    <ImageFromMappings id="a1">
+      <ArtFile filename="../artnem/8x8.bin" />
+      <MapFile type="ASM" filename="../_maps/Signs.asm" frame="1" startpal="0" />
+    </ImageFromMappings>
+    <ImageFromMappings id="a2">
+      <ArtFile filename="../artnem/8x8.bin" />
+      <MapFile type="ASM" filename="../_maps/Signs.asm" frame="2" startpal="0" />
+    </ImageFromMappings>
+    <ImageFromMappings id="a3">
+      <ArtFile filename="../artnem/8x8.bin" />
+      <MapFile type="ASM" filename="../_maps/Signs.asm" frame="3" startpal="0" />
+    </ImageFromMappings>
+  </Images>
+  <Subtypes>
+    <Subtype id="00" name="Overworld" image="OW" />
+    <Subtype id="01" name="Act 1" image="a1" />
+    <Subtype id="02" name="Act 2" image="a2" />
+    <Subtype id="03" name="Act 3" image="a3" />
+  </Subtypes>
+  <Properties>
+    <BitsProperty name="Subtypes" type="signtype" startbit="0" length="4" />
+  </Properties>
+  <Enums>
+    <Enum name="signtype">
+      <EnumMember name="Overworld" />
+      <EnumMember name="Act 1" />
+      <EnumMember name="Act 2" />
+      <EnumMember name="Act 3" />
+    </Enum>
+  </Enums>
+</ObjDef>

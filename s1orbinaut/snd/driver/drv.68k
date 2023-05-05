@@ -1,0 +1,82 @@
+; ===========================================================================
+	DACBank_Defs 0
+
+	incDAC 81, bin
+	incDAC 82, bin
+	incDAC 83, bin
+	Z80Bank_End
+; ===========================================================================
+	Z80Bank_Start Z80BankAlign_End, 'MUS00'	; include sound effects
+Music_GHZ:	include "snd/Music/ghz.asm"
+Music_LZ:	include "snd/Music/lz.asm"
+Music_MZ:	include "snd/Music/mz.asm"
+Music_SLZ:	include "snd/Music/slz.asm"
+Music_SYZ:	include "snd/Music/syz.asm"
+Music_SBZ:	include "snd/Music/sbz.asm"
+Music_FZ:	include "snd/Music/fz.asm"
+Music_SS:	include "snd/Music/ss.asm"
+Music_Boss:	include "snd/Music/boss.asm"
+Music_Title:	include "snd/Music/title.asm"
+Music_Drown:	include "snd/Music/drown.asm"
+Music_GO:	include "snd/Music/gameover.asm"
+Music_1UP:	include "snd/Music/1up.asm"
+Music_Cont:	include "snd/Music/continue.asm"
+Music_Cred:	include "snd/Music/credits.asm"
+Music_End:	include "snd/Music/ending.asm"
+Music_Emer:	include "snd/Music/emerald.asm"
+Music_Invis:	include "snd/Music/invis.asm"
+Music_Act:	include "snd/Music/act.asm"
+		align $10
+Z80_Snd_Driver:		incbin 'snd/Driver/drv.bin'
+Z80_Snd_Driver2:; create pointers to our music
+	Z80PtrROMBank Music_GHZ, Music_LZ, Music_MZ
+	Z80PtrROMBank Music_SLZ, Music_SYZ, Music_SBZ
+	Z80PtrROMBank Music_FZ, Music_SS, Music_Boss
+	Z80PtrROMBank Music_Title, Music_Drown, Music_GO
+	Z80PtrROMBank Music_1UP, Music_Cont, Music_Cred
+	Z80PtrROMBank Music_End, Music_Emer, Music_Invis
+	Z80PtrROMBank Music_Act
+	dcb.w $33-((*-Z80_Snd_Driver2)/2), 0
+
+	Z80createSFXptrs	; and to sound effects
+	Z80Bank_End
+; ===========================================================================
+	Z80Bank_SFX	"SFX"	; include sound effects
+	DoDacFile	; write DAC banks to external ROM
+; ===========================================================================
+offs =	0	; write music banks to external ROM
+	StartFile	MusicBanks, "snd/Driver/MusicBanks.bin", 0
+Z80_BankID:
+	MusMakeBankID	GHZ, LZ, MZ
+	MusMakeBankID	SLZ, SYZ, SBZ
+	MusMakeBankID	FZ, SS, Boss
+	MusMakeBankID	Title, Drown, GO
+	MusMakeBankID	1UP, Cont, Cred
+	MusMakeBankID	End, Emer, Invis
+	MusMakeBankID	Act
+	dcb.b $33-(*-Z80_BankID), $AA
+	EndFile
+; ===========================================================================
+	; then create also ROM for misc variables
+	StartFile	SndVariables, "snd/Driver/Variables.Z80", 0
+
+	dc.b 'DefaultMusicBank = '	; default music bank location
+	MakeBankIDvar	offset(Music_GHZ), bid1
+	numToStr bid1, 2
+	dc.b '0', '\outStr','h', $0A
+
+	dc.b 'SoundBank = '; sound effect bank location
+	MakeBankIDvar	offset(snd_A0), bid2
+	numToStr bid2, 2
+	dc.b '0', '\outStr','h', $0A
+
+	dc.b 'SegaPCMBank = '	; SEGA PCM bank location
+	MakeBankIDvar	offset(SEGA_PCM), bid3
+	numToStr bid3, 2
+	dc.b '0', '\outStr','h', $0A
+	dc.b 'SegaPCMPtr = '	; SEGA PCM pointer
+bid4 = (((offset(SEGA_PCM)-offset(z80BankAddr))&$7FFF)+$8000)
+	numToStr bid4, 4
+	dc.b '0', '\outStr','h', $0A
+	EndFile
+; ===========================================================================

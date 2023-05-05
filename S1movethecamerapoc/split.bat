@@ -1,0 +1,1 @@
+@"win32/splitrom" vectorman.bin ve.txt

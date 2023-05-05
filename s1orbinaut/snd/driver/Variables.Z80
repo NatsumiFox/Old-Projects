@@ -1,0 +1,4 @@
+DefaultMusicBank = 00Fh
+SoundBank = 010h
+SegaPCMBank = 010h
+SegaPCMPtr = 08000h

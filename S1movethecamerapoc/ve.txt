@@ -1,0 +1,3 @@
+#split	0x1DAB80,0x1DC3E1,Vectorman_GEMS.bin
+
+

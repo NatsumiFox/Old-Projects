@@ -1,0 +1,270 @@
+ AS V1.42 Beta [Bld 89] - source file s1/sound/z80/z80.asm - page 1 - 10/24/2016 21:32:07
+
+
+       1/       0 :                     ;
+       2/       0 :                     ;  DZ80 V3.4.1 Z80 Disassembly of z80nodata.bin
+       3/       0 :                     ;  2007/09/18 15:48
+       4/       0 :                     ;
+       5/       0 :                     
+       6/       0 :                     ;
+       7/       0 :                     ;  Sonic 1 Z80 Driver disassembly by Puto.
+       8/       0 :                     ;  Should be assembled with AS (though it should be easily portable to other assemblers if necessary).
+       9/       0 :                     ;
+      10/       0 : =$178000            SegaPCM		equ $F8000+$080000
+      11/       0 : =$17DE2F            SegaPCM_End 	equ SegaPCM+$5E2F
+      12/       0 : =$5E2F              SEGA_Size	equ	(SegaPCM_End-SegaPCM)&$FFFF; The size of the SEGA sound
+      13/       0 : =$8000              SEGA_Location	equ	SegaPCM&$7FFF|$8000; The location within the bank of the SEGA sound, 8000h-based
+      14/       0 : =$D                 SEGA_Pitch	equ	$0D		; The pitch of the SEGA sound
+      15/       0 : =$17                SEGA_Bank	equ	((SegaPCM&$FF8000)/$8000)>>1; The location of the bank where the SEGA sound is in the main genesis ROM (multiply it by $10000 and add the next equate multiplied by $1000 to it to get the actual bank's 
+      16/       0 : =$1                 SEGA_Bank_Minor	equ	(((SegaPCM&$FF8000)/$8000)&1); The location of the bank where the SEGA sound is in the main genesis ROM (multiply it by $1000 and add the previous equate multiplied by $10000 to it to get the act
+      17/       0 :                     
+      18/       0 :                     	cpu z80
+      19/       0 :                     	phase	0
+      20/       0 : =1FFDH              DAC_Panning	equ	1FFDh		; I *THINK* this is for the panning of the DAC. I'm not sure though, so don't quote me on this.
+      21/       0 : =1FFFH              Sample_to_Play	equ	1FFFh		; Sample to play, the 68K will move into this locatiton whatever sample that's supposed to be played.
+      22/       0 : =4000H              YM2612_A0	equ	4000h		; The location where the Z80 needs to move shit over in order to play it with the DAC.
+      23/       0 : =6000H              ROM_Bank	equ	6000h		; This location points to the ROM bank which the Z80 has access to (by default in S1, 7, aka $78000)
+      24/       0 :                     ;
+      25/       0 :                     
+      26/       0 :                     ;
+      27/       0 :                     Z80Driver_Start:
+      28/       0 : F3                  	di				; Disable interrupts
+      29/       1 : F3                  	di
+      30/       2 : F3                  	di
+      31/       3 : 31 FC 1F            	ld	sp,1FFCh		; Initialize the stack pointer at address 1FFCh (though it isn't actually used throughout the whole driver)
+      32/       6 : DD 21 00 40         	ld	ix,YM2612_A0		; ix=4000h
+      33/       A : AF                  	xor	a			; a=0
+      34/       B : 32 FD 1F            	ld	(DAC_Panning),a		; 1FFDh=0
+      35/       E : 32 FF 1F            	ld	(Sample_to_Play),a	; 1FFFh=0
+      36/      11 : 3E 01               	ld	a,SEGA_Bank_Minor	; a=1
+      37/      13 : 32 00 60            	ld	(ROM_Bank),a		; 6000h=1
+      38/      16 : 06 08               	ld	b,8			; b=8
+      39/      18 : 3E 17               	ld	a,SEGA_Bank		; a=7
+      40/      1A :                     
+      41/      1A :                     Z80_Init_Loop:
+      42/      1A : 32 00 60            	ld	(ROM_Bank),a		; 6000h=a (This sets the memory portion of the main genesis ROM that the Z80 will be allowed access to. To move the SEGA sound, change the "7" above this to the new bank where it is located)
+      43/      1D : 0F                  	rrca				; rotate right circular register a (whatever the fuck that means, I think it shifts right anyway)
+      44/      1E : 10 FA               	djnz	Z80_Init_Loop		; decrement and loop if not zero
+      45/      20 : 18 10               	jr	Load_Sample		; branch to Load_Sample
+      46/      22 :                     
+      47/      22 :                     
+      48/      22 : 00                  	db	0			; I have no idea what all this data's for...
+      49/      23 : 01                  	db	1
+      50/      24 : 02                  	db	2
+      51/      25 : 04                  	db	4
+      52/      26 : 08                  	db	8
+      53/      27 : 10                  	db	10h
+      54/      28 : 20                  	db	20h
+      55/      29 : 40                  	db	40h
+      56/      2A : 80                  	db	80h
+      57/      2B : FF                  	db	0FFh
+      58/      2C : FE                  	db	0FEh
+      59/      2D : FC                  	db	0FCh
+      60/      2E : F8                  	db	0F8h
+ AS V1.42 Beta [Bld 89] - source file s1/sound/z80/z80.asm - page 2 - 10/24/2016 21:32:07
+
+
+      61/      2F : F0                  	db	0F0h
+      62/      30 : E0                  	db	0E0h
+      63/      31 : C0                  	db	0C0h
+      64/      32 :                     
+      65/      32 :                     Load_Sample:
+      66/      32 : 21 FF 1F            	ld	hl,Sample_to_Play	; Load the address 1FFFh to register hl.
+      67/      35 :                     
+      68/      35 :                     Wait_for_DAC_Request:
+      69/      35 : 7E                  	ld	a,(hl)			; a = Current sample to play.
+      70/      36 : B7                  	or	a			; if a == 0
+      71/      37 : F2 35 00            	jp	p,Wait_for_DAC_Request	; Loop until we get a request to play a DAC sample
+      72/      3A : D6 81               	sub	81h			; Subtract 81h from the obtained DAC value.
+      73/      3C : 77                  	ld	(hl),a			; Load the subtracted value to 1FFFh (eh?)
+      74/      3D : FE 06               	cp	6			; is the value=6 (playing sample 87)?
+      75/      3F : 30 78               	jr	nc,Play_SegaPCM		; If sample>=87, branch to Play_SegaPCM
+      76/      41 : 11 00 00            	ld	de,0			; de = 0
+      77/      44 : FD 21 D6 00         	ld	iy,PCM_Table		; Load the PCM Table to index register iy.
+      78/      48 : CB 27               	sla	a			; Arithmetically shift left, 3 times (a=a*8)
+      79/      4A : CB 27               	sla	a
+      80/      4C : CB 27               	sla	a
+      81/      4E : 06 00               	ld	b,0			; b = 0
+      82/      50 : 4F                  	ld	c,a			; c = a
+      83/      51 : FD 09               	add	iy,bc			; Add the contents of bc (word formed from b and c) to index register iy, to get to the proper slot in the table
+      84/      53 : FD 5E 00            	ld	e,(iy+0)		; e = iy
+      85/      56 : FD 56 01            	ld	d,(iy+1)		; d = iy+1 (de = location of the DAC sample)
+      86/      59 : FD 4E 02            	ld	c,(iy+2)		; c = iy+2
+      87/      5C : FD 46 03            	ld	b,(iy+3)		; b = iy+3 (bc = size of the DAC sample)
+      88/      5F : D9                  	exx				; Switches to an alternate set of data registers
+      89/      60 : 16 80               	ld	d,80h			; d = 80h
+      90/      62 : 21 FD 1F            	ld	hl,DAC_Panning		; Load address 1FFDh into register pair hl
+      91/      65 : 72                  	ld	(hl),d			; Move 80h onto address 1FFDh
+      92/      66 : DD 36 00 2B         	ld	(ix+0),2Bh		; Move 2Bh onto the address pointed to by ix (4000h, I believe)
+      93/      6A : 1E 2A               	ld	e,2Ah			; e = 20h
+      94/      6C : FD 4E 04            	ld	c,(iy+4)		; c = iy+4 (pitch of the DAC sample)
+      95/      6F : DD 72 01            	ld	(ix+1),d		; 4001h = 80h
+      96/      72 : 36 00               	ld	(hl),0			; 1FFDh = 0
+      97/      74 : D9                  	exx				; Switch back to the normal registers
+      98/      75 : 26 00               	ld	h,0			; h = 0
+      99/      77 :                     PlayPCM_Loop:
+     100/      77 : 1A                  	ld	a,(de)			; a = (de)
+     101/      78 : E6 F0               	and	0F0h			; a = a & F0h
+     102/      7A : 0F                  	rrca				; Shift-right 4 times with rotation (Divide by 16/10h)
+     103/      7B : 0F                  	rrca
+     104/      7C : 0F                  	rrca
+     105/      7D : 0F                  	rrca
+     106/      7E : C6 22               	add	a,22h			; a = a+22h
+     107/      80 : 6F                  	ld	l,a			; l = a
+     108/      81 : 7E                  	ld	a,(hl)			; a = (Contents of 1FFDh)
+     109/      82 : D9                  	exx				; Switch to alternate registers
+     110/      83 : 82                  	add	a,d			; a = a+d
+     111/      84 : 57                  	ld	d,a			; d = a
+     112/      85 : 75                  	ld	(hl),l			; 1FFDh = l
+     113/      86 : DD 73 00            	ld	(ix+0),e		; 4000h = e
+     114/      89 : DD 72 01            	ld	(ix+1),d		; 4001h = d
+     115/      8C : 74                  	ld	(hl),h			; 1FFDh = h
+     116/      8D : 41                  	ld	b,c			; b = c (Load pitch into register b)
+     117/      8E :                     loop_8E:
+     118/      8E : 10 FE               	djnz	loop_8E			; Decrement b, jump if not 0 to loop_8E	(This slows down the rate at which samples are played by intentionally lagging the Z80 at this point. Removing this and the similar comparison at loop_A4 cause
+     119/      90 : D9                  	exx				; Switch to normal registers
+     120/      91 : 1A                  	ld	a,(de)			; a = (de)
+ AS V1.42 Beta [Bld 89] - source file s1/sound/z80/z80.asm - page 3 - 10/24/2016 21:32:07
+
+
+     121/      92 : E6 0F               	and	0Fh			; a = a & 0Fh
+     122/      94 : C6 22               	add	a,22h			; a = a + 22h
+     123/      96 : 6F                  	ld	l,a			; l = a
+     124/      97 : 7E                  	ld	a,(hl)			; a = 1FFDh
+     125/      98 : D9                  	exx				; Switch to alternate registers
+     126/      99 : 82                  	add	a,d			; a = a + d
+     127/      9A : 57                  	ld	d,a			; d = a
+     128/      9B : 75                  	ld	(hl),l			; 1FFDh = l
+     129/      9C : DD 73 00            	ld	(ix+0),e		; 4000h = e
+     130/      9F : DD 72 01            	ld	(ix+1),d		; 4001h = d
+     131/      A2 : 74                  	ld	(hl),h			; 1FFDh = h
+     132/      A3 : 41                  	ld	b,c			; b = c
+     133/      A4 :                     loop_A4:
+     134/      A4 : 10 FE               	djnz	loop_A4			; Decrement b, jump if not 0 to loop_A4 (Read the loop_8E comment for more info)
+     135/      A6 : D9                  	exx				; Switch to normal registers
+     136/      A7 : 3A FF 1F            	ld	a,(Sample_to_Play)	; Load the sample we're playing onto register a
+     137/      AA : CB 7F               	bit	7,a			; Test bit 7 of register a
+     138/      AC : C2 32 00            	jp	nz,Load_Sample		; Jump if not 0 to Load_Sample
+     139/      AF : 13                  	inc	de			; Increment de (Location of the DAC sample)
+     140/      B0 : 0B                  	dec	bc			; Decrement bc (Size of DAC sample)
+     141/      B1 : 79                  	ld	a,c			; a = c
+     142/      B2 : B0                  	or	b			; a = a or b
+     143/      B3 : C2 77 00            	jp	nz,PlayPCM_Loop		; Jump if a!=0 to PlayPCM_Loop
+     144/      B6 : C3 32 00            	jp	Load_Sample		; Finished playing the PCM sample, so now jump back to Load_Sample
+     145/      B9 :                     ;
+     146/      B9 :                     ; Subroutine - Play_SegaPCM
+     147/      B9 :                     ;
+     148/      B9 :                     ; This subroutine plays the "SEGA" sound.
+     149/      B9 :                     ;
+     150/      B9 :                     Play_SegaPCM:
+     151/      B9 : 11 00 80            	ld	de,SEGA_Location	; Load the location of the SEGA sound (80h-based relative pointer to $78000 in the main ROM) to address de.
+     152/      BC : 21 2F 5E            	ld	hl,SEGA_Size		; Load the size of the SEGA sound to register hl.
+     153/      BF : 0E 2A               	ld	c,2Ah			; c = 2Ah
+     154/      C1 :                     PlaySegaPCM_Loop:
+     155/      C1 : 1A                  	ld	a,(de)			; Load the contents of whatever de points at to register a
+     156/      C2 : DD 71 00            	ld	(ix+0),c		; 4000h = c
+     157/      C5 : DD 77 01            	ld	(ix+1),a		; 4001h = a
+     158/      C8 : 06 0D               	ld	b,SEGA_Pitch		; b = 0Bh (Pitch of the SEGA sample)
+     159/      CA :                     loop_CA:
+     160/      CA : 10 FE               	djnz	loop_CA			; Decrement b; jump to loop_CA if not 0. (Read the loop_8E comment for more info).
+     161/      CC : 13                  	inc	de			; Increment de
+     162/      CD : 2B                  	dec	hl			; Decrement hl
+     163/      CE : 7D                  	ld	a,l			; a = l
+     164/      CF : B4                  	or	h			; a = a or h
+     165/      D0 : C2 C1 00            	jp	nz,PlaySegaPCM_Loop	; If a!=0, jump to PlaySegaPCM_Loop
+     166/      D3 : C3 32 00            	jp	Load_Sample		; Otherwise, if you finished playing the SEGA sound, jump back to Load_Sample
+     167/      D6 :                     
+     168/      D6 :                     ;
+     169/      D6 :                     ; Table referencing the three PCM samples
+     170/      D6 :                     ;
+     171/      D6 :                     ; As documented by jman2050, first two bytes are a pointer to the sample, third and fourth are the sample size, fifth is the pitch, 6-8 are unused.
+     172/      D6 :                     ;
+     173/      D6 :                     
+     174/      D6 :                     
+     175/      D6 :                     PCM_Table:
+     176/      D6 : EE 00               	dw	DAC_Sample1	; Kick sample
+     177/      D8 : 52 03               	dw	(DAC_Sample1_End-DAC_Sample1)
+     178/      DA : 17 00               	dw	0017h		; Pitch = 17h
+     179/      DC : 00 00               	dw	0000h
+     180/      DE :                     
+ AS V1.42 Beta [Bld 89] - source file s1/sound/z80/z80.asm - page 4 - 10/24/2016 21:32:07
+
+
+     181/      DE : 40 04               	dw	DAC_Sample2	; Snare sample
+     182/      E0 : 70 07               	dw	(DAC_Sample2_End-DAC_Sample2)
+     183/      E2 : 01 00               	dw	0001h		; Pitch = 1h
+     184/      E4 : 00 00               	dw	0000h
+     185/      E6 :                     
+     186/      E6 : B0 0B               	dw	DAC_Sample3	; Timpani sample
+     187/      E8 : 16 10               	dw	(Dac_Sample3_End-DAC_Sample3)
+     188/      EA :                     Sample3_Pitch:
+     189/      EA : 1B 00               	dw	001Bh		; Pitch = 1Bh
+     190/      EC : 00 00               	dw	0000h
+     191/      EE :                     
+     192/      EE :                     
+     193/      EE :                     
+     194/      EE :                     DAC_Sample1:	binclude	"Samples/DAC1.bin"
+     195/     440 :                     DAC_Sample1_End:
+     196/     440 :                     
+     197/     440 :                     DAC_Sample2:	binclude	"Samples/DAC2.bin"
+     198/     BB0 :                     DAC_Sample2_End:
+     199/     BB0 :                     
+     200/     BB0 :                     DAC_Sample3:	binclude	"Samples/DAC3.bin"
+     201/    1BC6 :                     DAC_Sample3_End:
+     202/    1BC6 :                     
+     203/    1BC6 :                     EndOfDriver:
+     204/    1BC6 :                     	end
+ AS V1.42 Beta [Bld 89] - source file s1/sound/z80/z80.asm - page 5 - 10/24/2016 21:32:07
+
+
+  symbol table (* = unused):
+  ------------------------
+
+*ARCHITECTURE :  i386-unknown-win32 - | *BIGENDIAN :                      0 - |
+*BRANCHEXT :                      0 - | *CASESENSITIVE :                  0 - |
+*CONSTPI :        3.141592653589793 - |  DAC_PANNING :                 1FFD - |
+ DAC_SAMPLE1 :                   EE C |  DAC_SAMPLE1_END :              440 C |
+ DAC_SAMPLE2 :                  440 C |  DAC_SAMPLE2_END :              BB0 C |
+ DAC_SAMPLE3 :                  BB0 C |  DAC_SAMPLE3_END :             1BC6 C |
+*DATE :                  10/24/2016 - | *ENDOFDRIVER :                 1BC6 C |
+*FALSE :                          0 - | *FULLPMMU :                       1 - |
+*HAS64 :                          1 - | *HASDSP :                         0 - |
+*HASFPU :                         0 - | *HASPMMU :                        0 - |
+*INEXTMODE :                      0 - | *INLWORDMODE :                    0 - |
+*INMAXMODE :                      0 - | *INSRCMODE :                      0 - |
+*INSUPMODE :                      0 - | *LISTON :                         1 - |
+ LOAD_SAMPLE :                   32 C |  LOOP_8E :                       8E C |
+ LOOP_A4 :                       A4 C |  LOOP_CA :                       CA C |
+*MACEXP :                         1 - | *MOMCPU :                        80 - |
+*MOMCPUNAME :                   Z80 - | *NESTMAX :                      100 - |
+*PACKING :                        0 - | *PADDING :                        1 - |
+ PCM_TABLE :                     D6 C |  PLAYPCM_LOOP :                  77 C |
+ PLAYSEGAPCM_LOOP :              C1 C |  PLAY_SEGAPCM :                  B9 C |
+*RELAXED :                        0 - |  ROM_BANK :                    6000 - |
+*SAMPLE3_PITCH :                 EA C |  SAMPLE_TO_PLAY :              1FFF - |
+ SEGAPCM :                   178000 - |  SEGAPCM_END :               17DE2F - |
+ SEGA_BANK :                     17 - |  SEGA_BANK_MINOR :                1 - |
+ SEGA_LOCATION :               8000 - |  SEGA_PITCH :                     D - |
+ SEGA_SIZE :                   5E2F - | *TIME :                    21:32:07 - |
+*TRUE :                           1 - | *VERSION :                     142F - |
+ WAIT_FOR_DAC_REQUEST :          35 C |  YM2612_A0 :                   4000 - |
+*Z80DRIVER_START :                0 C |  Z80_INIT_LOOP :                 1A C |
+
+     58 symbols
+     31 unused symbols
+
+ AS V1.42 Beta [Bld 89] - source file s1/sound/z80/z80.asm - page 6 - 10/24/2016 21:32:07
+
+
+  codepages:
+  ----------
+
+STANDARD (0 changed characters)
+
+
+0.00 seconds assembly time
+
+    207 lines source file
+      2 passes
+      0 errors
+      0 warnings

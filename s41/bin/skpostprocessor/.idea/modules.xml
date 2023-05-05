@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/..//ChecksumGenerator.iml" filepath="$PROJECT_DIR$/..//ChecksumGenerator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../checksumgen/checksumgen.iml" filepath="$PROJECT_DIR$/../checksumgen/checksumgen.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../s2postprocessor/s2postprocessor.iml" filepath="$PROJECT_DIR$/../s2postprocessor/s2postprocessor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/skpostprocessor.iml" filepath="$PROJECT_DIR$/skpostprocessor.iml" />
+    </modules>
+  </component>
+</project>

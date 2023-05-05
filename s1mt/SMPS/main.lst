@@ -1,0 +1,2589 @@
+00000000                            
+00000000                            ; =========================================================================
+00000000                            ; SMPS Music Previewer
+00000000                            ; =========================================================================
+00000000                            
+00000000                            	include	'swa.macro.asm'
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to check button presses
+00000000                            ; Arguments:	1 - buttons to check
+00000000                            ;		2 - bitfield to check
+00000000                            ; -------------------------------------------------------------
+00000000                            tpress	macro
+00000000                            	move.b	(\2+1),d0
+00000000                            	andi.b	#\1,d0
+00000000                            	endm
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to check if buttons are held
+00000000                            ; Arguments:	1 - buttons to check
+00000000                            ;		2 - bitfield to check
+00000000                            ; -------------------------------------------------------------
+00000000                            theld	macro
+00000000                            	move.b	\2,d0
+00000000                            	andi.b	#\1,d0
+00000000                            	endm
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to align data
+00000000                            ; Arguments:	1 - align value
+00000000                            ; -------------------------------------------------------------
+00000000                            align	macro
+00000000                            	cnop 0,\1
+00000000                            	endm
+00000000                            	
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to fuck up everything
+00000000                            ; Arguments:	no fucking arguments
+00000000                            ; -------------------------------------------------------------
+00000000                            fuck	macro
+00000000                            	bra.s	*
+00000000                            	endm
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to set VRAM write access
+00000000                            ; Arguments:	1 - raw VRAM offset
+00000000                            ;		2 - register to write access bitfield in (Optional)
+00000000                            ; -------------------------------------------------------------
+00000000                            vram	macro
+00000000                            	if (narg=1)
+00000000                            		move.l	#($40000000+((\1&$3FFF)<<16)+((\1&$C000)>>14)),($C00004).l
+00000000                            	else
+00000000                            		move.l	#($40000000+((\1&$3FFF)<<16)+((\1&$C000)>>14)),\2
+00000000                            	endc
+00000000                            	endm
+00000000                            	
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to set CRAM write access
+00000000                            ; Arguments:	1 - raw CRAM offset
+00000000                            ;		2 - register to write access bitfield in (Optional)
+00000000                            ; -------------------------------------------------------------
+00000000                            cram	macro	offset,operand
+00000000                            	if (narg=1)
+00000000                            		move.l	#($C0000000+(\1<<16)),VDP_Ctrl
+00000000                            	else
+00000000                            		move.l	#($C0000000+(\1<<16)),\operand
+00000000                            	endc
+00000000                            	endm
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to raise an error in vectors
+00000000                            ; Arguments:	1 - error number
+00000000                            ;		2 - branch location
+00000000                            ;		3 - if exists, adds 2 to stack pointer
+00000000                            ; -------------------------------------------------------------
+00000000                            raise	macro
+00000000                            	move.b	#\1,($FFFFFC44).w
+00000000                            	if narg=3
+00000000                            		addq.l	#2,2(sp)
+00000000                            	endc
+00000000                            	bra.s	\2
+00000000                            	endm
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to stop Z80
+00000000                            ; -------------------------------------------------------------
+00000000                            stopZ80	macro
+00000000                            	move.w	#$100,($A11100).l
+00000000                            	nop
+00000000                            	nop
+00000000                            	nop
+00000000                            
+00000000                            @wait\@:btst	#0,($A11100).l
+00000000                            	bne.s	@wait\@
+00000000                            	endm
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to reset Z80
+00000000                            ; -------------------------------------------------------------
+00000000                            resetZ80	macro
+00000000                            	move.w	#$100,($A11200).l
+00000000                            	endm
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to start Z80
+00000000                            ; -------------------------------------------------------------
+00000000                            startZ80	macro
+00000000                            	move.w	#0,($A11100).l
+00000000                            	endm 
+00000000                            	
+00000000                            ; =============================================================
+00000000                            ; Macro to wait for YM
+00000000                            ; -------------------------------------------------------------
+00000000                            
+00000000                            waitYM	macro
+00000000                            @wait\@:move.b	($A04000).l,d2
+00000000                            	btst	#7,d2
+00000000                            	bne.s	@wait\@
+00000000                            	endm
+00000000                            
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to direct copy data into VRAM via DMA
+00000000                            ; Arguments:	1 - Source Offset
+00000000                            ;		2 - Transfer Length (in bytes)
+00000000                            ;		3 - Destination
+00000000                            ; -------------------------------------------------------------
+00000000                            writeVRAM	macro
+00000000                            	lea	($C00004).l,a5
+00000000                            	move.l	#$94000000+(((\2>>1)&$FF00)<<8)+$9300+((\2>>1)&$FF),(a5)
+00000000                            	move.l	#$96000000+(((\1>>1)&$FF00)<<8)+$9500+((\1>>1)&$FF),(a5)
+00000000                            	move.w	#$9700+((((\1>>1)&$FF0000)>>16)&$7F),(a5)
+00000000                            	move.w	#$4000+(\3&$3FFF),(a5)
+00000000                            	move.w	#$80+((\3&$C000)>>14),($FFFFF640).w
+00000000                            	move.w	($FFFFF640).w,(a5)
+00000000                            	endm
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; Macro to direct copy data into CRAM via DMA
+00000000                            ; Arguments:	1 - Source Offset
+00000000                            ;		2 - Transfer Length (in bytes)
+00000000                            ;		3 - Destination
+00000000                            ; -------------------------------------------------------------
+00000000                            writeCRAM	macro
+00000000                            	lea	($C00004).l,a5
+00000000                            	move.l	#$94000000+(((\2>>1)&$FF00)<<8)+$9300+((\2>>1)&$FF),(a5)
+00000000                            	move.l	#$96000000+(((\1>>1)&$FF00)<<8)+$9500+((\1>>1)&$FF),(a5)
+00000000                            	move.w	#$9700+((((\1>>1)&$FF0000)>>16)&$7F),(a5)
+00000000                            	move.w	#$C000+(\3&$3FFF),(a5)
+00000000                            	move.w	#$80+((\3&$C000)>>14),($FFFFF640).w
+00000000                            	move.w	($FFFFF640).w,(a5)
+00000000                            	endm
+00000000                            
+00000000                            ; =============================================================
+00000000                            ; DMA fill VRAM with a value
+00000000                            ; Arguments:	1 - Value
+00000000                            ;		2 - Length
+00000000                            ;		3 - Destination
+00000000                            ; -------------------------------------------------------------
+00000000                            
+00000000                            fillVRAM	macro value,length,loc
+00000000                            	lea	VDP_Ctrl,a5
+00000000                            	move.w	#$8F01,(a5)
+00000000                            	move.l	#$94000000+((\length&$FF00)<<8)+$9300+(\length&$FF),(a5)
+00000000                            	move.w	#$9780,(a5)
+00000000                            	move.l	#$40000080+((\loc&$3FFF)<<16)+((\loc&$C000)>>14),(a5)
+00000000                            	move.w	#value,VDP_Data
+00000000                            	
+00000000                            @wait\@:move.w	(a5),d1
+00000000                            	btst	#1,d1
+00000000                            	bne.s	@wait\@
+00000000                            
+00000000                            	move.w	#$8F02,(a5)
+00000000                            	endm
+00000000                            
+00000000                            ; DMA Fill VRAM with zero value
+00000000                            ; - Length, Dest
+00000000                            clrVRAM	macro
+00000000                            	move.w	#$8F01,(a6)
+00000000                            	move.l	#$94000000+((\1&$FF00)<<8)+$9300+(\1&$FF),(a6)
+00000000                            	move.w	#$9780,(a6)
+00000000                            	move.l	#$40000080+((\2&$3FFF)<<16)+((\2&$C000)>>14),(a6)
+00000000                            	move.w	#0,($C00000).l
+00000000                            wait\@	move.w	(a6),d1
+00000000                            	btst	#1,d1
+00000000                            	bne.s	wait\@
+00000000                            	move.w	#$8F02,(a6)
+00000000                            	endm
+00000000                            
+00000000                            ; VRAM write access constant
+00000000                            DCvram	macro
+00000000                            	dc.l	($40000000+(((\1)&$3FFF)<<16)+(((\1)&$C000)>>14))
+00000000                            	endm
+00000000                            
+00000000                            
+00000000                            	include 'vars.asm'
+00000000                            
+00000000                            ; ---------------------------------------------------------------
+00000000                            ; Memory map
+00000000                            ; ---------------------------------------------------------------
+00000000                            
+00000000 =00C00000                  VDP_Data	equ	$C00000
+00000000 =00C00004                  VDP_Ctrl	equ	$C00004
+00000000                            
+00000000 =FFFFFFFA                  Joypad		equ	-6
+00000000 =FFFFFFFE                  VBlank_Wait	equ	-2
+00000000                            
+00000000                            ; ---------------------------------------------------------------
+00000000                            ; Various definitions
+00000000                            ; ---------------------------------------------------------------
+00000000                            
+00000000 =0000C000                  PlaneA		equ	$C000
+00000000 =0000E000                  PlaneB		equ	$E000
+00000000 =0000FC00                  HSRAM		equ	$FC00
+00000000 =00000400                  FontBase	equ	('!'-1)*$20
+00000000                            
+00000000                            ; Joypad buttons
+00000000 =00000007                  iStart		equ 	7
+00000000 =00000006                  iA		equ 	6
+00000000 =00000005                  iC		equ 	5
+00000000 =00000004                  iB		equ 	4
+00000000 =00000003                  iRight		equ 	3
+00000000 =00000002                  iLeft		equ 	2
+00000000 =00000001                  iDown		equ 	1
+00000000 =00000000                  iUp		equ 	0
+00000000                            
+00000000 =00000080                  Start		equ 	1<<7
+00000000 =00000040                  A		equ 	1<<6
+00000000 =00000020                  C		equ 	1<<5
+00000000 =00000010                  B		equ 	1<<4
+00000000 =00000008                  Right		equ 	1<<3
+00000000 =00000004                  Left		equ 	1<<2
+00000000 =00000002                  Down		equ 	1<<1
+00000000 =00000001                  Up		equ 	1
+00000000                            
+00000000 =00000000                  Held		equ	0
+00000000 =00000001                  Press		equ	1
+00000000                            
+00000000                            
+00000000                            
+00000000                            ; =========================================================================
+00000000                            
+00000000                            	; M68K Vector Table
+00000000                            Vectors:
+00000000 00FF FE00 0000 0000 0000+  	dc.l	$FFFE00,	EntryPoint,	Vector02,	Vector03
+00000010 0000 0000 0000 0000 0000+  	dc.l	Vector04,	Vector05,	Vector06,	Vector07
+00000020 0000 0000 0000 0000 0000+  	dc.l	Vector08,	Vector09,	Vector0A,	Vector0B
+00000030 0000 0000 0000 0000 0000+  	dc.l	Vector0C,	Vector0D,	Vector0E,	Vector0F
+00000040 0000 0000 0000 0000 0000+  	dc.l	Vector10,	Vector11,	Vector12,	Vector13
+00000050 0000 0000 0000 0000 0000+  	dc.l	Vector14,	Vector15,	Vector16,	Vector17
+00000060 0000 0000 0000 0000 0000+  	dc.l	Vector18,	Vector19,	Vector1A,	Vector1B
+00000070 0000 0000 0000 0000 0000+  	dc.l	HBlank,		Vector1D,	VBlank,		Vector1F
+00000080 0000 0000 0000 0000 0000+  	dc.l	Vector20,	Vector21,	Vector22,	Vector23
+00000090 0000 0000 0000 0000 0000+  	dc.l	Vector24,	Vector25,	Vector26,	Vector27
+000000A0 0000 0000 0000 0000 0000+  	dc.l	Vector28,	Vector29,	Vector2A,	Vector2B
+000000B0 0000 0000 0000 0000 0000+  	dc.l	Vector2C,	Vector2D,	Vector2E,	Vector2F
+000000C0 0000 0000 0000 0000 0000+  	dc.l	Vector30,	Vector31,	Vector32,	Vector33
+000000D0 0000 0000 0000 0000 0000+  	dc.l	Vector34,	Vector35,	Vector36,	Vector37
+000000E0 0000 0000 0000 0000 0000+  	dc.l	Vector38,	Vector39,	Vector3A,	Vector3B
+000000F0 0000 0000 0000 0000 0000+  	dc.l	Vector3C,	Vector3D,	Vector3E,	Vector3F
+00000100                            
+00000100                            	; ROM Header
+00000100 5345 4741 204D 4547 4120+  	dc.b 'SEGA MEGA DRIVE '
+00000110 2843 2956 4C41 4420 3230+  	dc.b '(C)VLAD 2013.JAN'
+00000120 5357 4120 534D 5053 204D+  	dc.b 'SWA SMPS MUSIC PREVIEWER                        '
+00000150 5357 4120 534D 5053 204D+  	dc.b 'SWA SMPS MUSIC PREVIEWER                        '
+00000180 2020 2020 2020 2020 2020+  	dc.b '              '
+0000018E 0000                       	dc.w $0000		; Chexsum
+00000190 4A20 2020 2020 2020 2020+  	dc.b 'J               '
+000001A0 0000 0000 003F FFFF        	dc.l $000000,$3FFFFF	; ROM Range
+000001A8 00FF 0000 00FF FFFF        	dc.l $FF0000,$FFFFFF	; RAM Range
+000001B0 2020 2020                  	dc.b '    '		; SRAM Storage
+000001B4 2020 2020                  	dc.b '    '		;
+000001B8 2020 2020                  	dc.b '    '		;
+000001BC 2020 2020 2020 2020 2020+  	dc.b '                                                    '
+000001F0 4A55 4520 2020 2020 2020+  	dc.b 'JUE             '
+00000200                            	
+00000200                            
+00000200                            ; =========================================================================
+00000200                            ; Stantard hardware initalization routine
+00000200                            ; =========================================================================
+00000200                            
+00000200                            EntryPoint:
+00000200 4AB9 00A1 0008             		tst.l	($A10008).l	; test port A control
+00000206 6600                       		bne.s	PortA_Ok
+00000208 4A79 00A1 000C             		tst.w	($A1000C).l	; test port C control
+0000020E                            
+0000020E 6600                       PortA_Ok	bne.s	PortC_Ok
+00000210 4BFA 0000                  		lea	SetupValues(pc),a5
+00000214 4C9D 00E0                  		movem.w	(a5)+,d5-d7
+00000218 4CDD 1F00                  		movem.l	(a5)+,a0-a4
+0000021C 1029 EF01                  		move.b	-$10FF(a1),d0	; get hardware version
+00000220 0200 000F                  		andi.b	#$F,d0
+00000224 6700                       		beq.s	SkipSecurity
+00000226 237C 5345 4741 2F00        		move.l	#'SEGA',$2F00(a1)
+0000022E                            
+0000022E 3014                       SkipSecurity	move.w	(a4),d0		; check	if VDP works
+00000230 7000                       		moveq	#0,d0
+00000232 2C40                       		movea.l	d0,a6
+00000234 4E66                       		move.l	a6,usp		; set usp to $0
+00000236 7217                       		moveq	#$17,d1
+00000238                            
+00000238 1A1D                       VDPInitLoop	move.b	(a5)+,d5	; add $8000 to value
+0000023A 3885                       		move.w	d5,(a4)		; move value to	VDP register
+0000023C DA47                       		add.w	d7,d5		; next register
+0000023E 51C9 FFF8                  		dbf	d1,VDPInitLoop
+00000242 289D                       		move.l	(a5)+,(a4)
+00000244 3680                       		move.w	d0,(a3)		; clear	the screen
+00000246 3287                       		move.w	d7,(a1)		; stop the Z80
+00000248 3487                       		move.w	d7,(a2)		; reset	the Z80
+0000024A                            
+0000024A 0111                       WaitForZ80	btst	d0,(a1)		; has the Z80 stopped?
+0000024C 66FC                       		bne.s	WaitForZ80	; if not, branch
+0000024E 7425                       		moveq	#$25,d2
+00000250                            
+00000250 10DD                       Z80InitLoop	move.b	(a5)+,(a0)+
+00000252 51CA FFFC                  		dbf	d2,Z80InitLoop
+00000256 3480                       		move.w	d0,(a2)
+00000258 3280                       		move.w	d0,(a1)		; start	the Z80
+0000025A 3487                       		move.w	d7,(a2)		; reset	the Z80
+0000025C                            
+0000025C 2D00                       ClrRAMLoop	move.l	d0,-(a6)
+0000025E 51CE FFFC                  		dbf	d6,ClrRAMLoop	; clear	the entire RAM
+00000262 289D                       		move.l	(a5)+,(a4)	; set VDP display mode and increment
+00000264 289D                       		move.l	(a5)+,(a4)	; set VDP to CRAM write
+00000266 761F                       		moveq	#$1F,d3
+00000268                            
+00000268 2680                       ClrCRAMLoop	move.l	d0,(a3)
+0000026A 51CB FFFC                  		dbf	d3,ClrCRAMLoop	; clear	the CRAM
+0000026E 289D                       		move.l	(a5)+,(a4)
+00000270 7813                       		moveq	#$13,d4
+00000272                            
+00000272 2680                       ClrVDPStuff	move.l	d0,(a3)
+00000274 51CC FFFC                  		dbf	d4,ClrVDPStuff
+00000278 7A03                       		moveq	#3,d5
+0000027A                            
+0000027A 175D 0011                  PSGInitLoop	move.b	(a5)+,$11(a3)	; reset	the PSG
+0000027E 51CD FFFA                  		dbf	d5,PSGInitLoop
+00000282 3480                       		move.w	d0,(a2)
+00000284 4CD6 7FFF                  		movem.l	(a6),d0-a6	; clear	all registers
+00000288 46FC 2700                  		move	#$2700,sr	; set the sr
+0000028C                            
+0000028C 6000                       PortC_Ok	bra.s	ProgramStart
+0000028E                            ; ===========================================================================
+0000028E 8000                       SetupValues:	dc.w $8000
+00000290 3FFF                       		dc.w $3FFF
+00000292 0100                       		dc.w $100
+00000294                            
+00000294 00A0 0000                  		dc.l $A00000		; start	of Z80 RAM
+00000298 00A1 1100                  		dc.l $A11100		; Z80 bus request
+0000029C 00A1 1200                  		dc.l $A11200		; Z80 reset
+000002A0 00C0 0000                  		dc.l $C00000
+000002A4 00C0 0004                  		dc.l $C00004		; address for VDP registers
+000002A8                            
+000002A8 0414 303C                  		dc.b 4,	$14, $30, $3C	; values for VDP registers
+000002AC 076C 0000                  		dc.b 7,	$6C, 0,	0
+000002B0 0000 FF00                  		dc.b 0,	0, $FF,	0
+000002B4 8137 0001                  		dc.b $81, $37, 0, 1
+000002B8 0100 00FF                  		dc.b 1,	0, 0, $FF
+000002BC FF00 0080                  		dc.b $FF, 0, 0,	$80
+000002C0                            
+000002C0 4000 0080                  		dc.l $40000080
+000002C4                            
+000002C4 AF01 D91F 1127 0021 2600+  		dc.b $AF, 1, $D9, $1F, $11, $27, 0, $21, $26, 0, $F9, $77 ; Z80	instructions
+000002D0 EDB0 DDE1 FDE1 ED47 ED4F   		dc.b $ED, $B0, $DD, $E1, $FD, $E1, $ED,	$47, $ED, $4F
+000002DA D1E1 F108 D9C1 D1E1 F1F9+  		dc.b $D1, $E1, $F1, 8, $D9, $C1, $D1, $E1, $F1,	$F9, $F3
+000002E5 ED56 36E9 E9               		dc.b $ED, $56, $36, $E9, $E9
+000002EA                            
+000002EA 8104                       		dc.w $8104		; value	for VDP	display	mode
+000002EC 8F02                       		dc.w $8F02		; value	for VDP	increment
+000002EE C000 0000                  		dc.l $C0000000		; value	for CRAM write mode
+000002F2 4000 0010                  		dc.l $40000010
+000002F6                            
+000002F6 9FBF DFFF                  		dc.b $9F, $BF, $DF, $FF	; values for PSG channel volumes
+000002FA                            ; =========================================================================
+000002FA                            ProgramStart:
+000002FA 4EF9 0000 0000             		jmp	Player
+00000300                            
+00000300                            ; =========================================================================
+00000300 50F8 FFFE                  VSync		st.b	VBlank_Wait
+00000304 46FC 2500                  		move	#$2500,sr
+00000308 4A38 FFFE                  	@0:	tst.b	VBlank_Wait
+0000030C 66FA                       		bne.s	@0
+0000030E 4E75                       		rts
+00000310                            
+00000310                            ; =========================================================================
+00000310 4E73                       HBlank		rte
+00000312 48E7 C0C0                  VBlank		movem.l	d0-d1/a0-a1,-(sp)
+00000316 51F8 FFFE                  		sf.b	VBlank_Wait
+0000031A                            
+0000031A                            	        ; Read joys
+0000031A 41F8 FFFA                  		lea	Joypad,a0
+0000031E 43F9 00A1 0003             		lea	$A10003,a1
+00000324 12BC 0000                  		move.b	#0,(a1)
+00000328 4E71                       		nop
+0000032A 4E71                       		nop
+0000032C 1011                       		move.b	(a1),d0
+0000032E E508                       		lsl.b	#2,d0
+00000330 0200 00C0                  		andi.b	#$C0,d0
+00000334 12BC 0040                  		move.b	#$40,(a1)
+00000338 4E71                       		nop
+0000033A 4E71                       		nop
+0000033C 1211                       		move.b	(a1),d1
+0000033E 0201 003F                  		andi.b	#$3F,d1
+00000342 8001                       		or.b	d1,d0
+00000344 4600                       		not.b	d0
+00000346 1210                       		move.b	(a0),d1
+00000348 B101                       		eor.b	d0,d1
+0000034A 10C0                       		move.b	d0,(a0)+
+0000034C C200                       		and.b	d0,d1
+0000034E 10C1                       		move.b	d1,(a0)+
+00000350                            
+00000350 4CDF 0303                  		movem.l	(sp)+,d0-d1/a0-a1
+00000354 4E73                       		rte
+00000356                            
+00000356                            ; =========================================================================
+00000356                            ; ---------------------------------------------------------------------------
+00000356                            ; Subroutine to	play a sound or	music track
+00000356                            ; ---------------------------------------------------------------------------
+00000356                            
+00000356                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00000356                            
+00000356                            
+00000356                            PlaySound:
+00000356 11C0 F00A                  		move.b	d0,($FFFFF00A).w
+0000035A 4E75                       		rts
+0000035C                            ; End of function PlaySound
+0000035C                            
+0000035C                            ; ---------------------------------------------------------------------------
+0000035C                            ; Subroutine to	play a special sound/music (E0-E4)
+0000035C                            ;
+0000035C                            ; E0 - Fade out
+0000035C                            ; E1 - Sega
+0000035C                            ; E2 - Speed up
+0000035C                            ; E3 - Normal speed
+0000035C                            ; E4 - Stop
+0000035C                            ; ---------------------------------------------------------------------------
+0000035C                            
+0000035C                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+0000035C                            
+0000035C                            
+0000035C                            PlaySound_Special:
+0000035C 11C0 F00B                  		move.b	d0,($FFFFF00B).w
+00000360 4E75                       		rts	
+00000362                            ; End of function PlaySound_Special
+00000362                            
+00000362                            ; -------------------------------------------------------------------------
+00000362                            ; Subroutine to	load the sound driver
+00000362                            ; -------------------------------------------------------------------------
+00000362                            
+00000362                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||
+00000362                            
+00000362                            
+00000362                            SoundDriverLoad:			; XREF: GameClrRAM; TitleScreen
+00000362 4E71                       		nop
+00000364 303C 0100                  		move.w	#$100,d0
+00000368 33C0 00A1 1100             		move.w	d0,($A11100).l
+0000036E 33C0 00A1 1200             		move.w	d0,($A11200).l
+00000374 41F9 0000 0000             		lea	(MegaPCM).l,a0
+0000037A 43F9 00A0 0000             		lea	($A00000).l,a1
+00000380 323C 0000                  		move.w	#(MegaPCM_End-MegaPCM)-1,d1
+00000384                            
+00000384 12D8                       	@Load:	move.b	(a0)+,(a1)+
+00000386 51C9 FFFC                  		dbf	d1,@Load
+0000038A 7200                       		moveq	#0,d1
+0000038C 33C1 00A1 1200             		move.w	d1,($A11200).l
+00000392 4E71                       		nop
+00000394 4E71                       		nop
+00000396 4E71                       		nop
+00000398 4E71                       		nop
+0000039A 33C0 00A1 1200             		move.w	d0,($A11200).l
+000003A0 33C1 00A1 1100             		move.w	d1,($A11100).l
+000003A6 4E75                       		rts
+000003A8                            
+000003A8                            ; =========================================================================
+000003A8                            
+000003A8                            		include	'swa.error.asm'
+000003A8                            
+000003A8                            ; =========================================================================
+000003A8                            ; Error screen
+000003A8                            ; =========================================================================
+000003A8                            
+000003A8                            ErrorScreen:
+000003A8 46FC 2700                  		move	#$2700,sr		; disable interrupts
+000003AC 48F8 FFFF 8000             		movem.l	d0-d7/a0-a7,(-$8000).w
+000003B2 49F8 8000                  		lea	(-$8000).w,a4		; a4 => registers backup
+000003B6 4BF9 00C0 0000             		lea	($C00000).l,a5		; a5 => VDP Data port
+000003BC 4DED 0004                  		lea	4(a5),a6		; a6 => VDP Cuntrol port
+000003C0 3CBC 8134                  		move.w	#$8134,(a6)		; disable DISP
+000003C4 3CBC 8238                  		move.w	#$8238,(a6)		; set Plane A nametable VRAM offset to $E000
+000003C8 3CBC 8330                  		move.w	#$8330,(a6)		; set Window plane to $C000
+000003CC 3CBC 8407                  		move.w	#$8407,(a6)		; set Plane B nametable VRAM offset to $E000
+000003D0 3CBC 857C                  		move.w	#$857C,(a6)		; set Sprites data offset to $F800
+000003D4 3CBC 8700                  		move.w	#$8700,(a6)		; set backdrop color
+000003D8 3CBC 8C00                  		move.w	#$8C00,(a6)		; use 256x224 resolution
+000003DC 3CBC 9000                  		move.w	#$9000,(a6)		; use 256x256 planes size
+000003E0 3CBC 9120                  		move.w	#$9120,(a6)		; setup Windows
+000003E4 3CBC 921C                  		move.w	#$921C,(a6)		;
+000003E8 3CBC 8F01 2CBC 940F 93FF+  		CLRvram	$FFF,$C000
+00000410 3CBC 8F01 2CBC 940F 93FF+  		CLRvram	$FFF,$E000
+0000043E 7000                       		moveq	#0,d0
+00000440 2A80                       		move.l	d0,(a5)			; clear sprites
+00000442 2A80                       		move.l	d0,(a5)			;
+00000444                            
+00000444                            		; Load 1bpp font (using a routine from loader engine)
+00000444 41FA 0000                  		lea	ErrorScreen_FontData(pc),a0
+00000448 4EB9 0000 0000             		jsr	(Load_1bpp).l
+0000044E                            
+0000044E                            		; Load palette
+0000044E 41FA 0000                  		lea	ErrorScreen_Palette(pc),a0
+00000458 7201                       		moveq	#1,d1
+0000045A                            		
+0000045A                            	@LoadPal:
+0000045A 2C80                       		move.l	d0,(a6)			; load CRAM address
+0000045C 2A98                       		move.l	(a0)+,(a5)		; write colors to CRAM
+0000045E 0680 0020 0000             		addi.l	#$20<<16,d0		; next palette row
+00000464 51C9 FFF4                  		dbf	d1,@LoadPal
+00000468                            
+00000468                            		; Load interface
+00000468 41FA 0000                  		lea	ErrorScreen_Interface(pc),a0
+0000046C 3218                       		move.w	(a0)+,d1
+0000046E                            		
+0000046E                            	@LoadInteface:
+0000046E 2C98                       		move.l	(a0)+,(a6)
+00000470 6100 0000                  		bsr.w	ErrorScreen_DisplayText
+00000474 51C9 FFF8                  		dbf	d1,@LoadInteface
+00000478                            
+00000478                            		; Display error description, program and vector id
+0000047E 3038 8040                  		move.w	(-$7FC0).w,d0
+00000482 3200                       		move.w	d0,d1                            
+00000484 D040                       		add.w	d0,d0
+00000486 41FA 0000                  		lea	ErrorScreen_VectorsList(pc),a0
+0000048A D0F0 0000                  		adda.w	(a0,d0.w),a0
+0000048E 303C 2000                  		move.w	#1<<13,d0
+00000492 6100 0000                  		bsr.w	ErrorScreen_DisplayText
+00000496                            
+0000049C 3001                       		move.w	d1,d0
+0000049E 363C 2017                  		move.w	#$17+(1<<13),d3
+000004A2 4EB9 0000 0000             		jsr	(DisplayValue).l
+000004A8                            
+000004AE 1038 FFFF                  		move.b	($FFFFFFFC+3).w,d0
+000004B2 0240 0007                  		andi.w	#7,d0
+000004B6 D040                       		add.w	d0,d0
+000004B8 41FA 0000                  		lea	ErrorScreen_ProgramsList(pc),a0
+000004BC D0F0 0000                  		adda.w	(a0,d0.w),a0
+000004C0 303C 2000                  		move.w	#1<<13,d0
+000004C4 6100 0000                  		bsr.w	ErrorScreen_DisplayText
+000004C8                            
+000004C8                            		; Display registers
+000004C8 41FA 0000                  		lea	ErorScreen_Registers(pc),a0
+000004CC 303C 2000                  		move.w	#1<<13,d0		; highlight register values
+000004D0 7E01                       		moveq	#1,d7			; do both data and address registers
+000004D2                            
+000004D2                            	@LoadRegisters:
+000004D2 2818                       		move.l	(a0)+,d4
+000004D4 2418                       		move.l	(a0)+,d2		; load register group id
+000004D6 7C07                       		moveq	#7,d6			; do 7 registers
+000004D8                            
+000004D8                            	@DisplayRegister:
+000004D8 2C84                       		move.l	d4,(a6)			; load destination VRAM
+000004DA 2A82                       		move.l	d2,(a5)			; display register name
+000004DC 2ABC 0000 0013             		move.l	#$13,(a5)		; display '=' char
+000004E2 3ABC 0000                  		move.w	#0,(a5)			; display space
+000004E6 7A03                       		moveq	#3,d5			; display 4-byte value
+000004E8 6100                       		bsr.s	ErrorScreen_DisplayValue
+000004EA 0684 0040 0000             		addi.l	#$40<<16,d4		; go to next screen row
+000004F0 5202                       		addq.b	#1,d2			; next register name
+000004F2 51CE FFE4                  		dbf	d6,@DisplayRegister
+000004F6                            
+000004F6 51CF FFDA                  		dbf	d7,@LoadRegisters
+000004FA                            		
+000004FA                            		; Display stack contents
+000004FA 2864                       		movea.l	-(a4),a4		; load stack frame
+00000502 7C07                       		moveq	#7,d6			; do 8 rows
+00000504 7E00                       		moveq	#0,d7			; d7 will be SP shift value to display
+00000506 7600                       		moveq	#0,d3			; d3 is space etalone!
+00000508                            
+00000508                            	@LoadRAM:
+00000508 2C84                       		move.l	d4,(a6)
+0000050A 2ABC 0033 0030             		move.l	#('S'-$20)<<16|('P'-$20),(a5)	; display 'SP' text
+00000510 3ABC 000B                  		move.w	#$B,(a5)			; display '+' char
+00000514 2007                       		move.l	d7,d0				; d0 -> ---- --XX
+00000516 4840                       		swap	d0				; d0 -> --XX ----
+00000518 E888                       		lsr.l	#4,d0				; d0 -> ---X X---
+0000051A E958                       		rol.w	#4,d0				; d0 -> ---X ---X
+0000051C 0680 0017 0017             		addi.l	#$00170017,d0
+00000522 2A80                       		move.l	d0,(a5)				; display shift value
+00000524 2A83                       		move.l	d3,(a5)				; display space
+00000526 303C 2000                  		move.w	#1<<13,d0			; highlight words
+0000052A 7403                       		moveq	#3,d2				; display 4 words
+0000052C                            
+0000052C                            	@DisplayWord:
+0000052C 7A01                       		moveq	#1,d5				; display 2-byte value
+0000052E 6100                       		bsr.s	ErrorScreen_DisplayValue
+00000530 3A83                       		move.w	d3,(a5)				; display space
+00000532 51CA FFF8                  		dbf	d2,@DisplayWord
+00000536                            
+00000536 0684 0040 0000             		addi.l	#$40<<16,d4
+0000053C 5007                       		addq.b	#8,d7
+0000053E 51CE FFC8                  		dbf	d6,@LoadRAM
+00000542                            
+00000542 3CBC 8174                  		move.w	#$8174,(a6)		; enable DISP
+00000546 60FE                       		fuck				; it should have come to thiS!
+00000548                            
+00000548                            ; -------------------------------------------------------------------------
+00000548                            ErrorScreen_DisplayText:
+00000548 1018                       		move.b	(a0)+,d0
+0000054A 6700                       		beq.s	@Return			; if char = $00, branch
+0000054C 0400 0020                  		subi.b	#$20,d0
+00000550 3A80                       		move.w	d0,(a5)			; display char
+00000552 60F4                       		bra.s	ErrorScreen_DisplayText
+00000554                            
+00000554                            	@Return:
+00000554 4E75                       		rts
+00000556                            
+00000556                            ; -------------------------------------------------------------------------
+00000556                            ErrorScreen_DisplayValue:
+00000556 121C                       		move.b	(a4)+,d1
+00000558 1001                       		move.b	d1,d0
+0000055A E808                       		lsr.b	#4,d0
+0000055C 0600 0017                  		addi.b	#$17,d0
+00000560 3A80                       		move.w	d0,(a5)
+00000562 1001                       		move.b	d1,d0
+00000564 0200 000F                  		andi.b	#$F,d0
+00000568 0600 0017                  		addi.b	#$17,d0
+0000056C 3A80                       		move.w	d0,(a5)
+0000056E 51CD FFE6                  		dbf	d5,ErrorScreen_DisplayValue
+00000572 4E75                       		rts
+00000574                            
+00000574                            ; -------------------------------------------------------------------------
+00000574                            Load_1bpp:
+00000574 2258                       		movea.l	(a0)+,a1	; a1 => Source Data
+00000576 2C98                       		move.l	(a0)+,(a6)	; VDP => Set destionation offset
+00000578 2418                       		move.l	(a0)+,d2	; d2 -> Pixel Mask
+0000057A 3018                       		move.w	(a0)+,d0	; d0 -> Data size
+0000057C                            
+0000057C 1219                       @GfxConv_Loop	move.b	(a1)+,d1
+0000057E 7800                       		moveq	#0,d4
+00000580 7607                       		moveq	#7,d3
+00000582 E99A                       @GfxConv_Pix	rol.l	#4,d2
+00000584 E319                       		rol.b	d1
+00000586 6400                       		bcc.s	@null		; if pixel 0, branch
+00000588 8882                       		or.l	d2,d4		; apply pixel
+0000058A 51CB FFF6                  	@null:	dbf	d3,@GfxConv_Pix	; repeat for 8 pixels
+0000058E 2A84                       		move.l	d4,(a5)		; output row of 8 pixels
+00000590 51C8 FFEA                  		dbf	d0,@GfxConv_Loop
+00000594                            
+00000594 4E75                       		rts
+00000596                            
+00000596                            ; -------------------------------------------------------------------------
+00000596                            DisplayValue:
+00000596 7403                       		moveq	#3,d2
+00000598 E958                       	@loop:	rol.w	#4,d0			; get Hi hex digit, then lower and so
+0000059A 1200                       		move.b	d0,d1			; get the digit
+0000059C 0241 000F                  		andi.w	#$F,d1			;
+000005A0 D243                       		add.w	d3,d1			; add char base to get tile index
+000005A2 3D41 FFFC                  		move.w	d1,-4(a6)		; display char
+000005A6 51CA FFF0                  		dbf	d2,@loop		; repeat for 4 digits (2 bytes, word)
+000005AA 4E75                       		rts
+000005AC                            
+000005AC                            ; -------------------------------------------------------------------------
+000005AC                            ErrorScreen_FontData:
+000005AC 0000 0000                  		dc.l	ErrorScreen_FontArt	; source address (RAM/ROM)
+000005B0 4000 0000                  		dcvram	0			; destination address (VRAM)
+000005B4 1000 0000                  		dc.l	1<<28			; pixel mask (/<<28)
+000005B8 02F7                       		dc.w	760-1			; art size (in bytes)
+000005BA                            
+000005BA                            ErrorScreen_FontArt:
+000005BA                            		incbin	'msgfont.1bpp'
+000008B2                            
+000008B2                            ErrorScreen_Palette:
+000008B2 0800 0EEE                  		dc.w	$0800, $0EEE		; row 0
+000008B6 0800 00EE                  		dc.w	$0800, $00EE		; row 1
+000008BA                            
+000008BA                            ; -- Interface holder
+000008BA                            ErrorScreen_Interface:
+000008BA 0001                       		dc.w	$01			; number of items to load
+000008BC 40C2 0003                  		dcvram	$C0C2
+000008C0 5665 6374 6F72 3000        		dc.b	'Vector0',0
+000008C8 4102 0003                  		dcvram	$C102
+000008CC 5072 6F67 7261 6D30 2000   		dc.b	'Program0 ',0
+000008D6                            
+000008D6                            ; -- Registers viewer data
+000008D6                            ErorScreen_Registers:
+000008D6 4202 0003                  		dcvram	$C202
+000008DA 0024 0017                  		dc.b	0,'D'-$20,0,$17
+000008DE 4222 0003                  		dcvram	$C222
+000008E2 0021 0017                  		dc.b	0,'A'-$20,0,$17
+000008E6                            
+000008E6                            ; -- Program names list
+000008E6                            ErrorScreen_ProgramsList:
+000008E6 0000                       @ListBase	dc.w	@Text00-@ListBase
+000008E8 0000                       		dc.w	@Text01-@ListBase
+000008EA 0000                       		dc.w	@Text02-@ListBase
+000008EC 0000                       		dc.w	@Text03-@ListBase
+000008EE 0000                       		dc.w	@Text04-@ListBase
+000008F0 0000                       		dc.w	@Text04-@ListBase
+000008F2 0000                       		dc.w	@Text04-@ListBase
+000008F4 0000                       		dc.w	@Text04-@ListBase
+000008F6 534F 4E49 4320 3800        @Text00		dc.b	'SONIC ',$38,0
+000008FE 534F 4E49 4320 3900        @Text01		dc.b	'SONIC ',$39,0
+00000906 534F 4E49 4320 3A00        @Text02		dc.b	'SONIC ',$3A,0
+0000090E 4C4F 4144 4552 00          @Text03		dc.b	'LOADER',0
+00000915 554E 4445 5246 494E 4544+  @Text04		dc.b	'UNDERFINED',0
+00000920                            		even
+00000920                            
+00000920                            ; -- Error description list
+00000920                            ErrorScreen_VectorsList:
+00000920 0000                       @ListBase	dc.w	@TextNull-@ListBase	; $00 - @ Stack Ptr
+00000922 0000                       		dc.w	@TextNull-@ListBase	; $01 - @ Entry Point
+00000924 0000                       		dc.w	@Text01-@ListBase	; $02 - Bus Error
+00000926 0000                       		dc.w	@Text02-@ListBase	; $03 - Address Error
+00000928 0000                       		dc.w	@Text03-@ListBase	; $04 - Illegal Instruction
+0000092A 0000                       		dc.w	@Text04-@ListBase	; $05 - Zero Divide
+0000092C 0000                       		dc.w	@Text05-@ListBase	; $06 - Chk Intruction
+0000092E 0000                       		dc.w	@Text06-@ListBase	; $07 - Trapv Instruction
+00000930 0000                       		dc.w	@Text07-@ListBase	; $08 - Privilege Violation
+00000932 0000                       		dc.w	@Text08-@ListBase	; $09 - Trace Interrupt
+00000934 0000                       		dc.w	@Text09-@ListBase	; $0A - Line 1010 Emulator
+00000936 0000                       		dc.w	@Text0A-@ListBase	; $0B - Line 1111 Emulator
+00000938 0000                       		dc.w	@Text00-@ListBase	; $0C - Error Exception
+0000093A 0000                       		dc.w	@Text00-@ListBase	; $0D - Error Exception
+0000093C 0000                       		dc.w	@Text00-@ListBase	; $0E - Error Exception
+0000093E 0000                       		dc.w	@Text00-@ListBase	; $0F - Error Exception
+00000940 0000                       		dc.w	@Text00-@ListBase	; $10 - Error Exception
+00000942 0000                       		dc.w	@Text00-@ListBase	; $11 - Error Exception
+00000944 0000                       		dc.w	@Text00-@ListBase	; $12 - Error Exception
+00000946 0000                       		dc.w	@Text00-@ListBase	; $13 - Error Exception
+00000948 0000                       		dc.w	@Text00-@ListBase	; $14 - Error Exception
+0000094A 0000                       		dc.w	@Text00-@ListBase	; $15 - Error Exception
+0000094C 0000                       		dc.w	@Text00-@ListBase	; $16 - Error Exception
+0000094E 0000                       		dc.w	@Text00-@ListBase	; $17 - Error Exception
+00000950 0000                       		dc.w	@Text00-@ListBase	; $18 - Error Exception
+00000952 0000                       		dc.w	@TextFF-@ListBase	; $19 - Error Trap
+00000954 0000                       		dc.w	@TextFF-@ListBase	; $1A - Error Trap
+00000956 0000                       		dc.w	@TextFF-@ListBase	; $1B - Error Trap
+00000958 0000                       		dc.w	@TextNull-@ListBase	; $1C - @ HBlank
+0000095A 0000                       		dc.w	@TextFF-@ListBase	; $1D - Error Trap
+0000095C 0000                       		dc.w	@TextNull-@ListBase	; $1E - @ VHBlank
+0000095E 0000                       		dc.w	@TextFF-@ListBase	; $1F - Error Trap
+00000960 0000                       		dc.w	@TextFF-@ListBase	; $20 - Error Trap
+00000962 0000                       		dc.w	@TextFF-@ListBase	; $21 - Error Trap
+00000964 0000                       		dc.w	@TextFF-@ListBase	; $22 - Error Trap
+00000966 0000                       		dc.w	@TextFF-@ListBase	; $23 - Error Trap
+00000968 0000                       		dc.w	@TextFF-@ListBase	; $24 - Error Trap
+0000096A 0000                       		dc.w	@TextFF-@ListBase	; $25 - Error Trap
+0000096C 0000                       		dc.w	@TextFF-@ListBase	; $26 - Error Trap
+0000096E 0000                       		dc.w	@TextFF-@ListBase	; $27 - Error Trap
+00000970 0000                       		dc.w	@TextFF-@ListBase	; $28 - Error Trap
+00000972 0000                       		dc.w	@TextFF-@ListBase	; $29 - Error Trap
+00000974 0000                       		dc.w	@TextFF-@ListBase	; $2A - Error Trap
+00000976 0000                       		dc.w	@TextFF-@ListBase	; $2B - Error Trap
+00000978 0000                       		dc.w	@TextFF-@ListBase	; $2C - Error Trap
+0000097A 0000                       		dc.w	@TextFF-@ListBase	; $2D - Error Trap
+0000097C 0000                       		dc.w	@TextFF-@ListBase	; $2E - Error Trap
+0000097E 0000                       		dc.w	@TextFF-@ListBase	; $2F - Error Trap
+00000980 0000                       		dc.w	@TextFF-@ListBase	; $30 - Error Trap
+00000982 0000                       		dc.w	@TextFF-@ListBase	; $31 - Error Trap
+00000984 0000                       		dc.w	@TextFF-@ListBase	; $32 - Error Trap
+00000986 0000                       		dc.w	@TextFF-@ListBase	; $33 - Error Trap
+00000988 0000                       		dc.w	@TextFF-@ListBase	; $34 - Error Trap
+0000098A 0000                       		dc.w	@TextFF-@ListBase	; $35 - Error Trap
+0000098C 0000                       		dc.w	@TextFF-@ListBase	; $36 - Error Trap
+0000098E 0000                       		dc.w	@TextFF-@ListBase	; $37 - Error Trap
+00000990 0000                       		dc.w	@TextFF-@ListBase	; $38 - Error Trap
+00000992 0000                       		dc.w	@TextFF-@ListBase	; $39 - Error Trap
+00000994 0000                       		dc.w	@TextFF-@ListBase	; $3A - Error Trap
+00000996 0000                       		dc.w	@TextFF-@ListBase	; $3B - Error Trap
+00000998 0000                       		dc.w	@TextFF-@ListBase	; $3C - Error Trap
+0000099A 0000                       		dc.w	@TextFF-@ListBase	; $3D - Error Trap
+0000099C 0000                       		dc.w	@TextFF-@ListBase	; $3E - Error Trap
+0000099E 0000                       		dc.w	@TextFF-@ListBase	; $3F - Error Trap
+000009A0                            
+000009A0 00                         @TextNull	dc.b	0
+000009A1 4552 524F 5220 4558 4345+  @Text00		dc.b	'ERROR EXCEPTION',0
+000009B1 4552 524F 5220 5452 4150+  @TextFF		dc.b	'ERROR TRAP',0
+000009BC 4255 5320 4552 524F 5200   @Text01		dc.b	'BUS ERROR',0
+000009C6 4144 4452 4553 5320 4552+  @Text02		dc.b	'ADDRESS ERROR',0
+000009D4 494C 4C45 4741 4C20 494E+  @Text03		dc.b	'ILLEGAL INSTRUCTION',0
+000009E8 5A45 524F 2044 4956 4944+  @Text04		dc.b	'ZERO DIVIDE',0
+000009F4 4348 4B20 494E 5452 5543+  @Text05		dc.b	'CHK INTRUCTION',0
+00000A03 5452 4150 5620 494E 5354+  @Text06		dc.b	'TRAPV INSTRUCTION',0
+00000A15 5052 4956 494C 4547 4520+  @Text07		dc.b	'PRIVILEGE VIOLATION',0
+00000A29 5452 4143 4520 494E 5445+  @Text08		dc.b	'TRACE INTERRUPT',0
+00000A39 4C49 4E45 2038 3738 3720+  @Text09		dc.b	'LINE ',$38,$37,$38,$37,' EMULATOR',0
+00000A4C 4C49 4E45 2038 3838 3820+  @Text0A		dc.b	'LINE ',$38,$38,$38,$38,' EMULATOR',0
+00000A60 00                         		even
+00000A60                            
+00000A60                            
+00000A60                            ; =========================================================================
+00000A60                            ; Exception vectors table
+00000A60                            ; =========================================================================
+00000A60                            
+00000A60                            raise	macro
+00000A60                            		move.w	#\1,(-$7FC0).w
+00000A60                            		jmp	ErrorScreen(pc)
+00000A60                            	endm
+00000A60                            
+00000A60 31FC 0002 8040 4EFA F940   Vector02	raise	$02
+00000A6A 31FC 0003 8040 4EFA F936   Vector03	raise	$03
+00000A74 31FC 0004 8040 4EFA F92C   Vector04	raise	$04
+00000A7E 31FC 0005 8040 4EFA F922   Vector05	raise	$05
+00000A88 31FC 0006 8040 4EFA F918   Vector06	raise	$06
+00000A92 31FC 0007 8040 4EFA F90E   Vector07	raise	$07
+00000A9C 31FC 0008 8040 4EFA F904   Vector08	raise	$08
+00000AA6 31FC 0009 8040 4EFA F8FA   Vector09	raise	$09
+00000AB0 31FC 000A 8040 4EFA F8F0   Vector0A	raise	$0A
+00000ABA 31FC 000B 8040 4EFA F8E6   Vector0B	raise	$0B
+00000AC4 31FC 000C 8040 4EFA F8DC   Vector0C	raise	$0C
+00000ACE 31FC 000D 8040 4EFA F8D2   Vector0D	raise	$0D
+00000AD8 31FC 000E 8040 4EFA F8C8   Vector0E	raise	$0E
+00000AE2 31FC 000F 8040 4EFA F8BE   Vector0F	raise	$0F
+00000AEC 31FC 0010 8040 4EFA F8B4   Vector10	raise	$10
+00000AF6 31FC 0011 8040 4EFA F8AA   Vector11	raise	$11
+00000B00 31FC 0012 8040 4EFA F8A0   Vector12	raise	$12
+00000B0A 31FC 0013 8040 4EFA F896   Vector13	raise	$13
+00000B14 31FC 0014 8040 4EFA F88C   Vector14	raise	$14
+00000B1E 31FC 0015 8040 4EFA F882   Vector15	raise	$15
+00000B28 31FC 0016 8040 4EFA F878   Vector16	raise	$16
+00000B32 31FC 0017 8040 4EFA F86E   Vector17	raise	$17
+00000B3C 31FC 0018 8040 4EFA F864   Vector18	raise	$18
+00000B46 31FC 0019 8040 4EFA F85A   Vector19	raise	$19
+00000B50 31FC 001A 8040 4EFA F850   Vector1A	raise	$1A
+00000B5A 31FC 001B 8040 4EFA F846   Vector1B	raise	$1B
+00000B64 31FC 001D 8040 4EFA F83C   Vector1D	raise	$1D
+00000B6E 31FC 001F 8040 4EFA F832   Vector1F	raise	$1F
+00000B78 31FC 0020 8040 4EFA F828   Vector20	raise	$20
+00000B82 31FC 0021 8040 4EFA F81E   Vector21	raise	$21
+00000B8C 31FC 0022 8040 4EFA F814   Vector22	raise	$22
+00000B96 31FC 0023 8040 4EFA F80A   Vector23	raise	$23
+00000BA0 31FC 0024 8040 4EFA F800   Vector24	raise	$24
+00000BAA 31FC 0025 8040 4EFA F7F6   Vector25	raise	$25
+00000BB4 31FC 0026 8040 4EFA F7EC   Vector26	raise	$26
+00000BBE 31FC 0027 8040 4EFA F7E2   Vector27	raise	$27
+00000BC8 31FC 0028 8040 4EFA F7D8   Vector28	raise	$28
+00000BD2 31FC 0029 8040 4EFA F7CE   Vector29	raise	$29
+00000BDC 31FC 002A 8040 4EFA F7C4   Vector2A	raise	$2A
+00000BE6 31FC 002B 8040 4EFA F7BA   Vector2B	raise	$2B
+00000BF0 31FC 002C 8040 4EFA F7B0   Vector2C	raise	$2C
+00000BFA 31FC 002D 8040 4EFA F7A6   Vector2D	raise	$2D
+00000C04 31FC 002E 8040 4EFA F79C   Vector2E	raise	$2E
+00000C0E 31FC 002F 8040 4EFA F792   Vector2F	raise	$2F
+00000C18 31FC 0030 8040 4EFA F788   Vector30	raise	$30
+00000C22 31FC 0031 8040 4EFA F77E   Vector31	raise	$31
+00000C2C 31FC 0032 8040 4EFA F774   Vector32	raise	$32
+00000C36 31FC 0033 8040 4EFA F76A   Vector33	raise	$33
+00000C40 31FC 0034 8040 4EFA F760   Vector34	raise	$34
+00000C4A 31FC 0035 8040 4EFA F756   Vector35	raise	$35
+00000C54 31FC 0036 8040 4EFA F74C   Vector36	raise	$36
+00000C5E 31FC 0037 8040 4EFA F742   Vector37	raise	$37
+00000C68 31FC 0038 8040 4EFA F738   Vector38	raise	$38
+00000C72 31FC 0039 8040 4EFA F72E   Vector39	raise	$39
+00000C7C 31FC 003A 8040 4EFA F724   Vector3A	raise	$3A
+00000C86 31FC 003B 8040 4EFA F71A   Vector3B	raise	$3B
+00000C90 31FC 003C 8040 4EFA F710   Vector3C	raise	$3C
+00000C9A 31FC 003D 8040 4EFA F706   Vector3D	raise	$3D
+00000CA4 31FC 003E 8040 4EFA F6FC   Vector3E	raise	$3E
+00000CAE 31FC 003F 8040 4EFA F6F2   Vector3F	raise	$3F
+00000CAE 31FC 003F 8040 4EFA F6F2   Vector3F	raise	$3F
+00000CB8                            		include	'swa.megapcm.asm'
+00000CB8                            
+00000CB8                            ; ===============================================================
+00000CB8                            ; Mega PCM Driver Include File
+00000CB8                            ; (c) 2012, Vladikcomper
+00000CB8                            ; ===============================================================
+00000CB8                            
+00000CB8                            ; ---------------------------------------------------------------
+00000CB8                            ; Variables used in DAC table
+00000CB8                            ; ---------------------------------------------------------------
+00000CB8                            
+00000CB8                            ; flags
+00000CB8 =000000C0                  panLR	= $C0
+00000CB8 =00000080                  panL	= $80
+00000CB8 =00000040                  panR	= $40
+00000CB8 =00000000                  pcm	= 0
+00000CB8 =00000004                  dpcm	= 4
+00000CB8 =00000002                  loop	= 2
+00000CB8 =00000001                  pri	= 1
+00000CB8                            
+00000CB8                            ; ---------------------------------------------------------------
+00000CB8                            ; Macros
+00000CB8                            ; ---------------------------------------------------------------
+00000CB8                            
+00000CB8                            z80word macro Value
+00000CB8                            	dc.w	((\Value)&$FF)<<8|((\Value)&$FF00)>>8
+00000CB8                            	endm
+00000CB8                            
+00000CB8                            DAC_Entry macro Pitch,Offset,Flags
+00000CB8                            	dc.b	\Flags			; 00h	- Flags
+00000CB8                            	dc.b	\Pitch			; 01h	- Pitch
+00000CB8                            	dc.b	(\Offset>>15)&$FF	; 02h	- Start Bank
+00000CB8                            	dc.b	(\Offset\_End>>15)&$FF	; 03h	- End Bank
+00000CB8                            	z80word	(\Offset)|$8000		; 04h	- Start Offset (in Start bank)
+00000CB8                            	z80word	(\Offset\_End-1)|$8000	; 06h	- End Offset (in End bank)
+00000CB8                            	endm
+00000CB8                            	
+00000CB8                            IncludeDAC macro Name,Extension
+00000CB8                            \Name:
+00000CB8                            	if strcmp('\extension','wav')
+00000CB8                            		incbin	'dac/\Name\.\Extension\',$3A
+00000CB8                            	else
+00000CB8                            		incbin	'dac/\Name\.\Extension\'
+00000CB8                            	endc
+00000CB8                            \Name\_End:
+00000CB8                            	endm
+00000CB8                            
+00000CB8                            ; ---------------------------------------------------------------
+00000CB8                            ; Driver's code
+00000CB8                            ; ---------------------------------------------------------------
+00000CB8                            
+00000CB8                            MegaPCM:
+00000CB8                            	incbin	'MegaPCM.z80'
+00000EC8                            
+00000EC8                            MegaPCM_End:
+00000EC8                            
+00000EC8                            		include 'swa.smps.asm'  
+00000EC8                            ; ===========================================================================
+00000EC8                            ; ---------------------------------------------------------------------------
+00000EC8                            ; SONIC 1 SMPS DRIVER
+00000EC8                            ; Modificated by Vladikcomper
+00000EC8                            ; ---------------------------------------------------------------------------
+00000EC8                            ;	* Extended slots
+00000EC8                            ;	* Mega PCM Support
+00000EC8                            ;	* HQ Digital audio playback
+00000EC8                            ; ---------------------------------------------------------------------------
+00000EC8                            ; Subroutine to update music more than once per frame
+00000EC8                            ; (Called by horizontal & vert. interrupts)
+00000EC8                            ; ---------------------------------------------------------------------------
+00000EC8                            
+00000EC8                            ;sub_71B4C:
+00000EC8                            UpdateMusic:				; XREF: VBlank; HBlank
+00000EC8 4DF9 0000 0000             		lea	(v_snddriver_ram&$FFFFFF).l,a6
+00000ECE 422E 0000                  		clr.b	f_voice_selector(a6)
+00000ED2 4A2E 0000                  		tst.b	f_stopmusic(a6)		; is music paused?
+00000ED6 6600 0000                  		bne.w	PauseMusic	; if yes, branch
+00000EDA 532E 0000                  		subq.b	#1,v_main_tempo_timeout(a6)	; Has main tempo timer expired?
+00000EDE 6600                       		bne.s	.skipdelay
+00000EE0 4EBA 0000                  		jsr	TempoWait(pc)
+00000EE4                            
+00000EE4                            .skipdelay:
+00000EE4 102E 0000                  		move.b	v_fadeout_counter(a6),d0
+00000EE8 6700                       		beq.s	.skipfadeout
+00000EEA                            
+00000EEA 41FA 0000                  		lea	DoFadeOut(pc),a0
+00000EEE 4A2E 0000                  		tst.b	v_extension(a6)
+00000EF2 6700                       		beq.s	.FF
+00000EF4 41FA 0000                  		lea	TS_DoFadeOut(pc),a0
+00000EF8 4E90                       	.FF:	jsr	(a0)
+00000EFA                            
+00000EFA                            .skipfadeout:
+00000EFA 4A2E 0000                  		tst.b	f_fadein_flag(a6)
+00000EFE 6700                       		beq.s	.skipfadein
+00000F00 4EBA 0000                  		jsr	DoFadeIn(pc)
+00000F04                            
+00000F04                            .skipfadein:
+00000F04 4A6E 0000                  		tst.w	v_playsnd1(a6)		; is a music or sound queued for played?
+00000F08 6700                       		beq.s	.nosndinput	; if not, branch
+00000F0A 4EBA 0000                  		jsr	Sound_Play(pc)
+00000F0E                            
+00000F0E                            .nosndinput:
+00000F0E 0C2E 0080 0000             		cmpi.b	#$80,v_playsnd0(a6)	; is song queue set for silence?
+00000F14 6700                       		beq.s	.nonewsound	; If yes, branch
+00000F16 4EBA 0000                  		jsr	Sound_ChkValue(pc)
+00000F1A                            
+00000F1A                            .nonewsound:
+00000F1A 4A38 0000                  		tst.b	Spindash_SoundTimer.w
+00000F1E 6700                       		beq.s	.cont
+00000F20 5338 0000                  		subq.b	#1,Spindash_SoundTimer.w
+00000F24                            
+00000F24 4BEE 0000                  .cont		lea	v_dac_track(a6),a5
+00000F28 4A15                       		tst.b	(a5)		; Is DAC track playing?
+00000F2A 6A00                       		bpl.s	.dacdone	; Branch if not
+00000F2C                            
+00000F2C 4EBA 0000                  		jsr	UpdateDAC(pc)
+00000F30 4A2E 0000                  		tst.b	v_extension(a6)
+00000F34 6700                       		beq.s	.dacdone
+00000F36 4A2E 0000                  		tst.b	f_speedup(a6)
+00000F3A 6A00                       		bpl.s	.dacdone
+00000F3C 4EBA 0000                  		jsr	UpdateDAC(pc)
+00000F40                            
+00000F40                            .dacdone:
+00000F40 422E 0000                  		clr.b	f_updating_dac(a6)
+00000F44 7E05                       		moveq	#5,d7
+00000F46 11FC 0002 0000             		move.b	#2,Music_StoreChan.w
+00000F4C                            
+00000F4C 41F9 0000 0000             		lea	FMUpdateTrack,a0	; ++ use standard FM update routine
+00000F52 4A2E 0000                  		tst.b	v_extension(a6)		; ++ is extension active?
+00000F56 6700                       		beq.s	.0			; ++ if not, branch
+00000F58 41F9 0000 0000             		lea	TS_FM_UpdateChannel,a0	; ++ use extension FM update routine
+00000F5E                            
+00000F5E                            	.0:
+00000F5E                            
+00000F5E                            .bgmfmloop:
+00000F5E 4BED 0000                  		lea	zTrackSz(a5),a5
+00000F62 4A15                       		tst.b	(a5)		; Is track playing?
+00000F64 6A00                       		bpl.s	.bgmfmnext	; Branch if not
+00000F66                            
+00000F66 2F08                       		move.l	a0,-(sp)
+00000F68 4E90                       		jsr	(a0)
+00000F6A 4A2E 0000                  		tst.b	v_extension(a6)
+00000F6E 6700                       		beq.s	.skip
+00000F70 4A2E 0000                  		tst.b	f_speedup(a6)
+00000F74 6A00                       		bpl.s	.skip
+00000F76 4E90                       		jsr	(a0)
+00000F78 205F                       .skip		move.l	(sp)+,a0
+00000F7A                            
+00000F7A                            .bgmfmnext:
+00000F7A 5238 0000                  		addq.b	#1,Music_StoreChan.w
+00000F7E 51CF FFDE                  		dbf	d7,.bgmfmloop
+00000F82                            
+00000F82 7E02                       		moveq	#2,d7
+00000F84 11FC 0000 0000             		move.b	#0,Music_StoreChan.w
+00000F8A                            
+00000F8A                            .bgmpsgloop:
+00000F8A DAFC 0000                  		adda.w	#zTrackSz,a5
+00000F8E 4A15                       		tst.b	(a5)
+00000F90 6A00                       		bpl.s	.bgmpsgnext
+00000F92 4EBA 0000                  		jsr	PSGUpdateTrack(pc)
+00000F96                            
+00000F96                            .bgmpsgnext:
+00000F96 5238 0000                  		addq.b	#1,Music_StoreChan.w
+00000F9A 51CF FFEE                  		dbf	d7,.bgmpsgloop
+00000F9E                            
+00000F9E 1D7C 0080 0000             		move.b	#$80,f_voice_selector(a6)	; Now at SFX tracks
+00000FA4 7E02                       		moveq	#2,d7
+00000FA6                            
+00000FA6                            .sfxfmloop:
+00000FA6 DAFC 0000                  		adda.w	#zTrackSz,a5
+00000FAA 4A15                       		tst.b	(a5)		; Is track playing?
+00000FAC 6A00                       		bpl.s	.sfxfmnext	; Branch if not
+00000FAE 4EBA 0000                  		jsr	FMUpdateTrack(pc)
+00000FB2                            
+00000FB2                            .sfxfmnext:
+00000FB2 51CF FFF2                  		dbf	d7,.sfxfmloop
+00000FB6                            
+00000FB6 7E02                       		moveq	#2,d7
+00000FB8 11FC 0000 0000             		move.b	#0,Music_StoreChan.w
+00000FBE                            
+00000FBE                            .sfxpsgloop:
+00000FBE DAFC 0000                  		adda.w	#zTrackSz,a5
+00000FC2 4A15                       		tst.b	(a5)
+00000FC4 6A00                       		bpl.s	.sfxpsgnext
+00000FC6 4EBA 0000                  		jsr	PSGUpdateTrack(pc)
+00000FCA                            
+00000FCA                            .sfxpsgnext:
+00000FCA 5238 0000                  		addq.b	#1,Music_StoreChan.w
+00000FCE 51CF FFEE                  		dbf	d7,.sfxpsgloop
+00000FD2                            
+00000FD2 11FC 0000 0000             		move.b	#0,Music_StoreChan.w
+00000FD8 1D7C 0040 0000             		move.b	#$40,f_voice_selector(a6)	; Now at special SFX tracks
+00000FDE DAFC 0000                  		adda.w	#zTrackSz,a5
+00000FE2 4A15                       		tst.b	(a5)		; Is track playing?
+00000FE4 6A00                       		bpl.s	.specfmdone	; Branch if not
+00000FE6 4EBA 0000                  		jsr	FMUpdateTrack(pc)
+00000FEA                            
+00000FEA                            .specfmdone:
+00000FEA DAFC 0000                  		adda.w	#zTrackSz,a5
+00000FEE 4A15                       		tst.b	(a5)
+00000FF0 6A00                       		bpl.s	UpdateMusic_Done
+00000FF2 4EBA 0000                  		jsr	PSGUpdateTrack(pc)
+00000FF6                            
+00000FF6                            UpdateMusic_Done:
+00000FF6 4E75                       		rts
+00000FF8                            ; End of function UpdateMusic
+00000FF8                            
+00000FF8                            
+00000FF8                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00000FF8                            
+00000FF8                            
+00000FF8                            UpdateDAC:
+00000FF8 532D 000E                  		subq.b	#1,$E(a5)	; Has DAC sample timeout expired?
+00000FFC 66F8                       		bne.s	UpdateMusic_Done	; Return if not
+00000FFE 1D7C 0080 0000             		move.b	#$80,f_updating_dac(a6)	; Set flag to indicate this is the DAC
+00001004 286D 0004                  		movea.l	4(a5),a4	; DAC track data pointer
+00001008                            
+00001008                            .sampleloop:
+00001008 7A00                       		moveq	#0,d5
+0000100A 1A1C                       		move.b	(a4)+,d5	; Get next SMPS unit
+0000100C 0C05 00E0                  		cmpi.b	#$E0,d5		; Is it a coord. flag?
+00001010 6500                       		blo.s	.notcoord	; Branch if not
+00001012 4EBA 0000                  		jsr	CoordFlag(pc)
+00001016 60F0                       		bra.s	.sampleloop
+00001018                            ; ===========================================================================
+00001018                            
+00001018                            .notcoord:
+00001018 4A05                       		tst.b	d5			; Is it a sample?
+0000101A 6A00                       		bpl.s	.gotduration	; Branch if not (duration)
+0000101C                            
+0000101C 1B45 0010                  		move.b	d5,$10(a5)	; Store new sample
+00001020 1A1C                       		move.b	(a4)+,d5	; Get another byte
+00001022 6A00                       		bpl.s	.gotduration	; Branch if it is a duration
+00001024 534C                       		subq.w	#1,a4		; Put byte back
+00001026 1B6D 000F 000E             		move.b	$F(a5),$E(a5)	; Use last duration
+0000102C 6000                       		bra.s	.gotsampleduration
+0000102E                            ; ===========================================================================
+0000102E                            
+0000102E                            .gotduration:
+0000102E 4EBA 0000                  		jsr	SetDuration(pc)
+00001032                            
+00001032                            .gotsampleduration:
+00001032 2B4C 0004                  		move.l	a4,4(a5)	; Save pointer
+00001036 0815 0002                  		btst	#2,(a5)		; Is track being overridden?
+0000103A 6600                       		bne.s	locret_smps_1	; Return if yes
+0000103C 0838 0003 0000             		btst	#3,Music_EnabledChans.w	; is DAC disabled?
+00001042 6600                       		bne.s	locret_smps_1		; if is, skip
+00001044 7000                       		moveq	#0,d0
+00001046 102D 0010                  		move.b	$10(a5),d0	; Get sample
+0000104A                            		
+0000104A 0C00 0080                  		cmpi.b	#$80,d0		; Is it a rest?
+0000104E 6700                       		beq.s	locret_smps_1	; Return if yes
+00001050                            
+00001050                            		buytest	Used_AirHorn
+00001050                            		beq.s	.skip
+00001052 0600 0000                   		add.b	#DAC_NormSample,d0
+00001056                            
+00001056 11C0 0000                  .skip		move.b	d0,Music_StoreDAC.w
+0000105A 33FC 0100 00A1 1100 4E71+  		stopZ80
+00001072 13C0 00A0 1FFF             		move.b	d0,($A01FFF).l
+00001078 33FC 0000 00A1 1100        		startZ80
+00001080                            
+00001080                            locret_smps_1:
+00001080 4E75                       		rts
+00001082                            ; End of function UpdateDAC
+00001082                            
+00001082                            ; ===========================================================================
+00001082                            ; Note: this only defines rates for samples $88-$8D, meaning $8E-$8F are invalid.
+00001082                            ; Also, $8C-$8D are so slow you may want to skip them.
+00001082 1215 1C1D FFFF             DAC_sample_rate: dc.b $12, $15, $1C, $1D, $FF, $FF
+00001088                            
+00001088                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001088                            
+00001088                            
+00001088                            FMUpdateTrack:
+00001088 532D 000E                  		subq.b	#1,$E(a5)	; Update duration timeout
+0000108C 6600                       		bne.s	.notegoing	; Branch if it hasn't expired
+0000108E 0895 0004                  		bclr	#4,(a5)		; Clear do not attack next note bit
+00001092 4EBA 0000                  		jsr	FMDoNext(pc)
+00001096 4EBA 0000                  		jsr	FMPrepareNote(pc)
+0000109A 6000 0000                  		bra.w	FMNoteOn
+0000109E                            ; ===========================================================================
+0000109E                            
+0000109E                            .notegoing:
+0000109E 4EBA 0000                  		jsr	NoteFillUpdate(pc)
+000010A2 4EBA 0000                  		jsr	DoModulation(pc)
+000010A6 6000 0000                  		bra.w	FMUpdateFreq
+000010AA                            ; End of function FMUpdateTrack
+000010AA                            
+000010AA                            
+000010AA                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+000010AA                            
+000010AA                            
+000010AA                            FMDoNext:
+000010AA 286D 0004                  		movea.l	4(a5),a4	; Track data pointer
+000010AE 0895 0001                  		bclr	#1,(a5)		; Clear 'track at rest' bit
+000010B2                            
+000010B2                            .noteloop:
+000010B2 7A00                       		moveq	#0,d5
+000010B4 1A1C                       		move.b	(a4)+,d5	; Get byte from track
+000010B6 0C05 00E0                  		cmpi.b	#$E0,d5		; Is this a coord. flag?
+000010BA 6500                       		blo.s	.gotnote	; Branch if not
+000010BC 4EBA 0000                  		jsr	CoordFlag(pc)
+000010C0 60F0                       		bra.s	.noteloop
+000010C2                            ; ===========================================================================
+000010C2                            
+000010C2                            .gotnote:
+000010C2 4EBA 0000                  		jsr	FMNoteOff(pc)
+000010C6 4A05                       		tst.b	d5			; Is this a note?
+000010C8                            		bpl.s	.gotduration	; Branch if not
+000010CA 4EBA 0000                  		jsr	FMSetFreq(pc)
+000010CE 1A1C                       		move.b	(a4)+,d5	; Get another byte
+000010D0                            		bpl.s	.gotduration	; Branch if it is a duration
+000010D2 534C                       		subq.w	#1,a4		; Otherwise, put it back
+000010D4 6000 0000                  		bra.w	FinishTrackUpdate
+000010D8                            ; ===========================================================================
+000010D8                            
+000010D8                            .gotduration:
+000010D8 4EBA 0000                  		jsr	SetDuration(pc)
+000010DC 6000 0000                  		bra.w	FinishTrackUpdate
+000010E0                            ; End of function FMDoNext
+000010E0                            
+000010E0                            
+000010E0                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+000010E0                            
+000010E0                            
+000010E0                            FMSetFreq:
+000010E0 0405 0080                  		subi.b	#$80,d5		; Make it a zero-based index
+000010E4 6700                       		beq.s	TrackSetRest
+000010E6 DA2D 0008                  		add.b	8(a5),d5	; Add track key displacement
+000010EA                            
+000010EA                            		buytest	Used_AirHorn
+000010EA 6700                       		beq.s	.no
+000010EC 4EB9 0000 0000             		jsr	RandomNumber
+000010F2 0240 000F                  		andi.w	#$F,d0
+000010F6 5140                       		subq.w	#8,d0
+000010F8 DA40                       		add.w	d0,d5
+000010FA                            
+000010FA 0245 007F                  .no		andi.w	#$7F,d5		; Clear high byte and sign bit
+000010FE DA45                       		add.w	d5,d5		; Note*2
+00001100 41FA 0000                  		lea	FM_Notes(pc),a0
+00001104 3C30 5000                  		move.w	(a0,d5.w),d6
+00001108 3B46 0010                  		move.w	d6,$10(a5)	; Store new frequency
+0000110C 4E75                       		rts	
+0000110E                            ; End of function FMSetFreq
+0000110E                            
+0000110E                            
+0000110E                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+0000110E                            
+0000110E                            
+0000110E                            SetDuration:
+0000110E 1005                       		move.b	d5,d0
+00001110 122D 0002                  		move.b	2(a5),d1	; Get dividing timing
+00001114                            
+00001114                            .multloop:
+00001114 5301                       		subq.b	#1,d1
+00001116 6700                       		beq.s	.donemult
+00001118 D005                       		add.b	d5,d0
+0000111A 60F8                       		bra.s	.multloop
+0000111C                            ; ===========================================================================
+0000111C                            
+0000111C                            .donemult:
+0000111C 1B40 000F                  		move.b	d0,$F(a5)	; Save duration
+00001120 1B40 000E                  		move.b	d0,$E(a5)	; Save duration timeout
+00001124 4E75                       		rts	
+00001126                            ; End of function SetDuration
+00001126                            
+00001126                            ; ===========================================================================
+00001126                            
+00001126                            TrackSetRest:
+00001126 08D5 0001                  		bset	#1,(a5)		; Set track at rest bit
+0000112A 426D 0010                  		clr.w	$10(a5)		; Clear frequency
+0000112E                            
+0000112E                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+0000112E                            
+0000112E                            
+0000112E                            FinishTrackUpdate:
+0000112E 2B4C 0004                  		move.l	a4,4(a5)	; Store new track position
+00001132 1B6D 000F 000E             		move.b	$F(a5),$E(a5)	; Reset note timeout
+00001138 0815 0004                  		btst	#4,(a5)		; Is track set to not attack note?
+0000113C 6600                       		bne.s	.locret		; If so, branch
+0000113E 1B6D 0013 0012             		move.b	$13(a5),$12(a5)		; Reset note fill timeout
+00001144 422D 000C                  		clr.b	$C(a5)		; Reset PSG flutter index
+00001148 0815 0003                  		btst	#3,(a5)		; Is modulation on?
+0000114C 6700                       		beq.s	.locret		; If not, return
+0000114E 206D 0014                  		movea.l	$14(a5),a0	; Modulation data pointer
+00001152 1B58 0018                  		move.b	(a0)+,$18(a5)	; Reset wait
+00001156 1B58 0019                  		move.b	(a0)+,$19(a5)	; Reset speed
+0000115A 1B58 001A                  		move.b	(a0)+,$1A(a5)	; Reset delta
+0000115E 1018                       		move.b	(a0)+,d0	; Get steps
+00001160 E208                       		lsr.b	#1,d0		; Halve them
+00001162 1B40 001B                  		move.b	d0,$1B(a5)	; Then store
+00001166 426D 001C                  		clr.w	$1C(a5)		; Reset frequency change
+0000116A                            
+0000116A                            .locret:
+0000116A 4E75                       		rts	
+0000116C                            ; End of function FinishTrackUpdate
+0000116C                            
+0000116C                            
+0000116C                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+0000116C                            
+0000116C                            
+0000116C                            NoteFillUpdate:
+0000116C 4A2D 0012                  		tst.b	$12(a5)		; Is note fill on?
+00001170 67F8                       		beq.s	.locret
+00001172 532D 0012                  		subq.b	#1,$12(a5)	; Update note fill timeout
+00001176 66F2                       		bne.s	.locret		; Return if it hasn't expired
+00001178 08D5 0001                  		bset	#1,(a5)		; Put track at rest
+0000117C 4A2D 0001                  		tst.b	1(a5)		; Is this a psg track?
+00001180 6B00 0000                  		bmi.w	.psgnoteoff	; If yes, branch
+00001184 4EBA 0000                  		jsr	FMNoteOff(pc)
+00001188 584F                       		addq.w	#4,sp		; Do not return to caller
+0000118A 4E75                       		rts	
+0000118C                            ; ===========================================================================
+0000118C                            
+0000118C                            .psgnoteoff:
+0000118C 4EBA 0000                  		jsr	PSGNoteOff(pc)
+00001190 584F                       		addq.w	#4,sp		; Do not return to caller
+00001192                            
+00001192                            .locret:
+00001192 4E75                       		rts	
+00001194                            ; End of function NoteFillUpdate
+00001194                            
+00001194                            
+00001194                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001194                            
+00001194                            ; Vladikcomper: Fixed a programming error with stack usage
+00001194                            DoModulation:
+00001194 0815 0003                                  btst    #3,(a5)         ; Is modulation active?
+00001198 6700                                       beq.s   .dontreturn     ; Return if not
+0000119A 4A2D 0018                                  tst.b   $18(a5)         ; Has modulation wait expired?
+0000119E 6700                                       beq.s   .waitdone       ; If yes, branch
+000011A0 532D 0018                                  subq.b  #1,$18(a5)      ; Update wait timeout
+000011A4                                            
+000011A4 584F                       .dontreturn	addq.w  #4,sp           ; ++ Do not return to caller (but see below)
+000011A6 4E75                                       rts
+000011A8                            ; ===========================================================================
+000011A8                            
+000011A8 532D 0019                  .waitdone	subq.b  #1,$19(a5)      ; Update speed
+000011AC 6700                                       beq.s   .updatemodulation; If it expired, want to update modulation
+000011AE 584F                                       addq.w  #4,sp           ; ++ Do not return to caller (but see below)
+000011B0 4E75                                       rts
+000011B2                            ; ===========================================================================
+000011B2                            
+000011B2                            .updatemodulation
+000011B2 206D 0014                                  movea.l $14(a5),a0      ; Get modulation data
+000011B6 1B68 0001 0019                             move.b  1(a0),$19(a5)   ; Restore modulation speed
+000011BC 4A2D 001B                                  tst.b   $1B(a5)         ; Check number of steps
+000011C0 6600                                       bne.s   .calcfreq       ; If nonzero, branch
+000011C2 1B68 0003 001B                             move.b  3(a0),$1B(a5)   ; Restore from modulation data
+000011C8 442D 001A                                  neg.b   $1A(a5)         ; Negate modulation delta
+000011CC 584F                                       addq.w  #4,sp           ; ++ Do not return to caller (but see below)
+000011CE 4E75                                       rts     
+000011D0                            ; ===========================================================================
+000011D0                            
+000011D0 532D 001B                  .calcfreq	subq.b  #1,$1B(a5)      ; Update modulation steps
+000011D4 1C2D 001A                                  move.b  $1A(a5),d6      ; Get modulation delta
+000011D8 4886                                       ext.w   d6
+000011DA DC6D 001C                                  add.w   $1C(a5),d6      ; Add cumulative modulation change
+000011DE 3B46 001C                                  move.w  d6,$1C(a5)      ; Store it
+000011E2 DC6D 0010                                  add.w   $10(a5),d6      ; Add note frequency to it
+000011E6                             
+000011E6 4E75                       .locret		rts
+000011E8                            ; End of function DoModulation
+000011E8                            
+000011E8                            
+000011E8                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+000011E8                            
+000011E8                            
+000011E8                            FMPrepareNote:
+000011E8 0815 0001                  		btst	#1,(a5)		; Is track resting?
+000011EC 6600                       		bne.s	locret_71E48	; Return if so
+000011EE 3C2D 0010                  		move.w	$10(a5),d6		; Get current note frequency
+000011F2 6700                       		beq.s	FMSetRest		; Branch if zero
+000011F4                            
+000011F4                            FMUpdateFreq:
+000011F4 102D 001E                  		move.b	$1E(a5),d0	; Get frequency adjustment
+000011F8 4880                       		ext.w	d0
+000011FA DC40                       		add.w	d0,d6		; Add note frequency
+000011FC 0815 0002                  		btst	#2,(a5)		; Is track being overridden?
+00001200 6600                       		bne.s	locret_71E48	; Return if so
+00001202 3206                       		move.w	d6,d1
+00001204 E049                       		lsr.w	#8,d1
+00001206 103C 00A4                  		move.b	#$A4,d0		; Register for upper 6 bits of frequency
+0000120A 4EBA 0000                  		jsr	WriteFMIorII(pc)
+0000120E 1206                       		move.b	d6,d1
+00001210 103C 00A0                  		move.b	#$A0,d0		; Register for lower 8 bits of frequency
+00001214 4EBA 0000                  		jsr	WriteFMIorII(pc)
+00001218                            
+00001218                            locret_71E48:
+00001218 4E75                       		rts
+0000121A                            ; ===========================================================================
+0000121A                            
+0000121A                            FMSetRest:
+0000121A 08D5 0001                  		bset	#1,(a5)		; Set track at rest bit
+0000121E 4E75                       		rts	
+00001220                            ; End of function FMPrepareNote
+00001220                            
+00001220                            ; ===========================================================================
+00001220                            
+00001220                            PauseMusic:
+00001220 6B00                       		bmi.s	smps_unpausemusic		; Branch if music is being unpaused
+00001222 0C2E 0002 0000             		cmpi.b	#2,f_stopmusic(a6)
+00001228 6700 0000                  		beq.w	smps_unpausedallfm
+0000122C 1D7C 0002 0000             		move.b	#2,f_stopmusic(a6)
+00001232 7602                       		moveq	#2,d3
+00001234 103C 00B4                  		move.b	#$B4,d0		; Command to set AMS/FMS/panning
+00001238 7200                       		moveq	#0,d1		; No panning, AMS or FMS
+0000123A                            
+0000123A                            .killpanloop:
+0000123A 4EBA 0000                  		jsr	WriteFMI(pc)
+0000123E 4EBA 0000                  		jsr	WriteFMII(pc)
+00001242 5200                       		addq.b	#1,d0
+00001244 51CB FFF4                  		dbf	d3,.killpanloop
+00001248                            
+00001248 7602                       		moveq	#2,d3
+0000124A 7028                       		moveq	#$28,d0		; Key on/off register
+0000124C                            
+0000124C                            .noteoffloop:
+0000124C 1203                       		move.b	d3,d1		; FM1, FM2, FM3
+0000124E 4EBA 0000                  		jsr	WriteFMI(pc)
+00001252 5801                       		addq.b	#4,d1		; FM4, FM5, FM6
+00001254 4EBA 0000                  		jsr	WriteFMI(pc)
+00001258 51CB FFF2                  		dbf	d3,.noteoffloop
+0000125C                            
+0000125C 33FC 0100 00A1 1100 4E71+  		stopZ80
+00001274 13FC 007F 00A0 1FFF        		move.b	#$7F,($A01FFF).l; pause DAC
+0000127C 33FC 0000 00A1 1100        		startZ80
+00001284                            
+00001284 4EBA 0000                  		jsr	PSGSilenceAll(pc)
+00001288 6000 FD6C                  		bra.w	UpdateMusic_Done
+0000128C                            ; ===========================================================================
+0000128C                            
+0000128C                            smps_unpausemusic:
+0000128C 422E 0000                  		clr.b	f_stopmusic(a6)
+00001290 7600                       		moveq	#zTrackSz,d3
+00001292 4BEE 0000                  		lea	v_track_ram(a6),a5
+00001296 7806                       		moveq	#6,d4
+00001298                            
+00001298                            .bgmfmloop:
+00001298 0815 0007                  		btst	#7,(a5)		; Is track playing?
+0000129C                            		beq.s	.bgmfmnext	; Branch if not
+0000129E 0815 0002                  		btst	#2,(a5)		; Is track being overridden?
+000012A2                            		bne.s	.bgmfmnext	; Branch if yes
+000012A4 103C 00B4                  		move.b	#$B4,d0		; Command to set AMS/FMS/panning
+000012A8 122D 000A                  		move.b	$A(a5),d1	; Get value from track RAM
+000012AC 4EBA 0000                  		jsr	WriteFMIorII(pc)
+000012B0                            
+000012B0                            .bgmfmnext:
+000012B0 DAC3                       		adda.w	d3,a5
+000012B2 51CC FCAA                  		dbf	d4,.bgmfmloop
+000012B6                            
+000012B6 4BEE 0000                  		lea	v_sfx_track_ram(a6),a5
+000012BA 7802                       		moveq	#2,d4
+000012BC                            
+000012BC                            .sfxfmloop:
+000012BC 0815 0007                  		btst	#7,(a5)		; Is track playing?
+000012C0                            		beq.s	.sfxfmnext	; Branch if not
+000012C2 0815 0002                  		btst	#2,(a5)		; Is track being overridden?
+000012C6                            		bne.s	.sfxfmnext	; Branch if yes
+000012C8 103C 00B4                  		move.b	#$B4,d0		; Command to set AMS/FMS/panning
+000012CC 122D 000A                  		move.b	$A(a5),d1	; Get value from track RAM
+000012D0 4EBA 0000                  		jsr	WriteFMIorII(pc)
+000012D4                            
+000012D4                            .sfxfmnext:
+000012D4 DAC3                       		adda.w	d3,a5
+000012D6 51CC FCCE                  		dbf	d4,.sfxfmloop
+000012DA                            
+000012DA 4BEE 0000                  		lea	v_sfx2_track_ram(a6),a5
+000012DE 0815 0007                  		btst	#7,(a5)		; Is track playing?
+000012E2 6700                       		beq.s	.unpausedac	; Branch if not
+000012E4 0815 0002                  		btst	#2,(a5)		; Is track being overridden?
+000012E8 6600                       		bne.s	.unpausedac	; Branch if yes
+000012EA 103C 00B4                  		move.b	#$B4,d0		; Command to set AMS/FMS/panning
+000012EE 122D 000A                  		move.b	$A(a5),d1	; Get value from track RAM
+000012F2 4EBA 0000                  		jsr	WriteFMIorII(pc)
+000012F6                            
+000012F6                            .unpausedac:
+000012F6 33FC 0100 00A1 1100 4E71+  		stopZ80
+0000130E 13FC 0000 00A0 1FFF        		move.b	#0,($A01FFF).l	; unpause DAC
+00001316 33FC 0000 00A1 1100        		startZ80
+0000131E                            
+0000131E                            smps_unpausedallfm:
+0000131E 6000 FCD6                  		bra.w	UpdateMusic_Done
+00001322                            
+00001322                            ; ---------------------------------------------------------------------------
+00001322                            ; Subroutine to	play a sound or	music track
+00001322                            ; ---------------------------------------------------------------------------
+00001322                            
+00001322                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001322                            
+00001322                            
+00001322                            Sound_Play:				; XREF: UpdateMusic
+00001322 2079 0000 0000             		movea.l	Go_SoundPriorities,a0
+00001328 43EE 0000                  		lea	v_playsnd1(a6),a1	; load music track number
+0000132C 162E 0000                  		move.b	v_sndprio(a6),d3	; Get priority of currently playing SFX
+00001330 7802                       		moveq	#2,d4
+00001332                            
+00001332                            .inputloop:
+00001332 1011                       		move.b	(a1),d0		; move track number to d0
+00001334 1200                       		move.b	d0,d1
+00001336 4219                       		clr.b	(a1)+		; Clear entry
+00001338 0400 0081                  		subi.b	#$81,d0		; Make it into 0-based index
+0000133C 6500                       		blo.s	.nextinput	; If negative (i.e., it was $80 or lower), branch
+0000133E 0C2E 0080 0000             		cmpi.b	#$80,v_playsnd0(a6)	; Is v_playsnd0 a $80 (silence)?
+00001344 6700                       		beq.s	.havesound	; If yes, branch
+00001346 1D41 0000                  		move.b	d1,v_playsnd1(a6)	; Put sound into v_playsnd1
+0000134A 6000                       		bra.s	.nextinput
+0000134C                            ; ===========================================================================
+0000134C                            
+0000134C                            .havesound:
+0000134C 0240 007F                  		andi.w	#$7F,d0		; Clear high byte and sign bit
+00001350 1430 0000                  		move.b	(a0,d0.w),d2	; Get sound type
+00001354 B403                       		cmp.b	d3,d2		; Is it a lower priority sound?
+00001356 6500                       		blo.s	.nextinput	; Branch if yes
+00001358 1602                       		move.b	d2,d3		; Store new priority
+0000135A 1D41 0000                  		move.b	d1,v_playsnd0(a6)	; Queue sound for play
+0000135E                            
+0000135E                            .nextinput:
+0000135E 51CC FFD2                  		dbf	d4,.inputloop
+00001362                            
+00001362 4A03                       		tst.b	d3		; We don't want to change sound priority if it is negative
+00001364                            		bmi.s	.locret
+00001366 1D43 0000                  		move.b	d3,v_sndprio(a6)	; Set new sound priority
+0000136A                            
+0000136A                            .locret:
+0000136A 4E75                       		rts
+0000136C                            ; End of function Sound_Play
+0000136C                            
+0000136C                            
+0000136C                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+0000136C                            
+0000136C                            
+0000136C                            Sound_ChkValue:
+0000136C 7E00                       		moveq	#0,d7
+0000136E 1E2E 0000                  		move.b	v_playsnd0(a6),d7
+00001372 6700 0000                  		beq.w	StopSoundAndMusic
+00001376                            		bpl.s	.locret			; If >= 0, return (not a valid sound, bgm or command)
+00001378 1D7C 0080 0000             		move.b	#$80,v_playsnd0(a6)	; reset	music flag
+0000137E 0C07 0093                  		cmpi.b	#$93,d7			; Is this music ($81-$9F)?
+00001382 6300 0000                  		bls.w	Sound_PlayBGM		; Branch if yes
+00001386 0C07 00CF                  		cmpi.b	#$CF,d7			; Is this sfx ($A0-$CF)?
+0000138A 6300 0000                  		bls.w	Sound_PlaySFX		; Branch if yes
+0000138E 0C07 00D0                  		cmpi.b	#$D0,d7			; Is this sound $D0?
+00001392 6700 0000                  		beq.w	Sound_PlaySpecial	; Branch if yes
+00001396 0C07 00DF                  		cmpi.b	#$DF,d7			; Is this sound $D1-$DF?
+0000139A 6300 0000                  		bls	Sound_PlaySpecial2
+0000139E 0C07 00E4                  		cmpi.b	#$E4,d7			; Is this $E0-$E4?
+000013A2 6300                       		bls.s	Sound_E0toE4		; Branch if yes
+000013A4 0C07 00FF                                  cmpi.b	#$FF,d7
+000013A8 6300 0000                  		bls.w	Sound_PlayBGM2		; play moar music
+000013AC                            
+000013AC                            .locret:
+000013AC 4E75                       		rts	
+000013AE                            ; ===========================================================================
+000013AE                            
+000013AE                            Sound_E0toE4:				; XREF: Sound_ChkValue
+000013AE 0407 00E0                  		subi.b	#$E0,d7
+000013B2                            ;		lsl.w	#2,d7
+000013B2 DE47                       		add.w	d7,d7	;++
+000013B4 DE47                       		add.w	d7,d7	;++
+000013B6 4EFB 7000                  		jmp	Sound_ExIndex(pc,d7.w)
+000013BA                            ; ===========================================================================
+000013BA                            
+000013BA                            Sound_ExIndex:
+000013BA 6000 0000                  		bra.w	FadeOutMusic		; $E0
+000013BE                            ; ===========================================================================
+000013BE 6000 0000                  		bra.w	PlaySega		; $E1
+000013C2                            ; ===========================================================================
+000013C2 6000 0000                  		bra.w	SpeedUpMusic		; $E2
+000013C6                            ; ===========================================================================
+000013C6 6000 0000                  		bra.w	SlowDownMusic		; $E3
+000013CA                            ; ===========================================================================
+000013CA 6000 0000                  		bra.w	StopSoundAndMusic	; $E4
+000013CE                            ; ===========================================================================
+000013CE                            ; ---------------------------------------------------------------------------
+000013CE                            ; Play "Say-gaa" PCM sound
+000013CE                            ; ---------------------------------------------------------------------------
+000013CE                            
+000013CE                            PlaySega:
+000013CE 4AFC                       		illegal
+000013D0 60FC                       		bra	PlaySega
+000013D2                            ; ===========================================================================
+000013D2                            ; ---------------------------------------------------------------------------
+000013D2                            ; Play music track $81-$9F
+000013D2                            ; ---------------------------------------------------------------------------
+000013D2                            
+000013D2                            Sound_PlayBGM:
+000013D2 0C07 0000                  		cmpi.b	#bgm_ExtraLife,d7		; is the "extra life" music to be played?
+000013D6 6600 0000                  		bne	smps_bgmnot1up	; if not, branch
+000013DA 4BEE 0000                  		lea	v_track_ram(a6),a5
+000013DE 7009                       		moveq	#9,d0	; [(1 DAC + 6 FM) or (7 FM)] + 3 PSG
+000013E0                            
+000013E0                            .clearsfxloop:
+000013E0 0895 0002                  		bclr	#2,(a5)	; Clear 'SFX is overriding' bit
+000013E4 DAFC 0000                  		adda.w	#zTrackSz,a5
+000013E8 51C8 FFF6                  		dbf	d0,.clearsfxloop
+000013EC                            
+000013EC 4BEE 0000                  		lea	v_sfx_track_ram(a6),a5
+000013F0 7005                       		moveq	#5,d0	; 3 FM + 3 PSG tracks (SFX)
+000013F2                            
+000013F2                            .cleartrackplayloop:
+000013F2 0895 0007                  		bclr	#7,(a5)	; Clear 'track is playing' bit
+000013F6 DAFC 0000                  		adda.w	#zTrackSz,a5
+000013FA 51C8 FFF6                  		dbf	d0,.cleartrackplayloop
+000013FE                            
+000013FE 422E 0000                  		clr.b	v_sndprio(a6)	; Clear priority
+00001402 204E                       		movea.l	a6,a0
+00001404 43EE 0000                  		lea	v_1up_ram_copy(a6),a1
+00001408 303C 0087                  		move.w	#$87,d0	; Backup $220 bytes
+0000140C                            
+0000140C                            .backupramloop:
+0000140C 22D8                       		move.l	(a0)+,(a1)+
+0000140E 51C8 FFFC                  		dbf	d0,.backupramloop
+00001412                            
+00001412 4216                       		clr.b	(a6)
+00001414 6000                       		bra.s	smps_bgm_loadMusic
+00001416                            ; ===========================================================================
+00001416                            
+00001416                            Sound_PlayBGM2:
+00001416 4EBA 0000                  		jsr	InitMusicPlayback(pc)
+0000141A 1D7C 00FF 0000             		move.b	#-1,v_speeduptempo(a6)
+00001420 4A2E 0000                  		tst.b	v_extension(a6)
+00001424 6600                       		bne.s	smps_bgmnot1up
+00001426                            
+00001426 2879 0000 0000             		movea.l	Go_SpeedUpIndex,a4
+0000142C 0407 00E5                  		subi.b	#$E5,d7
+00001430 1D74 7000 0000             		move.b	(a4,d7.w),v_speeduptempo(a6)
+00001436 2879 0000 0000             		movea.l	Go_MusicIndex_E5toFF,a4
+0000143C 6000 0000                                  bra 	Music_Continue
+00001440                            
+00001440                            smps_bgmnot1up:
+00001440 422E 0000                  		clr.b	v_fadein_counter(a6)
+00001444                            
+00001444                            smps_bgm_loadMusic:
+00001444 4EBA 0000                  		jsr	InitMusicPlayback(pc)
+00001448 1D7C 00FF 0000             		move.b	#-1,v_speeduptempo(a6)
+0000144E 4A2E 0000                  		tst.b	v_extension(a6)
+00001452 6600                       		bne.s	Music_Continue
+00001454                            
+00001454 2879 0000 0000             .skip		movea.l	Go_SpeedUpIndex,a4
+0000145A 0407 0081                  		subi.b	#$81,d7
+0000145E 1D74 7000 0000             		move.b	(a4,d7.w),v_speeduptempo(a6)
+00001464 2879 0000 0000             		movea.l	Go_MusicIndex,a4
+0000146A                            	
+0000146A                            Music_Continue:
+0000146A E54F                       		lsl.w	#2,d7
+0000146C 2874 7000                  		movea.l	(a4,d7.w),a4	; a4 now points to (uncompressed) song data
+00001470 7000                       		moveq	#0,d0
+00001472 3014                       		move.w	(a4),d0		; load voice pointer
+00001474 D08C                       		add.l	a4,d0		; It is a relative pointer
+00001476 2D40 0000                  		move.l	d0,v_voice_ptr(a6)
+0000147A 102C 0005                  		move.b	5(a4),d0	; load tempo
+0000147E 1D40 0000                  		move.b	d0,v_tempo_mod(a6)
+00001482 4A2E 0000                  		tst.b	f_speedup(a6)
+00001486 6700                       		beq.s	.nospeedshoes
+00001488 102E 0000                  		move.b	v_speeduptempo(a6),d0
+0000148C                            
+0000148C                            .nospeedshoes:
+0000148C 1D40 0000                  		move.b	d0,v_main_tempo(a6)
+00001490 1D40 0000                  		move.b	d0,v_main_tempo_timeout(a6)
+00001494 7200                       		moveq	#0,d1
+00001496 264C                       		movea.l	a4,a3
+00001498 5C4C                       		addq.w	#6,a4		; Point past header
+0000149A 7E00                       		moveq	#0,d7
+0000149C 1E2B 0002                  		move.b	2(a3),d7	; load number of FM+DAC channels
+000014A0 6700 0000                  		beq.w	.bgm_fmdone	; branch if zero
+000014A4 0887 0007                  		bclr	#7,d7		; ++
+000014A8 56EE 0000                  		sne.b	v_extension(a6)	; ++
+000014AC                            
+000014AC 5307                       .skip		subq.b	#1,d7
+000014AE 123C 00C0                  		move.b	#$C0,d1		; Default AMS+FMS+Panning
+000014B2 182B 0004                  		move.b	4(a3),d4	; load tempo dividing timing
+000014B6 7C00                       		moveq	#zTrackSz,d6
+000014B8 1A3C 0001                  		move.b	#1,d5		; Note duration for first "note"
+000014BC 43EE 0000                  		lea	v_track_ram(a6),a1
+000014C0 45FA 0000                  		lea	FMDACInitBytes(pc),a2
+000014C4                            
+000014C4                            .bmg_fmloadloop:
+000014C4 08D1 0007                  		bset	#7,(a1)		; Initial playback control: set 'track playing' bit
+000014C8 135A 0001                  		move.b	(a2)+,1(a1)	; Voice control bits
+000014CC 1344 0002                  		move.b	d4,2(a1)
+000014D0 1346 000D                  		move.b	d6,$D(a1)	; set "gosub" (coord flag F8h) stack init value
+000014D4 1341 000A                  		move.b	d1,$A(a1)	; Set AMS/FMS/Panning
+000014D8 1345 000E                  		move.b	d5,$E(a1)	; Set duration of first "note"
+000014DC 7000                       		moveq	#0,d0
+000014DE 301C                       		move.w	(a4)+,d0	; load DAC/FM pointer
+000014E0 D08B                       		add.l	a3,d0		; Relative pointer
+000014E2 2340 0004                  		move.l	d0,4(a1)	; Store track pointer
+000014E6 335C 0008                  		move.w	(a4)+,8(a1)	; load FM channel modifier
+000014EA D2C6                       		adda.w	d6,a1
+000014EC 51CF FFD6                  		dbf	d7,.bmg_fmloadloop
+000014F0                            
+000014F0 102B 0002                  		move.b	2(a3),d0
+000014F4 0880 0007                  		bclr	#7,d0
+000014F8 5F00                       		subq.b	#7,d0		; Are 7 FM channels defined?
+000014FA 6600                       		bne.s	.silencefm6
+000014FC 702B                       		moveq	#$2B,d0		; DAC enable/disable register
+000014FE 7200                       		moveq	#0,d1		; Disable DAC
+00001500 4EBA 0000                  		jsr	WriteFMI(pc)
+00001504 6000 0000                  		bra.w	.bgm_fmdone
+00001508                            ; ===========================================================================
+00001508                            
+00001508                            .silencefm6:
+00001508 7028                       		moveq	#$28,d0		; Key on/off register
+0000150A 7206                       		moveq	#6,d1		; Note off on all operators of channel 6
+0000150C 4EBA 0000                  		jsr	WriteFMI(pc)
+00001510 103C 0042                  		move.b	#$42,d0		; TL for operator 1 of FM6
+00001514 727F                       		moveq	#$7F,d1		; Total silence
+00001516 4EBA 0000                  		jsr	WriteFMII(pc)
+0000151A 103C 004A                  		move.b	#$4A,d0		; TL for operator 3 of FM6
+0000151E 727F                       		moveq	#$7F,d1		; Total silence
+00001520 4EBA 0000                  		jsr	WriteFMII(pc)
+00001524 103C 0046                  		move.b	#$46,d0		; TL for operator 2 of FM6
+00001528 727F                       		moveq	#$7F,d1		; Total silence
+0000152A 4EBA 0000                  		jsr	WriteFMII(pc)
+0000152E 103C 004E                  		move.b	#$4E,d0		; TL for operator 4 of FM6
+00001532 727F                       		moveq	#$7F,d1		; Total silence
+00001534 4EBA 0000                  		jsr	WriteFMII(pc)
+00001538 103C 00B6                  		move.b	#$B6,d0		; AMS/FMS/panning of FM6
+0000153C 123C 00C0                  		move.b	#$C0,d1		; Stereo
+00001540 4EBA 0000                  		jsr	WriteFMII(pc)
+00001544                            
+00001544                            .bgm_fmdone:
+00001544 7E00                       		moveq	#0,d7
+00001546 1E2B 0003                  		move.b	3(a3),d7	; Load number of PSG channels
+0000154A 6700                       		beq.s	.bgm_psgdone	; branch if zero
+0000154C 5307                       		subq.b	#1,d7
+0000154E 43EE 0000                  		lea	v_psg1_track(a6),a1
+00001552 45FA 0000                  		lea	PSGInitBytes(pc),a2
+00001556                            
+00001556                            .bgm_psgloadloop:
+00001556 08D1 0007                  		bset	#7,(a1)		; Initial playback control: set 'track playing' bit
+0000155A 135A 0001                  		move.b	(a2)+,1(a1)	; Voice control bits
+0000155E 1344 0002                  		move.b	d4,2(a1)
+00001562 1346 000D                  		move.b	d6,$D(a1)	; set "gosub" (coord flag F8h) stack init value
+00001566 1345 000E                  		move.b	d5,$E(a1)	; Set duration of first "note"
+0000156A 7000                       		moveq	#0,d0
+0000156C 301C                       		move.w	(a4)+,d0	; load PSG channel pointer
+0000156E D08B                       		add.l	a3,d0		; Relative pointer
+00001570 2340 0004                  		move.l	d0,4(a1)	; Store track pointer
+00001574 335C 0008                  		move.w	(a4)+,8(a1)	; load PSG modifier
+00001578 101C                       		move.b	(a4)+,d0	; load redundant byte
+0000157A 135C 000B                  		move.b	(a4)+,$B(a1)	; Initial PSG tone
+0000157E D2C6                       		adda.w	d6,a1
+00001580 51CF FFD4                  		dbf	d7,.bgm_psgloadloop
+00001584                            
+00001584                            .bgm_psgdone:
+00001584 43EE 0000                  		lea	v_sfx_fm3_track(a6),a1
+00001588 7E05                       		moveq	#5,d7		; 6 SFX tracks
+0000158A                            
+0000158A                            .sfxstoploop:
+0000158A 4A11                       		tst.b	(a1)		; Is SFX playing?
+0000158C 6A00 0000                  		bpl.w	.sfxnext	; Branch if not
+00001590 7000                       		moveq	#0,d0
+00001592 1029 0001                  		move.b	1(a1),d0	; Get playback control bits
+00001596 6B00                       		bmi.s	.sfxpsgchannel	; Branch if this is a PSG channel
+00001598 5500                       		subq.b	#2,d0		; SFX can't have FM1 or FM2
+0000159A E508                       		lsl.b	#2,d0		; Convert to index
+0000159C 6000                       		bra.s	.gotchannelindex
+0000159E                            ; ===========================================================================
+0000159E                            
+0000159E                            .sfxpsgchannel:
+0000159E E608                       		lsr.b	#3,d0		; Convert to index
+000015A0                            
+000015A0                            .gotchannelindex:
+000015A0 41FA 0000                  		lea	BGMChannelRAM(pc),a0
+000015A4 2070 0000                  		movea.l	(a0,d0.w),a0
+000015A8 08D0 0002                  		bset	#2,(a0)		; Set 'SFX is overriding' bit
+000015AC                            
+000015AC                            .sfxnext:
+000015AC D2C6                       		adda.w	d6,a1
+000015AE 51CF FFDA                  		dbf	d7,.sfxstoploop
+000015B2                            
+000015B2 4A6E 0000                  		tst.w	v_sfx2_fm4_playback_control(a6)	; Is special SFX being played?
+000015B6 6A00                       		bpl.s	.checkspecialpsg		; Branch if not
+000015B8 08EE 0002 0000             		bset	#2,v_fm4_playback_control(a6)	; Set 'SFX is overriding' bit
+000015BE                            
+000015BE                            .checkspecialpsg:
+000015BE 4A6E 0000                  		tst.w	v_sfx2_psg3_playback_control(a6)	; Is special SFX being played?
+000015C2 6A00                       		bpl.s	.sendfmnoteoff		; Branch if not
+000015C4 08EE 0002 0000             		bset	#2,v_psg3_playback_control(a6)	; Set 'SFX is overriding' bit
+000015CA                            
+000015CA                            .sendfmnoteoff:
+000015CA 4BEE 0000                  		lea	v_fm1_track(a6),a5
+000015CE 7805                       		moveq	#5,d4
+000015D0                            
+000015D0                            .fmnoteoffloop:
+000015D0 4EBA 0000                  		jsr	FMNoteOff(pc)
+000015D4 DAC6                       		adda.w	d6,a5
+000015D6 51CC FFF8                  		dbf	d4,.fmnoteoffloop	; run all FM channels
+000015DA 7802                       		moveq	#2,d4
+000015DC                            
+000015DC                            .psgnoteoffloop:
+000015DC 4EBA 0000                  		jsr	PSGNoteOff(pc)
+000015E0 DAC6                       		adda.w	d6,a5
+000015E2 51CC FFF8                  		dbf	d4,.psgnoteoffloop	; run all PSG channels
+000015E6                            
+000015E6                            smps_locdblret:
+000015E6 584F                       		addq.w	#4,sp	; Tamper with return value to not return to caller
+000015E8 4E75                       		rts	
+000015EA                            ; ===========================================================================
+000015EA 0600 0102 0405 0600        FMDACInitBytes:	dc.b 6,	0, 1, 2, 4, 5, 6, 0
+000015F2                            		even
+000015F2 80A0 C000                  PSGInitBytes:	dc.b $80, $A0, $C0, 0
+000015F6                            		even
+000015F6                            ; ===========================================================================
+000015F6                            ; ---------------------------------------------------------------------------
+000015F6                            ; Play normal sound effect
+000015F6                            ; ---------------------------------------------------------------------------
+000015F6                            Sound_PlaySpecial2:
+000015F6 4A2E 0000                  		tst.b	v_fadeout_counter(a6)	; Is music being faded out?
+000015FA 6600 0000                  		bne.w	PlaySFX_ResetPrio	; Exit if it is
+000015FE 4A2E 0000                  		tst.b	f_fadein_flag(a6)	; Is music being faded in?
+00001602 6600 0000                  		bne.w	PlaySFX_ResetPrio	; Exit if it is
+00001606 4238 0000                  		clr.b	Spindash_SoundPitch.w
+0000160A 0C07 00D1                  		cmp.b	#$D1,d7		; is this the Spin Dash sound?
+0000160E 6600                       		bne.s	.cont3		; if not, branch
+00001610 3F00                       		move.w	d0,-(sp)
+00001612 1038 0000                  		move.b	Spindash_StorePitch.w,d0	; store extra frequency
+00001616 4A38 0000                  		tst.b	Spindash_SoundTimer.w	; is the Spin Dash timer active?
+0000161A 6600                       		bne.s	.cont1		; if it is, branch
+0000161C 103C 00FF                  		move.b	#-1,d0		; otherwise, reset frequency (becomes 0 on next line)
+00001620                            
+00001620                            .cont1:
+00001620 5200                       		addq.b	#1,d0
+00001622 0C00 000C                  		cmp.b	#$C,d0		; has the limit been reached?
+00001626 6400                       		bcc.s	.cont2		; if it has, branch
+00001628 11C0 0000                  		move.b	d0,Spindash_StorePitch.w	; otherwise, set new frequency
+0000162C                            		
+0000162C                            .cont2:
+0000162C 11FC 0001 0000             		move.b	#1,Spindash_SoundPitch.w	; set flag
+00001632 11FC 003C 0000             		move.b	#60,Spindash_SoundTimer.w	; set timer
+00001638 301F                       		move.w	(sp)+,d0
+0000163A                            		
+0000163A                            .cont3:
+0000163A 2079 0000 0000             		movea.l	(Go_SoundIndex).l,a0
+00001640 0407 0095                  		sub.b	#$95,d7
+00001644 6000 0000                  		bra.w	SoundEffects_Common
+00001648                            
+00001648                            Sound_PlaySFX:
+00001648 4A2E 0000                  		tst.b	v_fadeout_counter(a6)	; Is music being faded out?
+0000164C 6600 0000                  		bne.w	PlaySFX_ResetPrio	; Exit if it is
+00001650 4A2E 0000                  		tst.b	f_fadein_flag(a6)	; Is music being faded in?
+00001654 6600 0000                  		bne.w	PlaySFX_ResetPrio	; Exit if it is
+00001658                            
+00001658 4238 0000                  		clr.b	Spindash_SoundPitch.w
+0000165C 0C07 0000                  		cmpi.b	#sfx_Ring,d7		; is ring sound	effect played?
+00001660 6600                       		bne.s	.sfx_notRing		; if not, branch
+00001662 4A2E 0000                  		tst.b	v_ring_speaker(a6)	; Is the ring sound playing on right speaker?
+00001666 6600                       		bne.s	.gotringspeaker		; Branch if not
+00001668 1E3C 0000                  		move.b	#sfx_RingLeft,d7		; play ring sound in left speaker
+0000166C                            
+0000166C                            .gotringspeaker:
+0000166C 086E 0000 0000             		bchg	#0,v_ring_speaker(a6)	; change speaker
+00001672                            
+00001672                            .sfx_notRing:
+00001672 0C07 0000                  		cmpi.b	#sfx_Push,d7		; is "pushing" sound played?
+00001676 6600                       		bne.s	Sound_LoadSFX		; if not, branch
+00001678 4A2E 0000                  		tst.b	f_push_playing(a6)	; Is pushing sound already playing?
+0000167C 6600 0000                  		bne.w	PlaySFX_Done		; Return if not
+00001680 1D7C 0080 0000             		move.b	#$80,f_push_playing(a6)	; Mark it as playing
+00001686                            
+00001686                            ; ===========================================================================
+00001686                            Sound_LoadSFX:
+00001686 2079 0000 0000             		movea.l	Go_SoundIndex,a0
+0000168C 0407 0094                  		subi.b	#$94,d7		; Make it 0-based
+00001690                            
+00001690                            SoundEffects_Common:
+00001690 E54F                       		lsl.w	#2,d7		; Convert sfx ID into index
+00001692 2670 7000                  		movea.l	(a0,d7.w),a3	; SFX data pointer
+00001696 224B                       		movea.l	a3,a1
+00001698 7200                       		moveq	#0,d1
+0000169A 3219                       		move.w	(a1)+,d1	; Voice pointer
+0000169C D28B                       		add.l	a3,d1		; Relative pointer
+0000169E 1A19                       		move.b	(a1)+,d5	; Dividing timing
+000016A0 1E19                       		move.b	(a1)+,d7	; Number of channels (FM + PSG)
+000016A2 5307                       		subq.b	#1,d7
+000016A4 7C00                       		moveq	#zTrackSz,d6
+000016A6                            
+000016A6                            .sfx_loadloop:
+000016A6 7600                       		moveq	#0,d3
+000016A8 1629 0001                  		move.b	1(a1),d3	; Channel assignment bits
+000016AC 1803                       		move.b	d3,d4
+000016AE 6B00                       		bmi.s	.sfxinitpsg	; Branch if PSG
+000016B0 5543                       		subq.w	#2,d3		; SFX can only have FM3, FM4 or FM5
+000016B2 E54B                       		lsl.w	#2,d3
+000016B4 4BFA 0000                  		lea	BGMChannelRAM(pc),a5
+000016B8 2A75 3000                  		movea.l	(a5,d3.w),a5
+000016BC 08D5 0002                  		bset	#2,(a5)		; Mark music track as being overridden
+000016C0 6000                       		bra.s	.sfxoverridedone
+000016C2                            
+000016C2                            .sfxinitpsg:
+000016C2 E64B                       		lsr.w	#3,d3
+000016C4 4BFA 0000                  		lea	BGMChannelRAM(pc),a5
+000016C8 2A75 3000                  		movea.l	(a5,d3.w),a5
+000016CC 08D5 0002                  		bset	#2,(a5)		; Mark music track as being overridden
+000016D0 0C04 00C0                  		cmpi.b	#$C0,d4		; Is this PSG 3?
+000016D4 6600                       		bne.s	.sfxoverridedone	; Branch if not
+000016D6 1004                       		move.b	d4,d0
+000016D8 0000 001F                  		ori.b	#$1F,d0		; Command to silence PSG 3
+000016DC 13C0 0000 0000             		move.b	d0,PSG
+000016E2 0840 0005                  		bchg	#5,d0		; Command to silence noise channel
+000016E6 13C0 0000 0000             		move.b	d0,PSG
+000016EC                            
+000016EC                            .sfxoverridedone:
+000016EC 2A7B 3000                  		movea.l	SFXChannelRAM(pc,d3.w),a5
+000016F0 244D                       		movea.l	a5,a2
+000016F2 700B                       		moveq	#$B,d0	; $30 bytes
+000016F4                            
+000016F4                            .clearsfxtrackram:
+000016F4 429A                       		clr.l	(a2)+
+000016F6 51C8 FFFC                  		dbf	d0,.clearsfxtrackram
+000016FA                            
+000016FA 3A99                       		move.w	(a1)+,(a5)	; Initial playback control bits
+000016FC 1B45 0002                  		move.b	d5,2(a5)	; Initial voice control bits
+00001700 7000                       		moveq	#0,d0
+00001702 3019                       		move.w	(a1)+,d0	; Track data pointer
+00001704 D08B                       		add.l	a3,d0		; Relative pointer
+00001706 2B40 0004                  		move.l	d0,4(a5)	; Store track pointer
+0000170A 3B59 0008                  		move.w	(a1)+,8(a5)	; load FM/PSG channel modifier
+0000170E                            		
+0000170E 4A38 0000                  		tst.b	Spindash_SoundPitch.w	; is the Spin Dash sound playing?
+00001712                            		beq.s	.cont		; if not, branch
+00001714 3F00                       		move.w	d0,-(sp)
+00001716 1038 0000                  		move.b	Spindash_StorePitch.w,d0
+0000171A D12D 0008                  		add.b	d0,8(a5)
+0000171E 301F                       		move.w	(sp)+,d0
+00001720                             
+00001720                            .cont:
+00001720 1B7C 0001 000E             		move.b	#1,$E(a5)	; Set duration of first "note"
+00001726 1B46 000D                  		move.b	d6,$D(a5)	; set "gosub" (coord flag F8h) stack init value
+0000172A 4A04                       		tst.b	d4			; Is this a PSG channel?
+0000172C 6B00                       		bmi.s	.sfxpsginitdone	; Branch if yes
+0000172E 1B7C 00C0 000A             		move.b	#$C0,$A(a5)	; AMS/FMS/Panning
+00001734 2B41 0020                  		move.l	d1,$20(a5)	; Voice pointer
+00001738                            
+00001738                            .sfxpsginitdone:
+00001738 51CF FF6C                  		dbf	d7,.sfx_loadloop
+0000173C                            
+0000173C 4A2E 0000                  		tst.b	v_sfx_fm4_playback_control(a6)	; Is special SFX being played?
+00001740 6A00                       		bpl.s	.doneoverride		; Branch if not
+00001742 08EE 0002 0000             		bset	#2,v_sfx2_fm4_playback_control(a6)	; Set SFX is overriding bit
+00001748                            
+00001748                            .doneoverride:
+00001748 4A2E 0000                  		tst.b	v_sfx_psg3_track(a6)	; Is special SFX being played?
+0000174C 6A00                       		bpl.s	PlaySFX_Done		; Branch if not
+0000174E 08EE 0002 0000             		bset	#2,v_sfx2_psg3_playback_control(a6)	; Set SFX is overriding bit
+00001754                            
+00001754                            PlaySFX_Done:
+00001754 4E75                       		rts	
+00001756                            ; ===========================================================================
+00001756                            
+00001756                            PlaySFX_ResetPrio:
+00001756 422E 0000                  		clr.b	v_sndprio(a6)		; Clear priority
+0000175A 4E75                       		rts	
+0000175C                            		
+0000175C                            
+0000175C                            ; ===========================================================================
+0000175C                            ; ---------------------------------------------------------------------------
+0000175C                            ; RAM addresses for FM and PSG channel variables
+0000175C                            ; ---------------------------------------------------------------------------
+0000175C 0000 0000                  SFXChannelRAM:	dc.l (v_snddriver_ram+v_sfx_fm3_track)&$FFFFFF
+00001760 0000 0000                  		dc.l 0
+00001764 0000 0000                  		dc.l (v_snddriver_ram+v_sfx_fm4_track)&$FFFFFF
+00001768 0000 0000                  		dc.l (v_snddriver_ram+v_sfx_fm5_track)&$FFFFFF
+0000176C 0000 0000                  		dc.l (v_snddriver_ram+v_sfx_psg1_track)&$FFFFFF
+00001770 0000 0000                  		dc.l (v_snddriver_ram+v_sfx_psg2_track)&$FFFFFF
+00001774 0000 0000                  		dc.l (v_snddriver_ram+v_sfx_psg3_track)&$FFFFFF	; Plain PSG3
+00001778 0000 0000                  		dc.l (v_snddriver_ram+v_sfx_psg3_track)&$FFFFFF	; Noise
+0000177C 0000 0000                  BGMChannelRAM:	dc.l (v_snddriver_ram+v_fm3_track)&$FFFFFF
+00001780 0000 0000                  		dc.l 0
+00001784 0000 0000                  		dc.l (v_snddriver_ram+v_fm4_track)&$FFFFFF
+00001788 0000 0000                  		dc.l (v_snddriver_ram+v_fm5_track)&$FFFFFF
+0000178C 0000 0000                  		dc.l (v_snddriver_ram+v_psg1_track)&$FFFFFF
+00001790 0000 0000                  		dc.l (v_snddriver_ram+v_psg2_track)&$FFFFFF
+00001794 0000 0000                  		dc.l (v_snddriver_ram+v_psg3_track)&$FFFFFF	; Plain PSG3
+00001798 0000 0000                  		dc.l (v_snddriver_ram+v_psg3_track)&$FFFFFF	; Noise
+0000179C                            ; ===========================================================================
+0000179C                            ; ---------------------------------------------------------------------------
+0000179C                            ; Play GHZ waterfall sound
+0000179C                            ; ---------------------------------------------------------------------------
+0000179C                            
+0000179C                            Sound_PlaySpecial:
+0000179C 4E75                       	rts
+0000179E                            
+0000179E                            .sfxloadloop:
+0000179E 1829 0001                  		move.b	1(a1),d4	; Voice control bits
+000017A2 6B00                       		bmi.s	.sfxoverridepsg	; Branch if PSG
+000017A4 08EE 0002 0000             		bset	#2,v_fm4_playback_control(a6)	; Set SFX is overriding bit
+000017AA 4BEE 0000                  		lea	v_sfx2_fm4_track(a6),a5
+000017AE                            		bra.s	.sfxinitpsg
+000017B0                            ; ===========================================================================
+000017B0                            
+000017B0                            .sfxoverridepsg:
+000017B0 08EE 0002 0000             		bset	#2,v_psg3_playback_control(a6)	; Set SFX is overriding bit
+000017B6 4BEE 0000                  		lea	v_sfx2_psg3_track(a6),a5
+000017BA                            
+000017BA                            .sfxinitpsg:
+000017BA 244D                       		movea.l	a5,a2
+000017BC 700B                       		moveq	#$B,d0
+000017BE                            
+000017BE                            .clearsfxtrackram:
+000017BE 429A                       		clr.l	(a2)+
+000017C0 51C8 FF32                  		dbf	d0,.clearsfxtrackram
+000017C4                            
+000017C4 3A99                       		move.w	(a1)+,(a5)	; Initial playback control bits
+000017C6 1B45 0002                  		move.b	d5,2(a5)	; Initial voice control bits
+000017CA 7000                       		moveq	#0,d0
+000017CC 3019                       		move.w	(a1)+,d0	; Track data pointer
+000017CE D08B                       		add.l	a3,d0		; Relative pointer
+000017D0 2B40 0004                  		move.l	d0,4(a5)	; Store track pointer
+000017D4 3B59 0008                  		move.w	(a1)+,8(a5)	; load FM/PSG channel modifier
+000017D8 1B7C 0001 000E             		move.b	#1,$E(a5)	; Set duration of first "note"
+000017DE 1B46 000D                  		move.b	d6,$D(a5)	; set "gosub" (coord flag F8h) stack init value
+000017E2 4A04                       		tst.b	d4		; Is this a PSG channel?
+000017E4                            		bmi.s	.sfxpsginitdone	; Branch if yes
+000017E6 1B7C 00C0 000A             		move.b	#$C0,$A(a5)	; AMS/FMS/Panning
+000017EC                            
+000017EC                            .sfxpsginitdone:
+000017EC 51CF FFB0                  		dbf	d7,.sfxloadloop
+000017F0                            
+000017F0 4A2E 0000                  		tst.b	v_sfx_fm4_playback_control(a6)	; Is track playing?
+000017F4                            		bpl.s	.doneoverride	; Branch if not
+000017F6 08EE 0002 0000             		bset	#2,v_sfx2_fm4_playback_control(a6)	; Set SFX is overriding track
+000017FC                            
+000017FC                            .doneoverride:
+000017FC 4A2E 0000                  		tst.b	v_sfx_psg3_playback_control(a6)	; Is track playing?
+00001800                            		bpl.s	.locret		; Branch if not
+00001802 08EE 0002 0000             		bset	#2,v_sfx2_psg3_playback_control(a6)	; Set SFX is overriding track
+00001808 0004 001F                  		ori.b	#$1F,d4		; Command to silence channel
+0000180C 13C4 0000 0000             		move.b	d4,(PSG).l
+00001812 0844 0005                  		bchg	#5,d4		; Command to silence noise channel
+00001816 13C4 0000 0000             		move.b	d4,(PSG).l
+0000181C                            
+0000181C                            .locret:
+0000181C 4E75                       		rts	
+0000181E                            ; End of function Sound_ChkValue
+0000181E                            
+0000181E                            ; ===========================================================================
+0000181E                            ; Unused
+0000181E 0000 0000                  		dc.l (v_snddriver_ram+v_fm4_track)&$FFFFFF
+00001822 0000 0000                  		dc.l (v_snddriver_ram+v_psg3_track)&$FFFFFF
+00001826 0000 0000                  		dc.l (v_snddriver_ram+v_sfx_fm4_track)&$FFFFFF
+0000182A 0000 0000                  		dc.l (v_snddriver_ram+v_sfx_psg3_track)&$FFFFFF
+0000182E 0000 0000                  		dc.l (v_snddriver_ram+v_sfx2_fm4_track)&$FFFFFF
+00001832 0000 0000                  		dc.l (v_snddriver_ram+v_sfx2_psg3_track)&$FFFFFF
+00001836                            
+00001836                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001836                            
+00001836                            
+00001836                            Snd_FadeOutSFX:
+00001836 422E 0000                  		clr.b	v_sndprio(a6)		; Clear priority
+0000183A 4BEE 0000                  		lea	v_sfx_track_ram(a6),a5
+0000183E 7E05                       		moveq	#5,d7
+00001840                            
+00001840                            .trackloop:
+00001840 4A15                       		tst.b	(a5)		; Is track playing?
+00001842 6A00 0000                  		bpl.w	.nexttrack	; Branch if not
+00001846 0895 0007                  		bclr	#7,(a5)		; Stop track
+0000184A 7600                       		moveq	#0,d3
+0000184C 162D 0001                  		move.b	1(a5),d3	; Get voice control bits
+00001850 6B00                       		bmi.s	.trackpsg	; Branch if PSG
+00001852 4EBA 0000                  		jsr	FMNoteOff(pc)
+00001856 0C03 0004                  		cmpi.b	#4,d3		; Is this FM4?
+0000185A 6600                       		bne.s	.getfmpointer	; Branch if not
+0000185C 4A2E 0000                  		tst.b	v_sfx2_fm4_playback_control(a6)	; Is special SFX playing?
+00001860 6A00                       		bpl.s	.getfmpointer	; Branch if not
+00001862                            		; DANGER! there is a missing 'movea.l	a5,a3' here, without which the
+00001862                            		; code is broken. It is dangerous to do a fade out when a GHZ waterfall
+00001862                            		; is playing its sound!
+00001862 4BEE 0000                  		lea	v_sfx2_fm4_track(a6),a5
+00001866 226E 0000                  		movea.l	v_special_voice_ptr(a6),a1	; Get special voice pointer
+0000186A 6000                       		bra.s	.gotfmpointer
+0000186C                            ; ===========================================================================
+0000186C                            
+0000186C                            .getfmpointer:
+0000186C 5503                       		subq.b	#2,d3		; SFX only has FM3 and up
+0000186E E50B                       		lsl.b	#2,d3
+00001870 41FA FF0A                  		lea	BGMChannelRAM(pc),a0
+00001874 264D                       		movea.l	a5,a3
+00001876 2A70 3000                  		movea.l	(a0,d3.w),a5
+0000187A 226E 0000                  		movea.l	v_voice_ptr(a6),a1	; Get music voice pointer
+0000187E                            
+0000187E                            .gotfmpointer:
+0000187E 0895 0002                  		bclr	#2,(a5)		; Clear SFX is overriding bit
+00001882 08D5 0001                  		bset	#1,(a5)		; Set track at rest bit
+00001886 102D 000B                  		move.b	$B(a5),d0	; Current voice
+0000188A 4EBA 0000                  		jsr	SetVoice(pc)
+0000188E 2A4B                       		movea.l	a3,a5
+00001890 6000                       		bra.s	.nexttrack
+00001892                            ; ===========================================================================
+00001892                            
+00001892                            .trackpsg:
+00001892 4EBA 0000                  		jsr	PSGNoteOff(pc)
+00001896 41EE 0000                  		lea	v_sfx2_psg3_track(a6),a0
+0000189A 0C03 00E0                  		cmpi.b	#$E0,d3		; Is this a noise channel:
+0000189E 6700                       		beq.s	.gotpsgpointer	; Branch if yes
+000018A0 0C03 00C0                  		cmpi.b	#$C0,d3		; Is this PSG 3?
+000018A4 6700                       		beq.s	.gotpsgpointer	; Branch if yes
+000018A6 E60B                       		lsr.b	#3,d3
+000018A8 41FA FED2                  		lea	BGMChannelRAM(pc),a0
+000018AC 2070 3000                  		movea.l	(a0,d3.w),a0
+000018B0                            
+000018B0                            .gotpsgpointer:
+000018B0 0890 0002                  		bclr	#2,(a0)		; Clear SFX is overriding bit
+000018B4 08D0 0001                  		bset	#1,(a0)		; Set track at rest bit
+000018B8 0C28 00E0 0001             		cmpi.b	#$E0,1(a0)	; Is this a noise channel?
+000018BE 6600                       		bne.s	.nexttrack	; Branch if not
+000018C0 13E8 001F 0000 0000        		move.b	$1F(a0),(PSG).l	; Set noise type
+000018C8                            
+000018C8                            .nexttrack:
+000018C8 DAFC 0000                  		adda.w	#zTrackSz,a5
+000018CC 51CF FF72                  		dbf	d7,.trackloop
+000018D0                            
+000018D0 4E75                       		rts	
+000018D2                            ; End of function Snd_FadeOutSFX
+000018D2                            
+000018D2                            
+000018D2                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+000018D2                            
+000018D2                            
+000018D2                            Snd_FadeOutSFX2:
+000018D2 4BEE 0000                  		lea	v_sfx2_fm4_track(a6),a5
+000018D6 4A15                       		tst.b	(a5)		; Is track playing?
+000018D8 6A00                       		bpl.s	.fadedfm	; Branch if not
+000018DA 0895 0007                  		bclr	#7,(a5)		; Stop track
+000018DE 0815 0002                  		btst	#2,(a5)		; Is SFX overriding?
+000018E2 6600                       		bne.s	.fadedfm	; Branch if not
+000018E4 4EBA 0000                  		jsr	SendFMNoteOff(pc)
+000018E8 4BEE 0000                  		lea	v_fm4_track(a6),a5
+000018EC 0895 0002                  		bclr	#2,(a5)		; Clear SFX is overriding bit
+000018F0 08D5 0001                  		bset	#1,(a5)		; Set track at rest bit
+000018F4 4A15                       		tst.b	(a5)		; Is track playing?
+000018F6 6A00                       		bpl.s	.fadedfm	; Branch if not
+000018F8 226E 0000                  		movea.l	v_voice_ptr(a6),a1	; Voice pointer
+000018FC 102D 000B                  		move.b	$B(a5),d0	; Current voice
+00001900 4EBA 0000                  		jsr	SetVoice(pc)
+00001904                            
+00001904                            .fadedfm:
+00001904 4BEE 0000                  		lea	v_sfx2_psg3_track(a6),a5
+00001908 4A15                       		tst.b	(a5)		; Is track playing?
+0000190A 6A00                       		bpl.s	.fadedpsg	; Branch if not
+0000190C 0895 0007                  		bclr	#7,(a5)		; Stop track
+00001910 0815 0002                  		btst	#2,(a5)		; Is SFX overriding?
+00001914 6600                       		bne.s	.fadedpsg	; Return if not
+00001916 4EBA 0000                  		jsr	SendPSGNoteOff(pc)
+0000191A 4BEE 0000                  		lea	v_psg3_track(a6),a5
+0000191E 0895 0002                  		bclr	#2,(a5)		; Clear SFX is overriding bit
+00001922 08D5 0001                  		bset	#1,(a5)		; Set track at rest bit
+00001926 4A15                       		tst.b	(a5)		; Is track playing?
+00001928 6A00                       		bpl.s	.fadedpsg	; Return if not
+0000192A 0C2D 00E0 0001             		cmpi.b	#$E0,1(a5)	; Is this a noise channel?
+00001930 6600                       		bne.s	.fadedpsg	; Return if not
+00001932 13ED 001F 0000 0000        		move.b	$1F(a5),(PSG).l	; Set noise type
+0000193A                            
+0000193A                            .fadedpsg:
+0000193A 4E75                       		rts	
+0000193C                            ; End of function Snd_FadeOutSFX2
+0000193C                            
+0000193C                            ; ===========================================================================
+0000193C                            ; ---------------------------------------------------------------------------
+0000193C                            ; Fade out music
+0000193C                            ; ---------------------------------------------------------------------------
+0000193C                            
+0000193C                            FadeOutMusic:
+0000193C 4EBA FEF8                  		jsr	Snd_FadeOutSFX(pc)
+00001940 4EBA FF90                  		jsr	Snd_FadeOutSFX2(pc)
+00001944 1D7C 0003 0000             		move.b	#3,v_fadeout_delay(a6)		; Set fadeout delay to 3
+0000194A 1D7C 0028 0000             		move.b	#$28,v_fadeout_counter(a6)		; Set fadeout counter
+00001950 422E 0000                  		clr.b	v_dac_playback_control(a6)	; Stop DAC track
+00001954 422E 0000                  		clr.b	f_speedup(a6)	; Disable speed shoes tempo
+00001958 4E75                       		rts	
+0000195A                            
+0000195A                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+0000195A                            
+0000195A                            
+0000195A                            DoFadeOut:
+0000195A 102E 0000                  		move.b	v_fadeout_delay(a6),d0	; Has fadeout delay expired?
+0000195E 6700                       		beq.s	.continuefade	; Branch if yes
+00001960 532E 0000                  		subq.b	#1,v_fadeout_delay(a6)
+00001964 4E75                       		rts	
+00001966                            ; ===========================================================================
+00001966                            
+00001966                            .continuefade:
+00001966 532E 0000                  		subq.b	#1,v_fadeout_counter(a6)	; Update fade counter
+0000196A 6700 0000                  		beq.w	StopSoundAndMusic	; Branch if fade is done
+0000196E 1D7C 0003 0000             		move.b	#3,v_fadeout_delay(a6)	; Reset fade delay
+00001974 4BEE 0000                  		lea	v_fm1_track(a6),a5
+00001978 7E05                       		moveq	#5,d7
+0000197A                            
+0000197A                            .fmloop:
+0000197A 4A15                       		tst.b	(a5)		; Is track playing?
+0000197C 6A00                       		bpl.s	.nextfm	; Branch if not
+0000197E 522D 0009                  		addq.b	#1,9(a5)	; Increase volume attenuation
+00001982 6A00                       		bpl.s	.sendfmtl	; Branch if still positive
+00001984 0895 0007                  		bclr	#7,(a5)		; Stop track
+00001988 6000                       		bra.s	.nextfm
+0000198A                            ; ===========================================================================
+0000198A                            
+0000198A                            .sendfmtl:
+0000198A 4EBA 0000                  		jsr	SendVoiceTL(pc)
+0000198E                            
+0000198E                            .nextfm:
+0000198E DAFC 0000                  		adda.w	#zTrackSz,a5
+00001992 51CF FFE6                  		dbf	d7,.fmloop
+00001996                            
+00001996 7E02                       		moveq	#2,d7
+00001998                            
+00001998                            .psgloop:
+00001998 4A15                       		tst.b	(a5)		; Is track playing?
+0000199A 6A00                       		bpl.s	.nextpsg	; branch if not
+0000199C 522D 0009                  		addq.b	#1,9(a5)	; Increase volume attenuation
+000019A0 0C2D 0010 0009             		cmpi.b	#$10,9(a5)	; Is it greater than $F?
+000019A6 6500                       		blo.s	.sendpsgvol	; Branch if not
+000019A8 0895 0007                  		bclr	#7,(a5)		; Stop track
+000019AC 6000                       		bra.s	.nextpsg
+000019AE                            ; ===========================================================================
+000019AE                            
+000019AE                            .sendpsgvol:
+000019AE 1C2D 0009                  		move.b	9(a5),d6	;Store new volume attenuation
+000019B2 4EBA 0000                  		jsr	SetPSGVolume(pc)
+000019B6                            
+000019B6                            .nextpsg:
+000019B6 DAFC 0000                  		adda.w	#zTrackSz,a5
+000019BA 51CF FFDC                  		dbf	d7,.psgloop
+000019BE                            
+000019BE 4E75                       		rts	
+000019C0                            ; End of function DoFadeOut
+000019C0                            
+000019C0                            
+000019C0                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+000019C0                            
+000019C0                            
+000019C0                            FMSilenceAll:
+000019C0 7602                       		moveq	#2,d3		; 3 FM channels for each YM2612 parts
+000019C2 7028                       		moveq	#$28,d0		; FM key on/off register
+000019C4                            
+000019C4                            .noteoffloop:
+000019C4 1203                       		move.b	d3,d1
+000019C6 4EBA 0000                  		jsr	WriteFMI(pc)
+000019CA 5801                       		addq.b	#4,d1		; Move to YM2612 part 1
+000019CC 4EBA 0000                  		jsr	WriteFMI(pc)
+000019D0 51CB F87A                  		dbf	d3,.noteoffloop
+000019D4                            
+000019D4 7040                       		moveq	#$40,d0		; Set TL on FM channels...
+000019D6 727F                       		moveq	#$7F,d1		; ... to total attenuation...
+000019D8 7802                       		moveq	#2,d4		; ... for all 3 channels...
+000019DA                            
+000019DA                            .channelloop:
+000019DA 7603                       		moveq	#3,d3		; ... for all operators on each channel...
+000019DC                            
+000019DC                            .channeltlloop:
+000019DC 4EBA 0000                  		jsr	WriteFMI(pc)	; ... for part 0...
+000019E0 4EBA 0000                  		jsr	WriteFMII(pc)	; ... and part 1.
+000019E4 5840                       		addq.w	#4,d0		; Next TL operator
+000019E6 51CB FFF4                  		dbf	d3,.channeltlloop
+000019EA                            
+000019EA 0400 000F                  		subi.b	#$F,d0		; Move to TL operator 1 of next channel
+000019EE 51CC FFEA                  		dbf	d4,.channelloop
+000019F2                            
+000019F2 4E75                       		rts	
+000019F4                            ; End of function FMSilenceAll
+000019F4                            
+000019F4                            ; ===========================================================================
+000019F4                            ; ---------------------------------------------------------------------------
+000019F4                            ; Stop music
+000019F4                            ; ---------------------------------------------------------------------------
+000019F4                            
+000019F4                            StopSoundAndMusic:
+000019F4 702B                       		moveq	#$2B,d0		; Enable/disable DAC
+000019F6 123C 0080                  		move.b	#$80,d1		; Enable DAC
+000019FA 4EBA 0000                  		jsr	WriteFMI(pc)
+000019FE 7027                       		moveq	#$27,d0		; Timers, FM3/FM6 mode
+00001A00 7200                       		moveq	#0,d1		; FM3/FM6 normal mode, disable timers
+00001A02 4EBA 0000                  		jsr	WriteFMI(pc)
+00001A06 204E                       		movea.l	a6,a0
+00001A08 303C 00E3                  		move.w	#$E3,d0		; Clear $390 bytes
+00001A0C                            
+00001A0C                            .clearramloop:
+00001A0C 4298                       		clr.l	(a0)+
+00001A0E 51C8 FFFC                  		dbf	d0,.clearramloop
+00001A12                            
+00001A12 33FC 0100 00A1 1100 4E71+  		stopZ80
+00001A2A 13FC 0080 00A0 1FFF        		move.b	#$80,($A01FFF).l ; stop DAC playback
+00001A32 33FC 0000 00A1 1100        		startZ80
+00001A3A                            
+00001A3A 1D7C 0080 0000             		move.b	#$80,v_playsnd0(a6)	; set music to $80 (silence)
+00001A40 4EBA FF7E                  		jsr	FMSilenceAll(pc)
+00001A44 6000 0000                  		bra.w	PSGSilenceAll
+00001A48                            
+00001A48                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001A48                            
+00001A48                            
+00001A48                            InitMusicPlayback:
+00001A48 204E                       		movea.l	a6,a0
+00001A4A                            		; Save several values
+00001A4A 122E 0000                  		move.b	v_sndprio(a6),d1
+00001A4E 162E 0000                  		move.b	f_speedup(a6),d3
+00001A52 182E 0000                  		move.b	v_fadein_counter(a6),d4
+00001A56 3A2E 0000                  		move.w	v_playsnd1(a6),d5
+00001A5A 303C 0087                  		move.w	#$87,d0		; Clear $220 bytes
+00001A5E                            
+00001A5E                            .clearramloop:
+00001A5E 4298                       		clr.l	(a0)+
+00001A60 51C8 FFAA                  		dbf	d0,.clearramloop
+00001A64                            
+00001A64                            		; Restore the values saved above
+00001A64 1D41 0000                  		move.b	d1,v_sndprio(a6)
+00001A68 1D43 0000                  		move.b	d3,f_speedup(a6)
+00001A6C 1D44 0000                  		move.b	d4,v_fadein_counter(a6)
+00001A70 3D45 0000                  		move.w	d5,v_playsnd1(a6)
+00001A74 1D7C 0080 0000             		move.b	#$80,v_playsnd0(a6)	; set music to $80 (silence)
+00001A7A                            
+00001A7A 51EE 0000                  		sf.b	v_extension(a6)		; reset extension flague
+00001A7E 4EB9 0000 0000             		jsr	TS_InitExtChannels	; ++
+00001A84 4EBA FF3A                  		jsr	FMSilenceAll(pc)
+00001A88 6000 0000                  		bra.w	PSGSilenceAll
+00001A8C                            ; End of function InitMusicPlayback
+00001A8C                            
+00001A8C                            
+00001A8C                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001A8C                            
+00001A8C                            
+00001A8C                            TempoWait:
+00001A8C 1D6E 0000 0000             		move.b	v_main_tempo(a6),v_main_tempo_timeout(a6)	; Reset main tempo timeout
+00001A92 41EE 0000                  		lea	v_dac_note_timeout(a6),a0
+00001A96 7000                       		moveq	#zTrackSz,d0
+00001A98 7209                       		moveq	#9,d1	; [(1 DAC + 6 FM) or (7 FM)] + 3 PSG
+00001A9A                            
+00001A9A                            .tempoloop:
+00001A9A 5210                       		addq.b	#1,(a0)	; Delay note by 1 frame
+00001A9C D0C0                       		adda.w	d0,a0	; Advance to next track
+00001A9E 51C9 FFFA                  		dbf	d1,.tempoloop
+00001AA2                            
+00001AA2 4E75                       		rts	
+00001AA4                            ; End of function TempoWait
+00001AA4                            
+00001AA4                            ; ===========================================================================
+00001AA4                            ; ---------------------------------------------------------------------------
+00001AA4                            ; Speed	up music
+00001AA4                            ; ---------------------------------------------------------------------------
+00001AA4                            
+00001AA4                            SpeedUpMusic:
+00001AA4 1D6E 0000 0000             		move.b	v_speeduptempo(a6),v_main_tempo(a6)
+00001AAA 1D6E 0000 0000             		move.b	v_speeduptempo(a6),v_main_tempo_timeout(a6)
+00001AB0 1D7C 0080 0000             		move.b	#$80,f_speedup(a6)
+00001AB6 4E75                       		rts	
+00001AB8                            ; ===========================================================================
+00001AB8                            ; ---------------------------------------------------------------------------
+00001AB8                            ; Change music back to normal speed
+00001AB8                            ; ---------------------------------------------------------------------------
+00001AB8                            
+00001AB8                            SlowDownMusic:
+00001AB8 1D6E 0000 0000             		move.b	v_tempo_mod(a6),v_main_tempo(a6)
+00001ABE 1D6E 0000 0000             		move.b	v_tempo_mod(a6),v_main_tempo_timeout(a6)
+00001AC4 422E 0000                  		clr.b	f_speedup(a6)
+00001AC8 4E75                       		rts
+00001ACA                            
+00001ACA                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001ACA                            
+00001ACA                            
+00001ACA                            DoFadeIn:
+00001ACA 4A2E 0000                  		tst.b	v_fadein_delay(a6)	; Has fadein delay expired?
+00001ACE                            		beq.s	.continuefade		; Branch if yes
+00001AD0 532E 0000                  		subq.b	#1,v_fadein_delay(a6)
+00001AD4 4E75                       		rts	
+00001AD6                            ; ===========================================================================
+00001AD6                            
+00001AD6                            .continuefade:
+00001AD6 4A2E 0000                  		tst.b	v_fadein_counter(a6)	; Is fade done?
+00001ADA 6700                       		beq.s	.fadedone			; Branch if yes
+00001ADC 532E 0000                  		subq.b	#1,v_fadein_counter(a6)	; Update fade counter
+00001AE0 1D7C 0002 0000             		move.b	#2,v_fadein_delay(a6)	; Reset fade delay
+00001AE6 4BEE 0000                  		lea	v_fm1_track(a6),a5
+00001AEA 7E05                       		moveq	#5,d7
+00001AEC                            
+00001AEC                            .fmloop:
+00001AEC 4A15                       		tst.b	(a5)		; Is track playing?
+00001AEE                            		bpl.s	.nextfm	; Branch if not
+00001AF0 532D 0009                  		subq.b	#1,9(a5)	; Reduce volume attenuation
+00001AF4 4EBA 0000                  		jsr	SendVoiceTL(pc)
+00001AF8                            
+00001AF8                            .nextfm:
+00001AF8 DAFC 0000                  		adda.w	#zTrackSz,a5
+00001AFC 51CF FE7C                  		dbf	d7,.fmloop
+00001B00 7E02                       		moveq	#2,d7
+00001B02                            
+00001B02                            .psgloop:
+00001B02 4A15                       		tst.b	(a5)		; Is track playing?
+00001B04                            		bpl.s	.nextpsg	; Branch if not
+00001B06 532D 0009                  		subq.b	#1,9(a5)	; Reduce volume attenuation
+00001B0A 1C2D 0009                  		move.b	9(a5),d6	; Get value
+00001B0E 0C06 0010                  		cmpi.b	#$10,d6		; Is it is < $10?
+00001B12                            		blo.s	.sendpsgvol	; Branch if yes
+00001B14 7C0F                       		moveq	#$F,d6		; Limit to $F (maximum attenuation)
+00001B16                            
+00001B16                            .sendpsgvol:
+00001B16 4EBA 0000                  		jsr	SetPSGVolume(pc)
+00001B1A                            
+00001B1A                            .nextpsg:
+00001B1A DAFC 0000                  		adda.w	#zTrackSz,a5
+00001B1E 51CF FE78                  		dbf	d7,.psgloop
+00001B22 4E75                       		rts	
+00001B24                            ; ===========================================================================
+00001B24                            
+00001B24                            .fadedone:
+00001B24 08AE 0002 0000             		bclr	#2,v_dac_playback_control(a6)	; Clear SFX overriding bit
+00001B2A 422E 0000                  		clr.b	f_fadein_flag(a6)		; Stop fadein
+00001B2E 4E75                       		rts	
+00001B30                            ; End of function DoFadeIn
+00001B30                            
+00001B30                            ; ===========================================================================
+00001B30                            
+00001B30                            FMNoteOn:
+00001B30 7C00                       		moveq	#0,d6
+00001B32 1C38 0000                  		move.b	Music_StoreChan.w,d6
+00001B36 0D38 0000                  		btst	d6,Music_EnabledChans+1.w
+00001B3A                            		bne.s	.locret	
+00001B3C                            
+00001B3C 0815 0001                  		btst	#1,(a5)		; Is track resting?
+00001B40                            		bne.s	.locret		; Return if so
+00001B42 0815 0002                  		btst	#2,(a5)		; Is track being overridden?
+00001B46                            		bne.s	.locret		; Return if so
+00001B48 7028                       		moveq	#$28,d0		; Note on/off register
+00001B4A 122D 0001                  		move.b	1(a5),d1	; Get channel bits
+00001B4E 0001 00F0                  		ori.b	#$F0,d1		; Note on on all operators
+00001B52 6000 0000                  		bra.w	WriteFMI
+00001B56                            ; ===========================================================================
+00001B56                            
+00001B56                            .locret:
+00001B56 4E75                       		rts	
+00001B58                            
+00001B58                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001B58                            
+00001B58                            
+00001B58                            FMNoteOff:
+00001B58 0815 0004                  		btst	#4,(a5)		; Is 'do not attack next note' set?
+00001B5C 6600                       		bne.s	locret_72714	; Return if yes
+00001B5E 0815 0002                  		btst	#2,(a5)		; Is SFX overriding?
+00001B62 6600                       		bne.s	locret_72714	; Return if yes
+00001B64                            
+00001B64                            SendFMNoteOff:
+00001B64 7028                       		moveq	#$28,d0		; Note on/off register
+00001B66 122D 0001                  		move.b	1(a5),d1	; Note off to this channel
+00001B6A 6000 0000                  		bra.w	WriteFMI
+00001B6E                            ; ===========================================================================
+00001B6E                            
+00001B6E                            locret_72714:
+00001B6E 4E75                       		rts	
+00001B70                            ; End of function FMNoteOff
+00001B70                            
+00001B70                            ; ===========================================================================
+00001B70                            
+00001B70                            WriteFMIorIIMain:
+00001B70 0815 0002                  		btst	#2,(a5)		; Is track being overriden by sfx?
+00001B74                            		bne.s	.locret	; Return if yes
+00001B76 6000 0000                  		bra.w	WriteFMIorII
+00001B7A                            ; ===========================================================================
+00001B7A                            
+00001B7A                            .locret:
+00001B7A 4E75                       		rts	
+00001B7C                            
+00001B7C                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001B7C                            
+00001B7C                            
+00001B7C                            WriteFMIorII:
+00001B7C 082D 0002 0001             		btst	#2,1(a5)	; Is this bound for part I or II?
+00001B82 6600                       		bne.s	WriteFMIIPart	; Branch if for part II
+00001B84 D02D 0001                  		add.b	1(a5),d0	; Add in voice control bits
+00001B88                            ; End of function WriteFMIorII
+00001B88                            
+00001B88                            
+00001B88                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001B88                            
+00001B88                            
+00001B88                            WriteFMI:
+00001B88 33FC 0100 00A1 1100 4E71+  		stopZ80
+00001BA0 1439 00A0 4000 0802 0007+  		waitYM
+00001BAC 13C0 00A0 4000             		move.b	d0,($A04000).l
+00001BB2 1439 00A0 4000 0802 0007+  		waitYM
+00001BBE 13C1 00A0 4001             		move.b	d1,($A04001).l
+00001BC4 1439 00A0 4000 0802 0007+  		waitYM
+00001BD0 13FC 002A 00A0 4000        		move.b	#$2A,($A04000).l
+00001BD8 33FC 0000 00A1 1100        		startZ80
+00001BE0 4E75                       		rts
+00001BE2                            ; End of function WriteFMI
+00001BE2                            
+00001BE2                            ; ===========================================================================
+00001BE2                            
+00001BE2                            WriteFMIIPart:
+00001BE2 142D 0001                  		move.b	1(a5),d2	; Get voice control bits
+00001BE6 0882 0002                  		bclr	#2,d2		; Clear chip toggle
+00001BEA D002                       		add.b	d2,d0		; Add in to destination register
+00001BEC                            
+00001BEC                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001BEC                            
+00001BEC                            
+00001BEC                            WriteFMII:
+00001BEC 33FC 0100 00A1 1100 4E71+  		stopZ80
+00001C04 1439 00A0 4000 0802 0007+  		waitYM
+00001C10 13C0 00A0 4002             		move.b	d0,($A04002).l
+00001C16 1439 00A0 4000 0802 0007+  		waitYM
+00001C22 13C1 00A0 4003             		move.b	d1,($A04003).l
+00001C28 1439 00A0 4000 0802 0007+  		waitYM
+00001C34 13FC 002A 00A0 4000        		move.b	#$2A,($A04000).l
+00001C3C 33FC 0000 00A1 1100        		startZ80
+00001C44 4E75                       		rts
+00001C46                            ; End of function WriteFMII
+00001C46                            
+00001C46                            ; ===========================================================================
+00001C46                            ; ---------------------------------------------------------------------------
+00001C46                            ; FM Note Values: b-0 to a#8
+00001C46                            ; ---------------------------------------------------------------------------
+00001C46                            FM_Notes:
+00001C46 025E 0284 02AB 02D3 02FE+  	dc.w $025E,$0284,$02AB,$02D3,$02FE,$032D,$035C,$038F,$03C5,$03FF,$043C,$047C
+00001C5E 0A5E 0A84 0AAB 0AD3 0AFE+  	dc.w $0A5E,$0A84,$0AAB,$0AD3,$0AFE,$0B2D,$0B5C,$0B8F,$0BC5,$0BFF,$0C3C,$0C7C
+00001C76 125E 1284 12AB 12D3 12FE+  	dc.w $125E,$1284,$12AB,$12D3,$12FE,$132D,$135C,$138F,$13C5,$13FF,$143C,$147C
+00001C8E 1A5E 1A84 1AAB 1AD3 1AFE+  	dc.w $1A5E,$1A84,$1AAB,$1AD3,$1AFE,$1B2D,$1B5C,$1B8F,$1BC5,$1BFF,$1C3C,$1C7C
+00001CA6 225E 2284 22AB 22D3 22FE+  	dc.w $225E,$2284,$22AB,$22D3,$22FE,$232D,$235C,$238F,$23C5,$23FF,$243C,$247C
+00001CBE 2A5E 2A84 2AAB 2AD3 2AFE+  	dc.w $2A5E,$2A84,$2AAB,$2AD3,$2AFE,$2B2D,$2B5C,$2B8F,$2BC5,$2BFF,$2C3C,$2C7C
+00001CD6 325E 3284 32AB 32D3 32FE+  	dc.w $325E,$3284,$32AB,$32D3,$32FE,$332D,$335C,$338F,$33C5,$33FF,$343C,$347C
+00001CEE 3A5E 3A84 3AAB 3AD3 3AFE+  	dc.w $3A5E,$3A84,$3AAB,$3AD3,$3AFE,$3B2D,$3B5C,$3B8F,$3BC5,$3BFF,$3C3C,$3C7C
+00001D06                            
+00001D06                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001D06                            
+00001D06                            
+00001D06                            PSGUpdateTrack:
+00001D06 532D 000E                  		subq.b	#1,$E(a5)		; Update note timeout
+00001D0A                            		bne.s	.notegoing
+00001D0C 0895 0004                  		bclr	#4,(a5)			; Clear 'do not attack note' flag
+00001D10 4EBA 0000                  		jsr	PSGDoNext(pc)
+00001D14 4EBA 0000                  		jsr	PSGDoNoteOn(pc)
+00001D18 6000 0000                  		bra.w	PSGDoVolFX
+00001D1C                            ; ===========================================================================
+00001D1C                            
+00001D1C                            .notegoing:
+00001D1C 4EBA F44E                  		jsr	NoteFillUpdate(pc)
+00001D20 4EBA 0000                  		jsr	PSGUpdateVolFX(pc)
+00001D24 4EBA F46E                  		jsr	DoModulation(pc)
+00001D28 4EBA 0000                  		jsr	PSGUpdateFreq(pc)
+00001D2C 4E75                       		rts	
+00001D2E                            ; End of function PSGUpdateTrack
+00001D2E                            
+00001D2E                            
+00001D2E                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001D2E                            
+00001D2E                            
+00001D2E                            PSGDoNext:
+00001D2E 0895 0001                  		bclr	#1,(a5)		; Clear track at rest bit
+00001D32 286D 0004                  		movea.l	4(a5),a4	; Get track data pointer
+00001D36                            
+00001D36                            .noteloop:
+00001D36 7A00                       		moveq	#0,d5
+00001D38 1A1C                       		move.b	(a4)+,d5	; Get byte from track
+00001D3A 0C05 00E0                  		cmpi.b	#$E0,d5		; Is it a coord. flag?
+00001D3E                            		blo.s	.gotnote	; Branch if not
+00001D40 4EBA 0000                  		jsr	CoordFlag(pc)
+00001D44                            		bra.s	.noteloop
+00001D46                            ; ===========================================================================
+00001D46                            
+00001D46                            .gotnote:
+00001D46 4A05                       		tst.b	d5			; Is it a note?
+00001D48                            		bpl.s	.gotduration	; Branch if not
+00001D4A 4EBA 0000                  		jsr	PSGSetFreq(pc)
+00001D4E 1A1C                       		move.b	(a4)+,d5	; Get another byte
+00001D50 4A05                       		tst.b	d5			; Is it a duration?
+00001D52                            		bpl.s	.gotduration	; Branch if yes
+00001D54 534C                       		subq.w	#1,a4		; Put byte back
+00001D56 6000 F3D6                  		bra.w	FinishTrackUpdate
+00001D5A                            ; ===========================================================================
+00001D5A                            
+00001D5A                            .gotduration:
+00001D5A 4EBA F3B2                  		jsr	SetDuration(pc)
+00001D5E 6000 F3CE                  		bra.w	FinishTrackUpdate
+00001D62                            ; End of function PSGDoNext
+00001D62                            
+00001D62                            
+00001D62                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001D62                            
+00001D62                            
+00001D62                            PSGSetFreq:
+00001D62 0405 0081                  		subi.b	#$81,d5		; Convert to 0-based index
+00001D66 6500                       		blo.s	.restpsg	; If $80, put track at rest
+00001D68 DA2D 0008                  		add.b	8(a5),d5	; Add in channel key displacement
+00001D6C 0245 007F                  		andi.w	#$7F,d5		; Clear high byte and sign bit
+00001D70 E34D                       		lsl.w	#1,d5
+00001D72 41FA 0000                  		lea	PSGFrequencies(pc),a0
+00001D76 3B70 5000 0010             		move.w	(a0,d5.w),$10(a5)	; Set new frequency
+00001D7C 6000 F3B0                  		bra.w	FinishTrackUpdate
+00001D80                            ; ===========================================================================
+00001D80                            
+00001D80                            .restpsg:
+00001D80 08D5 0001                  		bset	#1,(a5)		; Set track at rest bit
+00001D84 3B7C FFFF 0010             		move.w	#-1,$10(a5)	; Invalidate note frequency
+00001D8A 4EBA F3A2                  		jsr	FinishTrackUpdate(pc)
+00001D8E 6000 0000                  		bra.w	PSGNoteOff
+00001D92                            ; End of function PSGSetFreq
+00001D92                            
+00001D92                            
+00001D92                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001D92                            
+00001D92                            
+00001D92                            PSGDoNoteOn:
+00001D92 3C2D 0010                  		move.w	$10(a5),d6	; Get note frequency
+00001D96 6B00                       		bmi.s	PSGSetRest	; If invalid, branch
+00001D98                            ; End of function PSGDoNoteOn
+00001D98                            
+00001D98                            
+00001D98                            ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+00001D98                            
+00001D98                            
+00001D98                            PSGUpdateFreq:
+00001D98 102D 001E                  		move.b	$1E(a5),d0		; Get frequency note adjustment
+00001D9C 4880                       		ext.w	d0
+00001D9E DC40                       		add.w	d0,d6		; Add to frequency
+00001DA0 0815 0002                  		btst	#2,(a5)		; Is track being overridden?
+00001DA4                            		bne.s	.locret		; Return if yes
+00001DA6 0815 0001                  		btst	#1,(a5)		; Is track at rest?
+00001DAA                            		bne.s	.locret		; Return if yes
+00001DAC 102D 0001                  		move.b	1(a5),d0	; Get channel bits
+00001DB0 0C00 00E0                  		cmpi.b	#$E0,d0		; Is it a noise channel?
+00001DB4 6600                       		bne.s	.notnoise	; Branch if not
+00001DB6 103C 00C0                  		move.b	#$C0,d0		; Use PSG 3 channel bits
+00001DBA                            
+00001DBA                            .notnoise:
+00001DBA 3F00                       		move.w	d0,-(sp)
+00001DBC 2038 0000                  		move.l	Bought_Items.w,d0
+00001DC0 0800 004C                  		btst	#Used_AirHorn,d0
