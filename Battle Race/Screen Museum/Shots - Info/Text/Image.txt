@@ -1,0 +1,11 @@
+This is a test image.
+
+This image is used to test certain dithering techniques for Bitmap MD, hopefully it will help me to produce some great results.
+
+	moveq	#$00,d0¬
+	lea	(a0,d0.w),a1¬
+	add.b	d1,d1¬
+	addx.w	d0,d0¬
+	lea	(a0,d0.w),a2
+
+This is test code above...

@@ -1,0 +1,20 @@
+History
+
+The story of this website started back in early 1999, when Cyan was invited to
+join an unusual start-up group of coders and hackers, known as the
+"Sonic Stuff Research Group" (SSRG). Although it was this which eventually
+led to the website, and tools such as the Maze Editor, this was by no means
+the whole story.
+
+Cyan's ROM hacking adventures can be traced back to 1997, when Megadrive
+emulators were just beginning to surface for the IBM-PC microcomputer. Being
+a computer programmer and long-time user of 68000-based machines, Cyan experimented
+with hacking and adjusting the ROMs in various ways, although typically without results.
+
+It wasn't until Cyan found a magazine with an action replay code to access the
+leftovers of Hidden Palace Zone in Sonic 2 that things really started to progress.
+By carefully hacking savestate files, Cyan was able to access Hidden Palace Zone
+under emulation.
+
+Sadly, almost all of the data relating to Hidden Palace Zone had been removed from
+the ROM prior to release, so the corrupted zone remained little more than a curiosity.

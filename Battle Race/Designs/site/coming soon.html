@@ -1,0 +1,275 @@
+<br/>
+<div id="textpage">
+    <h1>Prototype Shots</h1>
+    <div class="shots">
+        <div><img src="cs/Arrows.PNG" /><div>Some unused "no direction" arrows.<br/><br/>Originally we planned to use the ? symbol, but decided it would have been best to use a four direction arrow for clarity.<br/><br/>As you can see, the four arrow design is ever so slightly different too.</div></div>
+        <div><img src="cs/Flag.PNG" /><div>Old "tied" flag design.<br/><br/>The shaping is wrong for Sonic and Tails and overall it looked ugly. To be fair, the current design in the ROM isn't brilliant either, but Sonic 3's palette is quite a pain by comparison to the older games.</div></div>
+        <div><img src="cs/Go.PNG" /><div>LBZ's mini-game has a "GO" sign, it also used to have a backdrop similar to that of the HUD.<br/><br/>It went unused as we felt it created a clash.</div></div>
+        <div><img src="cs/Hud.PNG" /><div>The original HUD design.<br/><br/>We weren't sure what design we wanted at the time, this seemed very bland. I remember there being a kids show on TV called 50/50.<br/><br/>While not a fan of it, I remember the design being an oval with half being blue and the other half being yellow. This ended up being our "staple" for lack of a better word.</div></div>
+        <div><img src="cs/Knuckles Logo.PNG" /><div>The "& Knuckles" logo, while still the same shape now, used to be red/green to help separate it from the SONIC 3 part of the logo. This was not for the title screen, this was actually for the splashes between the level select effects.<br/><br/>We ended up not using it due to palette limitations.</div></div>
+        <div><img src="cs/Mini Game Cards.PNG" /><div>Some old mock up images of the mini-game level select. Since these mini-games had rules, we felt they needed some sort of explanation written onto the cards to clarify the rules.<br/><br/>Unfortunately we never came up with a nice enough design and simply ran out of time. Which is why the mini-game cards use the same cards as the battle race level select.<br/><br/>Maybe something like this will eventually end up in the final build, we'll see. It depends on how well people respond to the games and how easily they get confused.</div></div>
+        <div><img src="cs/Pause.PNG" /><div>The old pause menu, this one DID actually make its way into the ROM, and was used for a very long time. We didn't have much VRAM at the time, so we opted for optimising the tiles as much as possible, and as a result, couldn't use sprites.<br/><br/>We ended up removing this and using the HUD's VRAM space so we could use sprites instead.</div></div>
+        <div><img src="cs/Title BG.PNG" /><div>Some old backgrounds for the title screen, the first one was from waaaaay back. This was before the logo had even been decided, we didn't even have a main menu, and the ident/splash screens weren't even in.<br/><br/>We felt it looked too tacky, dithering was way too obvious and clear, and it just didn't sit right.  Given that we didn't have a logo made the situation worse.<br/><br/>The second one is the one currently in use, the only difference is, we ended up using a black background instead of this light grey one, we also cut out transparent lines in the zig-zag too.<br/><br/>One thing to note, this zig-zag originally was not a power of 2, thus to wrap it we had to use the divide instruction and obtain the remainder.  Due to heavy amounts of CPU time required, we ended up modifying it to be a power of two so it could be wrapped better.</div></div>
+        <div><img src="cs/Title Logos.PNG" /><div>Title logo text progressions.<br/><br/>Again, we hadn't settled on a clear design and we experimented with a few different designs.<br/><br/>You can see the very last unused design is the same as the final, except the yellow/blue are swapped.</div></div>
+        <div><img src="cs/Star.PNG" /><div>An old star transition card design from the main menu, the Christmassy looking vertical bars would animate, one going up, one going down.</div></div>
+        <div><img src="cs/Star Animated.PNG" /><div>Here is the star itself animating and rotating. This was in the final ROM at one point, but the amount of memory required to keep it was unexpectedly too much.<br/><br/>Maybe we'll re-implement it once we've found a way around every emulators odd desire to limit the ROM to 4MB instead of allow emulation for /DTAK to access the 8 - 10MB mark.</div></div>
+        <div><img src="cs/Cog Animated.PNG" /><div>An old cog design, this one uses a metallic reflected inlay. Unfortunately, because the inlay doesn't rotate with the cog, it has an odd appearance, so we dropped it.</div></div>
+    </div>
+    <br/>
+    <h1>Unused Level</h1>
+    <p>We were inspired by Disney's 1991 film "Beauty and the Beast". The background visuals were outstanding, and we thought it would be so awesome to have a level in a Sonic game just like that.
+        We ended up running out of time though, and the level had to be scrapped, though we have decided to make a complete different level altogether, so, this level ended up being a waste of time, but at least you get to see what could've been.</p>
+    <br/>
+    <div class="shots">
+        <div><img src="cs/Gargoyles.PNG" /><div>Some gargoyles and various bricks, some used, some not.</div></div>
+        <div><img src="cs/Trees.PNG" /><div>Trees, and some unused flooring.<br/><br/>The floors looked too repetitive and bland, and ended up being swapped for a different type of floor which would be more elaborate.</div></div>
+        <div><img src="cs/Brick Pillars.PNG" /><div>Some pillars and bricks to support the level chunks.</div></div>
+        <div><img src="cs/Arch Windows.PNG" /><div>Unused window looking bricks.<br/><br/>These were originally designed for a mode 7 test ROM which ended up not being released. They were repalette'd and used here.</div></div>
+        <div><img src="cs/Bridge Chunks.PNG" /><div>A full bridge chunk, using the brick pillars, trees and gargoyles in full.<br/><br/>This ended up making its way into the ROM initially, though the floor positions were lowered/raised a bit.</div></div>
+        <div><img src="cs/Level Plan.PNG" /><div>Some plan to have the floor wrap around the pillars (similar to MGZ's pillars).</div></div>
+        <div><img src="cs/Gates.PNG" /><div>There were plans to have a garden of beautiful plants and grass, this is as far as it got.<br/><br/>Didn't even get to designing a single plant in the end, but at least you got a gate!</div></div>
+        <div><img src="cs/Clouds.PNG" /><div>Some BG clouds and a moon. The left one was the original one, unfortunately it took up way too much VRAM.<br/><br/>We ended up having to heavily condense the clouds and make them far more repetitive than we wanted. It still looks nice though.</div></div>
+        <div><img src="cs/Outside.PNG" /><div>An animation of the outdoor stuff in action. Here you can see a super cool effect with the clouds moving across the moon.<br/><br/>These are not prerendered/animated frames, there was actually quite a bit of software rendering going on to ensure the clouds would appear transparent and showing the moon behind them.<br/><br/>We came up with a neat method that wouldn't cost too much CPU time, and the results were outstanding!</div></div>
+        <div><img src="cs/Curtains.PNG" /><div>Some indoor curtains.</div></div>
+        <div><img src="cs/Indoor Pillars.PNG" /><div>Some indoor pillars.<br/><br/>The far left one became unused as it was too simple, and the far right one was an experiment which I felt was too basic.</div></div>
+        <div><img src="cs/Inside walls.PNG" /><div>Some inside bricks and a window of sorts, though I was never too comfortable with these as they were far too repetetive.</div></div>
+        <div><img src="cs/Fred.PNG" /><div>Meet Fred!<br/><br/>He ended up taking alot of VRAM. Likewise, he was larger than the screen vertically.<br/><br/>These statues were going to be normal looking, and when a thunder flash would occur, the image of Fred would briefly take their place until the lights came back on.</div></div>
+        <div><img src="cs/Carpet.PNG" /><div>An in-game shot of the carpet on the floor of the hallway.</div></div>
+        <div><img src="cs/Reflection Floor.PNG" /><div>A small diagramatic plan on the flooring section.<br/><br/>The way it's setup allows reflections to be seen from objects and the characters. The reflections would appear behind the mesh.</div></div>
+        <div><img src="cs/Inside.PNG" /><div>An animation of the indoor stuff in action. You can see the floor scrolling and resizing as you jump and move along it.<br/><br/>A few games have done the floor technique scrolling it horizontally, but few have done the vertical resizing with it.<br/><br/>The pillars and their shadows on the curtains is perhaps my favourite part of it.</div></div>
+    </div>
+    <h1>Planning and Ideas</h1>
+    <p>We thought it would be really cool to share some dialogue and images of the project when we first started. Here are a few strips of dialogue while planning, much of these happened at different times, but we've felt to combine them into one large text.</p>
+    <br/>
+    <div class="dcchat">
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Alright then~</div><div>So where do we begin?</div><div>I was just thinking.</div><div>In the original battle race, the screen is positioned such that it's inbetween the two players.</div><div>What if the screen followed the one who's ahead?</div><div>On X and Y individually though.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>yeah I was thinking, it could only go, so that the last quarter of screen is still ahead of the player who is first</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>I was also thinking of having a sortof, line map to indicate the correct path.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>we could have it only 4 ways, 8 ways, or an angle</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>I was thinking of that.</div><div>But I am wondering if a path line would be better.</div><div>Lemmy think it out.</div><div>If I can find a... map of EHZ.</div><div><img src="cs/Line Example.PNG" /></div><div>Kinda like that.</div><div>A single bit would represent a block.</div><div>Not sure about direction though.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>huh</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Maybe it would be best to stick to events routines after all.</div><div>I'm already seeing flaws in my plan dX</div><div>I think what we could do, is however is furthest in their respective path wins.</div><div>Either that, or have a single path has higher priority kinda thing.</div><div>Not sure which gets to decide.</div><div>We could go with the one that gets to the finish quicker...</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>oh right</div><div>we could favour upper paths, but then see which one is being travelled furthest</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>But I'd also say sections with large open areas like Chemical Plane 2's area before the water rising section.</div><div>Those would be a bit difficult to decide</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>which one goes quicker can be challenged</div><div>and can be confusing</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>We'll do it be shortest pixel length to get to destination.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>we need a damn complex system =O</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Hang on...</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>nah that doesnt sound really reasonable</div><div>the player wont know</div><div>they will think its unfair</div><div>upper paths are hardest to get to, so in a way, that should be rewarded imo</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>They will know, because of your idea about the direction arrows on screen, telling them which way is best/fastest</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>oh yeah true</div><div>but it may feel cheap</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>That's true.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>so I would always use the path that is hardest to get to</div><div>minus a few that are more luck based</div><div>I can foresee people being pissed about the CPZ2 thing that is at the top for example</div><div>or the one weird path that almot nobody knows about and it goes backwards</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div><img src="cs/CPZ Direction.PNG" /></div><div>Like this.</div><div>Up would win, because it's a little more difficult (or time consuming) to get to.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>yeah, but it also needs to account to going down, and someone standing on the upper path</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>?</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>say, the other player just stands on the ledge</div><div>while the other player jumps down</div><div>obviously the player just standing around should die</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Why? I mean to say, if it bothered the other player, the other player should go the same way.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>hat I am thinking, is that the point is to keep moving and either trapping someone or just going faster than them</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>The arrows clearly state it's the right direction.</div><div>Hmmm... What we could do, is store the player's X and Y positions for the next frame.</div><div>And if one player goes off screen, the one who's X and Y didn't change, would die.</div><div>So the players have to keep moving in some way or another.</div><div>The X and Y positions changing per frame would also count platforms though...</div><div>Moving ones.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>true</div><div>we could use the recorded position table</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>I mean, if neither of them move, then no problem.</div><div>Because neither go off screen.</div><div>But if one moves and the other does not.</div><div>Then the one not moving will die.</div><div>The only flaw I can see, is if they're both not moving, say, waiting for a platform, and the other decides to go the other way.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>if both move, the one that moves to the correct direction more, will not die</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Or certain devices that might charge you up but keep you in place.</div><div>I think MPZ's tune blaster thingy does this.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>we can use both speed and change in position in account</div><div>for example those corks should make the one who falls from the lose anyway</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Do they effect the speed though?</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>I dont know</div><div>they should keep Sonic moving but in place</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>corks?</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>err, I mean those things in MPZ that you walk forwards and they move up</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Oh, the screws.</div><div>They shouldn't matter too much, as the Y position is changing.</div><div>But yeah, it's probably not frequenty enough.</div><div>Do "all" devices/objects do this though?</div><div>I know most will.</div><div>But it'll be our luck that some device won't.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>so we're doing S2?</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Well, we don't have to.</div><div>I'm only using S2 as an example.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>we can, just asking</div><div>would be interesting to do S3K as its not been done yet</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>It would, yeah.</div><div>Is there enough VRAM in Sonic 3 & K to do the HUD and arrows?</div><div>I could program a brand new title screen.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>we can remove parts of the HUD to make room</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Will it be enough though?</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>we'll make it enough</div><div>say what, we need some prototype code the for events and the camera</div><div>HUD's gonna be super easy for me to work out</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Perhaps we should have 5 piece of information</div><div>X position, Y position, X range, Y range, Direction</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>range how</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>I'll explain with an illustration.</div><div><img src="cs/Box Example.PNG" /></div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>oooh right, that makes sense yeah</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>X = 0140 Y = 0200</div><div>X and Y ranges are just added to the X and Y.</div><div>To create a sorta "box".</div><div>A range, a space, an area.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>also, the angle maybe should be used to calculate the optimal point in this rectangle to go to</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Exactly.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>but it should probably extend beyond the rectangle, so to not create weird bugs</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>We can make these boxes big/small depending on how precise we want it.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>oh, there maybe should be multiple places too</div><div>being able to select certain number of points would be cool</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Yeah, the only trouble is, if one character is in one box, and the other is in another.</div><div>Which one wins?</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>priority plus the movement</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Here's what I have so far.</div><div>It should be quite fast, since it'll store the last position in the list for next time, and keep checking that one and only entry, until the player leaves it, if the player does, then it does a full search.</div><div>So we should be able to get away with huge lists if we wanted, without worrying about lag too much.</div><div>Still gotta determin who's in front/behind.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>it could try to be smart, and go back only few entries instead of full search</div><div>say, like 10</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Ohhh, good idea~</div><div>That was if they go to a box next to it that's behind in the list, yeah~</div><div>You sure it should be 10 though?</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>we can adjust it later on</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>We'll have to pad the beginning of the list with 10 entries~</div><div>Like, dummy entries.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>thats fine</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>I have the last entry set to the entire size possible of the level, so it'll be like the default.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>angle should probably be a byte and priority and other settings be last byte</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>The priority is automatically determined by the order of the list.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>thats not a good idea always</div><div>because there may be boxes that need to come after some other ones</div><div>but still have priority over others</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Then you have them earlier in the list if they are higher priority.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>well we can see</div><div>there may still be need to prioritize and check multiple entries</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>Are any boxes going to be the same priority?</div><div>That is the ONLY flaw in this design.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>possible</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>If each box is a unique priority, then there will be no problem at all.</div><div>If you have two boxes, the same priority, with different directions, who wins?</div><div>Don't forget, these boxes can be made large enough to cover the screen, so if there are two paths heading in the same direction, this will cover that.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>hmmm yeah</div><div>we need to try this in action to be sure</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>If you have two different paths, and need to different boxes with different directions slightly, someone needs to win.</div><div>Yeah, I agree.</div><div>Chances are, the right decision may not be the most logical one after all.</div><div>We'll see~</div><div>In fairness...</div><div>We could just have this routine only occur when they go off screen.</div><div>...then again, we wouldn't know which character the camera should follow more...</div><div>I've been working out in my head how to calculate using the angle who is ahead.</div><div>I think this might do it.</div><div><img src="cs/Plan.png" /></div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>coool</div><div>we could make tails as tall as Sonic to make it more fair</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>That would be more appropriate.</div><div>There were times in the original for Sonic 2, where you didn't quite make a ledge, but I did, because, while I was being shot into the air by some device (NOT in ball mode), you spawned at the same X and Y position as I was, the same speed, etc. But your height is a little higher, so you didn't make the ledge, but I did.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div><img src="cs/Hud Screenshot.PNG" /><div>A tiles left for the arrows</div></div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>We can have a 3x3 tile arrow, and DMA the correct diraction in.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>yeah unless we want to use multiple ones</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>2x3 then =3</div><div>Still need 2 tiles...</div><div>Hmmm... looks at the "S" in "RINGS" >=)</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>haha derp</div><div>I'll fix that</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>...I was joking, as in getting the two tiles from that S, since the Sonic 1 proto had "RING" with no S></div><div>It's actually broken?</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>wait no</div><div>S3K reuses it properly</div><div>I can overwrite TIME</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>OK.</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/920.jpg"></div><div><div class="dcsender">Natsumi</div><div class="dcdate">2017/04/18</div><div>12 tiles now</div></div></div>
+        <div><div><img src="http://sonicresearch.org/community/data/avatars/m/0/422.jpg"></div><div><div class="dcsender">MarkeyJester</div><div class="dcdate">2017/04/18</div><div>=3</div><div>Problem solved~</div></div></div>
+    </div>
+</div>
+<br/><br/>
+
+
+<style>
+    .shots {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        text-align: left;
+    }
+    .shots > div {
+        width: 100%;
+        box-sizing: border-box;
+        border: 2px solid white;
+        border-radius: 3px;
+        display: flex;
+        flex-basis: 100%;
+        margin-bottom: 2px;
+    }
+    .shots > div > div {
+        color: white;
+        font: 14pt 'Play', cursive;
+        display: inline-block;
+        word-wrap: break-word;
+        margin: 5px 0;
+        flex: 1 1;
+    }
+    .shots > div > img {
+        display: inline-block;
+        max-width: 50%;
+        margin-right: 10px;
+        vertical-align: top;
+        flex: 0 1 auto;
+        object-fit: contain;
+        border-right: 2px solid gray;
+    }
+
+    .dcchat {
+        width: 100%;
+        text-align: left;
+        background: #36393f;
+        border: 2px solid white;
+        border-radius: 40px;
+        box-sizing: border-box;
+    }
+    .dcchat > div {
+        display: inline-block;
+        width: 100%;
+        position: relative;
+        height: auto;
+        padding: 10px 0;
+    }
+    .dcchat > div:not(:last-child)::after {
+        content: "";
+        border-bottom: 2px solid #3e4147;
+        position: absolute;
+        left: 2%;
+        bottom: 0;
+        width: 96%;
+    }
+    .dcchat > div > div:first-child {
+        float: left;
+        height: 100%;
+    }
+    .dcchat > div > div > img {
+        width: 60px;
+        border-radius: 50%;
+        margin: 4px 10px;
+    }
+    .dcchat > div > div:not(:first-child) {
+        display: flow-root;
+    }
+    .dcchat > div > div > div {
+        color: white;
+        font: 12pt 'Play', cursive;
+        display: block;
+        word-wrap: break-word;
+        padding: 1px 8px 1px 0;
+    }
+    .dcchat > div > div > div > img {
+        max-width: 95%;
+    }
+    .dcsender {
+        display: inline !important;
+        font-size: 16pt !important;
+        font-weight: bold !important;
+    }
+    .dcsender:hover {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    .dcdate {
+        color: #b1b1b1 !important;
+        font-size: 10pt !important;
+        display: inline !important;
+        padding-left: 6px !important;
+    }
+
+    @media screen and (max-width: 600px) {
+        .dcchat > div {
+            padding: 6px 0;
+        }
+        .dcchat > div > div > img {
+            width: 40px;
+            margin: 2px 6px;
+        }
+        .dcchat > div > div > div {
+            font-size: 10pt;
+            padding: 1px 4px 1px 0;
+        }
+        .dcsender {
+            font-size: 13pt !important;
+        }
+        .dcdate {
+            font-size: 8pt !important;
+            padding-left: 2px !important;
+        }
+        .shots > div > div {
+            font-size: 12pt;
+        }
+        .shots > div > img {
+            max-width: 33%;
+        }
+    }
+
+    @media screen and (max-width: 400px) {
+        .dcchat {
+            border-radius: 20px;
+        }
+        .dcchat > div > div > img {
+            width: 30px;
+        }
+        .dcchat > div > div > div {
+            font-size: 8pt;
+        }
+        .dcdate {
+            font-size: 7pt !important;
+            padding-left: 0 !important;
+        }
+        .shots > div > div {
+            font-size: 9pt;
+        }
+        .shots > div > img {
+            max-width: 25%;
+        }
+    }
+</style>

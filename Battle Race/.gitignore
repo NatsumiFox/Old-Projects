@@ -1,0 +1,15 @@
+Sonic 3K Git INIs/dllcache
+Sonic 3K Git INIs/dllcache/*
+Sonic 3K Git INIs/SonLVL.log
+sonic3k.p
+sonic3k.h
+S3KBR.MD
+S3KBR.PREV.MD
+S3KBR.MDX
+sonic3k.lst
+Sound/Test/Main.p
+Sound/Test/Main.h
+Sound/Test/Main.lst
+Sound/Test/SOUND.MD
+*.pdb
+sonic3k.log

@@ -1,0 +1,251 @@
+0 0 Blank
+0 4 Walking...
+0 4
+0 4
+0 4
+0 4
+0 4
+0 4
+0 4
+2 2
+2 2
+2 2
+2 2
+2 2
+2 2
+2 2
+2 2
+4 0
+4 0
+4 0
+4 0
+4 0
+4 0
+4 0
+4 0
+2 -2
+2 -2
+2 -2
+2 -2
+2 -2
+2 -2
+2 -2
+2 -2
+0 4 Running...
+0 4
+0 4
+0 4
+2 2
+2 2
+2 2
+2 2
+4 0
+4 0
+4 0
+4 0
+2 -2
+2 -2
+2 -2
+2 -2
+0 0 Fan rotate
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 2 Drum rotate
+0 1
+0 0
+0 -1
+0 -2
+0 -4
+0 -2
+0 -1
+0 0
+0 1
+0 2
+0 4
+1 -1 Diagonal CNZ drum rotate
+1 -1
+1 -1
+1 -1
+1 -1
+1 -1
+1 -1
+1 -1
+1 -1
+1 -1
+1 -1
+1 -1
+0 4 Rotating platforms (HCZ, LBZ, SSZ, etc)
+0 4
+0 4
+0 4
+0 4
+0 4
+0 4
+0 0 Horizontal pole
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0 Vertical pole
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0 Unknown curve animation
+0 0
+0 0
+0 0 Vertical rotating (CNZ vertical drum, MGZ vertical wall, etc)
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0 Swinging 360
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0 Moving across handlebars
+0 0
+0 0
+0 0
+0 0
+0 0
+0 4 Spindash
+0 4
+0 4
+0 0 Hurt
+0 0
+0 0 Spring
+0 0
+0 0 Unknown hanging
+0 4 Skidding
+0 4
+0 0 Hanging
+0 0
+0 0
+0 0
+0 0 Hanging handlebars
+0 0
+0 0 Rolling
+0 0
+0 0
+0 4 Down
+0 4 Balance
+0 4
+0 0 Death
+0 0 Hanging water tunnel bars
+0 0
+0 4 Breathing bubble (better had put this one down too)
+0 0 Fly
+0 0 Fly holding (lift)
+0 0 Fly holding
+0 0 Fly (tired)
+0 0
+0 4 End pose
+0 4
+0 0 Hanging water tunnel bars (vertical hang)
+0 0
+0 4 Pushing
+0 4
+0 4
+0 4
+0 4 Idle
+0 4
+0 4
+0 4 Up
+0 4 Waiting
+0 4
+0 4
+0 4
+0 0 Horizontal hover rotate
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0 Swimming
+0 0
+0 0
+0 0
+0 0
+0 0 Swimming tired
+0 4 Fastest running
+0 4
+2 2
+2 2
+4 0
+4 0
+2 -2
+2 -2
+0 0 Falling
+0 0
+0 0 Swimming tired 2
+0 0
+0 0 Swimming tired (holding)
+0 0
+0 0 Same sprite over and over (not sure)
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0 Special half pipe curving
+0 0
+0 0
+0 0
+0 0 Hanging on handlebars (rotating)
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0 0 Super transform
+0 0
+0 0
+0 0
+0 4 Fastest running rotating
+0 4
+0 4
+0 4
+0 4
+0 4
+0 4
+0 4
+0 4
+0 4
+0 4
+0 4

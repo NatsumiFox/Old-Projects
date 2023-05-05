@@ -1,0 +1,16 @@
+*.asm		text
+*.txt		text
+*.xml		text
+*.cs		text
+*.c		text
+*.cpp		text
+*.ini		text
+*.bat		text
+*.bin		binary
+*.kos		binary
+*.kosm		binary
+*.nem		binary
+*.dat		binary
+*.exe		binary
+*.bmp		binary
+*.png		binary

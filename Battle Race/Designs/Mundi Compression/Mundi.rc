@@ -1,0 +1,74 @@
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Resources
+// -----------------------------------------------------------------------------
+
+#include "Mundi.h"
+
+PRO_ICON	ICON		"Icon/Icon.ico"
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Some required language shit
+// -----------------------------------------------------------------------------
+
+#define APSTUDIO_READONLY_SYMBOLS
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+#undef APSTUDIO_READONLY_SYMBOLS
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Disclaimer
+// -----------------------------------------------------------------------------
+
+IDD_SPLIT		DIALOG DISCARDABLE  0x0000, 0x0000, 0x00C0, 0x0048
+STYLE			DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION			"Mundi Compressor"
+FONT			8, "MS Sans Serif"
+BEGIN
+	LTEXT			"Please enter a split size (Hex):\n\nIf you require no splitting, then set the size to 0.", IDC_STATIC, 0x000A, 0x000C, 0x0108, 0x0030
+	EDITTEXT		IDC_SPLITSIZE,		0x0078, 0x000A, 0x0032, 0x000E, ES_AUTOHSCROLL
+	PUSHBUTTON		"OK", IDC_OK,		0x0018, 0x0030, 0x0032, 0x000E
+	PUSHBUTTON		"Cancel", IDC_CANCEL,	0x0078, 0x0030, 0x0032, 0x000E
+END
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Program/File info
+// -----------------------------------------------------------------------------
+
+1 VERSIONINFO
+FILEVERSION	1,0,0,0
+PRODUCTVERSION	1,0,0,0
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "080904E4"
+		{
+			VALUE "CompanyName",		" "
+			VALUE "FileDescription",	"Mundi Compression Tool"
+			VALUE "FileVersion",		"1.0"
+			VALUE "InternalName",		"Mundi"
+			VALUE "LegalCopyright",		"Dean Coward"
+			VALUE "OriginalFilename",	"Mundi.exe"
+			VALUE "ProductName",		"Mundi Compression Tool"
+			VALUE "ProductVersion",		"1.0"
+		}
+	}
+
+	BLOCK "VarFileInfo"
+	{
+		VALUE "Translation", 0x809, 1252
+	}
+}
+
+// =============================================================================
+
+#endif

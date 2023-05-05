@@ -1,0 +1,272 @@
+<div id="scrin"><div></div></div>
+<div id="lgall">
+    <div id="lground"><div id="lgwhite"></div><div id="lgroundx"></div></div>
+    <div id="lgarrow"></div>
+    <div id="lgtext"></div>
+</div>
+<div id="links">
+    <div id="lkdl" onclick="window.open('S3KBR.zip', '_blank')"></div><div id="lkssrg" onclick="window.open('http://sonicresearch.org/community/index.php?threads/5514/', '_blank')"></div><div id="lksr" onclick="window.open('http://forums.sonicretro.org/index.php?showtopic=38293', '_blank')"></div><div id="lkshc" onclick="window.open('http://sonichacking.org/entry/67', '_blank')"></div>
+</div>
+
+<br/><br/><br/><br/><br/><br/><br/><br/><br/>
+
+<div id="shclist">
+    <img class="shcyellow" src="http://sonichacking.org/images/winners/40.png" />
+    <img src="http://sonichacking.org/images/winners/54.png" />
+    <img src="http://sonichacking.org/images/winners/60.png" />
+    <img src="http://sonichacking.org/images/winners/63.png" />
+    <img src="http://sonichacking.org/images/winners/64.png" />
+    <img class="shcyellow" src="http://sonichacking.org/images/winners/69.png" />
+    <img src="http://sonichacking.org/images/winners/85.png" />
+    <img src="http://sonichacking.org/images/winners/77.png" />
+</div>
+
+<br/><br/>
+
+<div id="textpage">
+    <h1>Updates</h1>
+    <h2>2018/12/09</h2>
+    <p>Added the SHC18 trophy list to the site</p>
+    <h2>2018/12/06</h2>
+    <p>Update front page and introduce update log</p>
+    <h2>2018/11/11</h2>
+    <p>Site launch</p>
+</div>
+<br/><br/>
+max-width:100%;background:rgba(0,96,176,0.75);border:1px solid #0060b0;border-radius:3px;margin-bottom:12px
+<style>
+    #shclist {
+        width: 80%;
+    }
+    #shclist > img {
+        width: 100%;
+        border: 2px solid gray;
+        border-radius: 20px;
+        margin: 0.2em 0;
+        background: rgba(207, 158, 164, 0.3);
+    }
+    .shcyellow {
+        background: rgba(255, 226, 41, 0.3) !important;
+    }
+
+    #scrin {
+        height: 40px;
+        width: 100%;
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,.8) 80%);
+        transition: opacity 0.5s;
+        opacity: 0;
+    }
+    #scrin > div {
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        background: url("menus/more.png") no-repeat center;
+        background-size: contain;
+    }
+    .scrinsh {
+        opacity: 1 !important;
+    }
+
+    #lgall {
+        width: 512px;
+        height: 512px;
+        position: relative;
+        overflow: hidden;
+        margin: 2em 0;
+    }
+    #lgtext, #lgarrow, #lground, #lgwhite, #lgroundx {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+    #lgwhite {
+        background: url("White.png") no-repeat center;
+        background-size: 100%;
+    }
+    #lgtext {
+        background: url("Logo.PNG") no-repeat center;
+        background-size: 100%;
+    }
+    #lgarrow {
+        background: url("Arrow.png") no-repeat center;
+        background-size: 100%;
+        animation: lgarra 1s infinite linear;
+    }
+    @keyframes lgarra {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(-360deg);
+        }
+    }
+    #lgroundx {
+        background: url("Roundel.png") no-repeat center;
+        background-size: 100%;
+        animation: lgrnd1 5s 6.75s infinite linear, lgrnd2 2s 1s ease-in, lgrnd3 3.75s 3s linear, lgrndflip2 2s linear;
+    }
+    @keyframes lgrnd1 {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    @keyframes lgrnd2 {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(90deg);
+        }
+    }
+    @keyframes lgrnd3 {
+        0% {
+            transform: rotate(90deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    #lground {
+        animation: lgrndflip 2s linear;
+    }
+
+    #links {
+        display: inline-block;
+        position: relative;
+        left: 0;
+        width: 100%;
+    }
+    #links > div {
+        display: inline-block;
+        margin: 0 4px;
+        width: 160px;
+        height: 160px;
+        border: none;
+        background-size: 100% 100%;
+        position: relative;
+        cursor: pointer;
+    }
+    #links > div::before {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        background-size: 100% 100%;
+        content: "";
+    }
+    #links > div:hover::before {
+        opacity: 1;
+    }
+    #lkssrg {
+        background: url("menus/SSRG - Faded.png") no-repeat;
+    }
+    #lkssrg::before {
+        background: url("menus/SSRG - Colour.png") no-repeat;
+    }
+    #lksr {
+        background: url("menus/Retro - Faded.png") no-repeat;
+    }
+    #lksr::before {
+        background: url("menus/Retro - Colour.png") no-repeat;
+    }
+    #lkshc {
+        background: url("menus/SHC - Faded.png") no-repeat;
+    }
+    #lkshc::before {
+        background: url("menus/SHC - Colour.png") no-repeat;
+    }
+    #lkdl {
+        background: url("menus/Download - Faded.png") no-repeat;
+    }
+    #lkdl::before {
+        background: url("menus/Download - Colour.png") no-repeat;
+    }
+
+    @media screen and (min-height: 1400px) and (min-width: 1100px) {
+        #lgall {
+            width: 768px;
+            height: 768px;
+            margin: 6em 0;
+        }
+        #links > div {
+            width: 240px;
+            height: 240px;
+        }
+    }
+    @media screen and (min-height: 1600px) and (min-width: 2500px) {
+        #lgall {
+            width: 1024px;
+            height: 1024px;
+            margin: 6em 0;
+        }
+    }
+    @media screen and (max-height: 900px), screen and (max-width: 730px) {
+        #lgall {
+            width: 384px;
+            height: 384px;
+            margin: 1em 0;
+        }
+        #links > div {
+            width: 100px;
+            height: 100px;
+        }
+    }
+    @media screen and (max-height: 600px), screen and (max-width: 500px) {
+        #lgall {
+            width: 256px;
+            height: 256px;
+            margin: 0.2em 0;
+        }
+        #links > div {
+            width: 70px;
+            height: 70px;
+        }
+        #shclist {
+            width: 100%;
+        }
+    }
+    @media screen and (max-height: 400px), screen and (max-width: 300px) {
+        #lgall {
+            width: 128px;
+            height: 128px;
+            margin: 0.1em 0;
+        }
+        #links > div {
+            width: 40px;
+            height: 40px;
+        }
+    }
+
+    @media screen and (min-width: 600px) and (min-height: 600px) {
+        #lgall, #lgtext, #lgarrow, #lground, #lgwhite, #lgroundx, #links > div {
+            transition: all 0.2s;
+        }
+
+        #links > div::before {
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+    }
+
+    /* NOTE: Currently not in CSS standard */
+    @supports (backdrop-filter: none) {
+        #shclist > img {
+            backdrop-filter: blur(3px) hue-rotate(90deg);
+            border-radius: 5px;
+            background: none;
+        }
+        .shcyellow {
+            backdrop-filter: blur(3px) hue-rotate(-90deg) !important;
+            background: none;
+        }
+    }
+</style>

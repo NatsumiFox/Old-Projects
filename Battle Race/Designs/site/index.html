@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sonic 3 & Knuckles Battle Race webpage</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#608080"/>
+    <meta name="Description" content="Page for information, news and release of Sonic 3 & Knuckles Battle Race ROM hack.">
+    <link rel="shortcut icon" type="image/png" href="http://mrjester.hapisan.com/S3KBR/favicon.png"/>
+    <link href="https://fonts.googleapis.com/css?family=Play" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Audiowide" rel="stylesheet">
+    <!--[if IE]>
+    <style rel="stylesheet">
+        .mbselect {
+            opacity: 0.5;
+        }
+    </style>
+    <![endif]-->
+    <style>
+        html, body {
+            margin: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        #background {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .pgfade {
+            opacity: 0 !important;
+            transition-delay: 0s !important;
+        }
+        .mbselect {
+            filter: saturate(0.3);
+        }
+        @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+            .mbselect {
+                opacity: 0.5;
+            }
+        }
+        #copy, #last {
+            position: absolute;
+            left: 10px;
+            color: white;
+            font: 11pt 'Play', cursive;
+            z-index: 10;
+        }
+        #copy {
+            bottom: 4px;
+        }
+        #last {
+            top: 4px;
+            display: none;
+        }
+
+        #bgtr1, #bgtr2 {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url("Boarder.png") repeat-x;
+        }
+        #bgtr1 {
+            animation: bgtra1 4s infinite linear;
+            background-size: auto 65px;
+        }
+        #bgtr2 {
+            transform: scaleY(-1);
+            animation: bgtra2 4s infinite linear;
+            background-size: auto 65px;
+        }
+        @keyframes bgtra1 {
+            0% {
+                background-position-x: 0;
+            }
+
+            100% {
+                background-position-x: -512px;
+            }
+        }
+        @keyframes bgtra2 {
+            0% {
+                background-position-x: -512px;
+            }
+
+            100% {
+                background-position-x: 0;
+            }
+        }
+
+        #bgpt1, #bgpt2 {
+            position: absolute;
+            width: 100%;
+            height: 120%;
+        }
+        #bgpt1 {
+            background: url("Side_Left.png") repeat-y;
+            background-position-y: -48px;
+            background-size: 512px;
+        }
+        #bgpt2 {
+            background: url("Side_Right.png") repeat-y right;
+            background-position-y: -48px;
+            background-size: 512px;
+        }
+
+        #menub {
+            display: inline-block;
+            margin-left: auto;
+            margin-top: 80px;
+        }
+        #menub > div {
+            display: inline-block;
+            margin: 0;
+            border: none;
+            cursor: pointer;
+            position: relative;
+        }
+        #menub > div > img {
+            position: relative;
+            height: 32px;
+            margin: 0 10px;
+            display: block;
+        }
+
+        #page {
+            width: 1000px;
+            overflow-x: hidden;
+            opacity: 1;
+            transition-delay: 0.5s;
+        }
+
+        @media screen and (min-width: 2400px) {
+            #bgpt1, #bgpt2 {
+                background-size: 1024px;
+            }
+            #menub > div > img {
+                height: 64px;
+            }
+            #menub > div::before, #menub > div::after {
+                background-size: auto 64px !important;
+            }
+            #page {
+                width: 2000px;
+            }
+        }
+        @media screen and (max-width: 1024px) {
+            #bgpt1, #bgpt2 {
+                background-size: 256px;
+            }
+            #menub > div > img {
+                height: 24px;
+            }
+            #menub > div::before, #menub > div::after {
+                background-size: auto 24px !important;
+            }
+            #page {
+                width: 780px;
+            }
+        }
+        @media screen and (max-width: 800px) {
+            #menub > div > img {
+                height: 19px;
+                margin: 0 5px;
+            }
+            #menub > div::before, #menub > div::after {
+                background-size: auto 19px !important;
+            }
+            #menub > div::before {
+                left: 5px !important;
+            }
+            #menub > div::after {
+                left: -5px !important;
+            }
+            #page {
+                width: 95%;
+            }
+            #copy, #last {
+                left: 4px;
+                font-size: 8pt;
+            }
+        }
+        @media screen and (max-width: 600px) {
+            #bgpt1, #bgpt2 {
+                background-size: 128px;
+            }
+            #copy, #last {
+                left: 4px;
+                font-size: 6pt;
+            }
+        }
+        @media screen and (max-width: 400px) {
+            #copy, #last {
+                left: 2px;
+                font-size: 4pt;
+            }
+        }
+        @media screen and (min-width: 2000px) and (min-height: 1600px) {
+            #bgtr1, #bgtr2 {
+                background-size: auto 130px;
+                animation-duration: 3s;
+            }
+            #menub {
+                margin-top: 160px;
+            }
+        }
+        @media screen and (max-width: 800px), screen and (max-height: 750px) {
+            #bgtr1, #bgtr2 {
+                background-size: auto 32.5px;
+                animation-duration: 6s;
+            }
+            #menub {
+                margin-top: 40px;
+            }
+        }
+        @media screen and (max-width: 400px), screen and (max-height: 400px) {
+            #bgtr1, #bgtr2 {
+                background-size: auto 16.25px;
+                animation-duration: 8s;
+            }
+            #menub {
+                margin-top: 20px;
+            }
+        }
+        @media screen and (min-width: 600px) and (min-height: 600px) {
+            #menub {
+                transition: margin-top 0.2s;
+            }
+            #menub > div {
+                transition: all 0.2s;
+            }
+
+            #menub > div::before, #menub > div::after {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                content: " ";
+                z-index: 10;
+                opacity: 0;
+                transition: opacity 0.3s;
+                top: 0;
+            }
+            #menub > div:hover::before, #menub > div:hover::after {
+                opacity: 1;
+            }
+            #menub > div::before {
+                background: url("menus/Left Selector.png") no-repeat left;
+                left: 10px;
+                background-size: auto 32px;
+            }
+            #menub > div::after {
+                background: url("menus/Right Selector.png") no-repeat right;
+                left: -10px;
+                background-size: auto 32px;
+            }
+
+            #page {
+                transition: opacity .25s 0s ease-in-out;
+            }
+        }
+
+        #textpage {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            padding: 8px;
+        }
+
+        /* NOTE: Currently not in CSS standard */
+        @supports (backdrop-filter: none) {
+            #textpage {
+                backdrop-filter: sepia(0.4) blur(3px);
+                border-radius: 5px;
+            }
+        }
+        #textpage > h1 {
+            color: white;
+            font: 24pt 'Audiowide', cursive;
+            text-decoration: underline;
+        }
+        #textpage > h2 {
+            color: white;
+            font: 20pt 'Audiowide', cursive;
+        }
+        #textpage > p {
+            color: white;
+            font: 15pt 'Play', cursive;
+        }
+        #textpage > p > b {
+            color: rgb(255, 195, 202);
+        }
+        #textpage > ul {
+            color: white;
+            font: 13pt 'Play', cursive;
+            text-align: left;
+        }
+        #textpage > ul > li > b {
+            font-size: 15pt;
+        }
+
+        .imgltxt {
+            display: inline-block;
+            width: 100%;
+        }
+        .imgltxt > img, .imgmttxt > div {
+            display: inline-block;
+            border: 8px solid;
+            border-image: url("border.png") 32 round;
+        }
+        .imgltxt > img {
+            box-sizing: border-box;
+            width: 50%;
+        }
+        .imgltxt > div, .imgmttxt > div {
+            color: white;
+            font: 12pt 'Play', cursive;
+        }
+        .imgstxt > img {
+            width: 25%;
+        }
+
+        .imgmttxt {
+            display: table;
+            width: 100%;
+            border-spacing: 4px;
+        }
+        .imgmttxt > div {
+            display: table-cell;
+            vertical-align: top;
+            margin: 0 4px;
+            box-sizing: border-box;
+        }
+        .imgmttxt > div > img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        @media screen and (max-width: 600px) {
+            #textpage > h1 {
+                font-size: 20pt;
+            }
+            #textpage > h2 {
+                font-size: 17pt;
+            }
+            #textpage > p {
+                font-size: 12pt;
+            }
+            #textpage > ul {
+                font-size: 10pt;
+            }
+            #textpage > ul > li > b {
+                font-size: 12pt;
+            }
+            .imgltxt > img, .imgmttxt > div {
+                border-width: 4px;
+            }
+            .imgmttxt {
+                border-spacing: 2px;
+            }
+            .imgltxt > div, .imgmttxt > div {
+                font-size: 10pt;
+            }
+            .imgltxt > img {
+                width: 100%;
+            }
+            .imgstxt > img {
+                width: 50%;
+            }
+        }
+
+        @media screen and (max-width: 400px) {
+            #textpage > h1 {
+                font-size: 15pt;
+            }
+            #textpage > h2 {
+                font-size: 13pt;
+            }
+            #textpage > p {
+                font-size: 10pt;
+            }
+            #textpage > ul {
+                font-size: 9pt;
+            }
+            #textpage > ul > li > b {
+                font-size: 10pt;
+            }
+            .imgltxt > img, .imgmttxt > div {
+                border-width: 2px;
+            }
+            .imgmttxt {
+                border-spacing: 0;
+            }
+            .imgltxt > div, .imgmttxt > div {
+                font-size: 8pt;
+            }
+        }
+    </style>
+    <script>
+        function genRoundelAni(){
+            var text = "@keyframes lgrndflip {\n";
+            var text2 = "@keyframes lgrndflip2 {\n";
+            var speed = Math.PI / 50, pos = -Math.PI;
+            var last =  Number.POSITIVE_INFINITY;
+
+            for(var i = 0;i < 101;i ++){
+                text += i +"%{ ";
+                if (i > 50) speed -= Math.PI / 50 / 50;
+
+                var sin = Math.sin(pos);
+                text += "transform: scaleY("+ sin +");";
+
+                text2 += i +"%{ ";
+                if(Math.abs(sin) > last){
+                    text2 += "opacity: "+ Math.abs(1 - (Math.abs(sin) * 2)) +"; filter: none; ";
+
+                } else {
+                    var val = Math.abs(sin * 100);
+                    if(val < 50) val = 25;
+                    else val = (val - 33.34) * 1.5;
+                    text2 += "filter: brightness(" + (val) + "%); opacity: 1; ";
+                }
+
+                text += " }\n";
+                text2 += " }\n";
+                pos += speed;
+                last = Math.abs(sin);
+            }
+
+            var style = document.createElement('style');
+            style.type = 'text/css';
+            style.innerHTML = text2 +"\n}\n"+ text +"\n}";
+            document.getElementsByTagName('head')[0].appendChild(style);
+        }
+
+        function menu(item){
+            ckmenu(tabid, item);
+            var mobile = window.matchMedia("screen and (min-width: 600px) and (min-height: 600px)").matches;
+            var lt = tabid;
+            tabid = item;
+
+            if (window.XMLHttpRequest) var xmlhttp = new XMLHttpRequest();
+            else var xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            document.getElementById("page").classList.add("pgfade");
+
+            xmlhttp.onreadystatechange = function() {
+                if (xmlhttp.readyState == 4)
+                    if (xmlhttp.status == 200) {
+                        setTimeout(function(){
+                            document.getElementById("page").innerHTML = xmlhttp.responseText;
+                            document.getElementById("page").classList.remove("pgfade");
+                        }, 200);
+
+                    } else if (xmlhttp.readyState == 4)
+                        setTimeout(function(){
+                            document.getElementById("page").innerHTML = "<p style='color: white'>Failed to load page: " + xmlhttp.status + " - " + xmlhttp.statusText + "</p>";
+                            document.getElementById("page").classList.remove("pgfade");
+                        }, 200);
+            };
+
+            xmlhttp.open("GET", urls[item], true);
+            xmlhttp.send();
+        }
+
+        function ckmenu(deselect, select){
+            document.getElementById("menub").children[deselect].classList.remove("mbselect");
+            document.getElementById("menub").children[select].classList.add("mbselect");
+        }
+
+        tabid = 0;
+        urls = [ "home.html", "getting started.html", "gameplay.html", "credits.html", "coming soon.html" ];
+
+        function init(){
+            setInterval(function(){
+                if(tabid == 0){
+                    let a = document.getElementById("scrin");
+                    let b = document.getElementById("shclist");
+                    if(a != null && b != null)
+                        a.classList[b.getBoundingClientRect().top > window.innerHeight ? "add" : "remove"]("scrinsh");
+                }
+            }, 200);
+        }
+    </script>
+</head>
+<body onload="genRoundelAni(); menu(0); init();">
+<div id="background">
+    <div id="copy">&copy; Natsumi & MarkeyJester 2018 - Graphics by MarkeyJester and site code by Natsumi</div>
+    <div id="last">Last Modified: <?php echo date('Y-m-d H:i:s', filemtime(__FILE__)) ?></div>
+    <div id="bgpt1"></div>
+    <div id="bgpt2"></div>
+    <div id="bgtr1"></div>
+    <div id="bgtr2"></div>
+</div>
+<center>
+    <div id="menub">
+        <div onclick="menu(0)" class="mbselect"><img src="menus/Home.PNG" /></div><div onclick="menu(1)"><img src="menus/Getting Started.PNG" /></div><div onclick="menu(2)"><img src="menus/Gameplay.PNG" /></div><div onclick="menu(3)"><img src="menus/Credits.PNG" /></div><div onclick="menu(4)"><img src="menus/WIP.PNG" /></div>
+    </div>
+    <div id="page"></div>
+</center>
+</body>
+</html>

@@ -1,0 +1,2 @@
+lbz1 minigame can get stuck
+get rid of the arrows at bosses

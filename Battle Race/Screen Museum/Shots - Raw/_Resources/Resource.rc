@@ -1,0 +1,113 @@
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Resources
+// -----------------------------------------------------------------------------
+
+#include "Header.h"
+#include <windows.h>
+
+PRO_ICON	ICON		"Icon Generator/Icon.ico"
+
+PREV_STRETCH	BITMAP		"Preview Stretch.bmp"
+PREV_FIT	BITMAP		"Preview Fit.bmp"
+PREV_FILL	BITMAP		"Preview Fill.bmp"
+PREV_CUST	BITMAP		"Preview Custom.bmp"
+
+PREV_ERROR	BITMAP		"Preview Error.bmp"
+PREV_GENERATE	BITMAP		"Preview Generating.bmp"
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Plane Size Dialog
+// -----------------------------------------------------------------------------
+
+IDC_DIASETTINGS	DIALOG DISCARDABLE	0x0000, 0x0000, 0x010F+16+(640-215)+32, 0x00D4+64+6+16+16+32
+		STYLE			DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+		CAPTION			"Bitmap MD"
+		FONT			8, "MS Sans Serif"
+		BEGIN
+
+			LTEXT		"", IDC_STATIC, 12, 10+4, 0xF8, 104+16, SS_ETCHEDFRAME
+			LTEXT		"  General Settings", IDC_STATIC, 12+8, 10, 64, 0x0008
+
+			CHECKBOX	"Use best settings possible", IDC_DS_BEST, 24, 24, 0x0060, 0x0008, BS_AUTOCHECKBOX
+			CHECKBOX	"Force Shadow colours to plane", IDC_DS_FORCESHADOW, 24, 34, 0x0070, 0x0008, BS_AUTOCHECKBOX
+				CHECKBOX	"Sprite has priority colours", IDC_DS_SPC, 34, 44, 0x0060, 0x0008, BS_AUTOCHECKBOX
+			CHECKBOX	"Interpolate Scaling", IDC_DS_INTERPOLATE, 24, 54, 0x0060, 0x0008, BS_AUTOCHECKBOX
+			CHECKBOX	"Snap scale to nearest tile", IDC_DS_SNAPTILE, 24, 64, 0x0074, 0x0008, BS_AUTOCHECKBOX
+
+			CHECKBOX	"Post dither", IDC_DS_DITHERPOST, 84, 84, 0x0030, 0x0008, BS_AUTOCHECKBOX
+			RADIOBUTTON	"No Dithering", IDC_DS_DITHERNONE, 24, 84, 0x0036, 0x0008, BS_RADIOBUTTON | WS_GROUP
+			RADIOBUTTON	"Jarvis, Judice + Ninke dithering", IDC_DS_DITHERJJN, 24, 94, 0x0070, 0x0008, BS_RADIOBUTTON | WS_GROUP
+			RADIOBUTTON	"Floyd Steinberg dithering", IDC_DS_DITHERFLOYD, 24, 104, 0x0070, 0x0008, BS_RADIOBUTTON | WS_GROUP
+			RADIOBUTTON	"Ordered dithering", IDC_DS_DITHERORDER, 24, 114, 0x0070, 0x0008, BS_RADIOBUTTON | WS_GROUP
+
+			LTEXT		"", IDC_STATIC, 12, 32+4 + 10 + 34 + 48+16, 0xF8, (16 * 3), SS_ETCHEDFRAME
+			LTEXT		"  Layers", IDC_STATIC, 12+8, 32 + 10 + 34 + 48+16, 0x001C, 0x0008
+			RADIOBUTTON	"Single Plane", IDC_DS_PLANE1, 24, 32 + 10 + 34 + 48 + (16 * 1)+16, 0x0038, 0x0008, BS_RADIOBUTTON | WS_GROUP
+			RADIOBUTTON	"Double Plane", IDC_DS_PLANE2, 84, 32 + 10 + 34 + 48 + (16 * 1)+16, 0x0040, 0x0008, BS_RADIOBUTTON | WS_GROUP
+			CHECKBOX	"Sprites", IDC_DS_SPRITES, 24, 32 + 10 + 34 + 48 + (16 * 2)+16, 0x0028, 0x0008, BS_AUTOCHECKBOX
+			CHECKBOX	"Sprite Shadow/Highlight", IDC_DS_SPRITESH, 84, 32 + 10 + 34 + 48 + (16 * 2)+16, 0x0060, 0x0008, BS_AUTOCHECKBOX
+
+			LTEXT		"", IDC_STATIC, 12, 80+4 + 38 + 48+16+16, 0xF8, (16 * 2), SS_ETCHEDFRAME
+			LTEXT		"  Width", IDC_STATIC, 12+8, 80 + 38 + 48+16+16, 0x001C, 0x0008
+			RADIOBUTTON	"320 (H40)", IDC_DS_WIDTH320, 24 + (64 * 0), 96 + 38 + 48+16+16, 0x0030, 0x0008, BS_RADIOBUTTON | WS_GROUP
+			RADIOBUTTON	"256 (H32)", IDC_DS_WIDTH256, 24 + (64 * 1), 96 + 38 + 48+16+16, 0x0030, 0x0008, BS_RADIOBUTTON | WS_GROUP
+			RADIOBUTTON	"256C (H32 - Counter)", IDC_DS_WIDTH256C, 24 + (64 * 2), 96 + 38 + 48+16+16, 0x0058, 0x0008, BS_RADIOBUTTON | WS_GROUP
+
+			LTEXT		"", IDC_STATIC, 12, 122+4 + 38 + 48+16+16, 0xF8, (16 * 2), SS_ETCHEDFRAME
+			LTEXT		"  Height", IDC_STATIC, 12+8, 122 + 38 + 48+16+16, 0x001E, 0x0008
+			RADIOBUTTON	"240 (V30 PAL)", IDC_DS_HEIGHT240, 24 + (64 * 0), 138 + 38 + 48+16+16, 0x003C, 0x0008, BS_RADIOBUTTON | WS_GROUP
+			RADIOBUTTON	"224 (V28)", IDC_DS_HEIGHT224, 24 + (64 * 1), 138 + 38 + 48+16+16, 0x0030, 0x0008, BS_RADIOBUTTON | WS_GROUP
+			RADIOBUTTON	"224 (V28 - NTSC Counter)", IDC_DS_HEIGHT224C, 24 + (64 * 2), 138 + 38 + 48+16+16, 0x0060, 0x0008, BS_RADIOBUTTON | WS_GROUP
+
+			CHECKBOX	"Apply to remaining images", IDC_DS_APPLY, 90 + 0x0040, 168 + 52 + 38+16+16+32, 0x0070, 0x0008, BS_AUTOCHECKBOX
+			PUSHBUTTON	"OK", IDC_DS_OK, 24, 165+20 + 70+16+16+32, 0x0032, 0x000E
+			PUSHBUTTON	"Exit", IDC_DS_EXIT, 24 + 0x0040, 165+20 + 70+16+16+32, 0x0032, 0x000E
+
+			CHECKBOX	"Scale preview to VDP standards", IDC_DS_SCALEMD, 280, 315, 0x0074, 0x0008, BS_AUTOCHECKBOX
+			CHECKBOX	"Maintain scaling aspect ratio", IDC_DS_ASPECT, 280, 330, 0x0074, 0x0008, BS_AUTOCHECKBOX
+
+			LTEXT		"-64", IDC_DS_WIDLOW, 454, 310, 0x0010, 0x0008
+			LTEXT		"  0", IDC_DS_WIDNUM, 568, 310, 0x0010, 0x0008
+			LTEXT		"+64", IDC_DS_WIDHIG, 684, 310, 0x0010, 0x0008
+			CONTROL		"", IDC_DS_SCALEX, "msctls_trackbar32", TBS_HORZ | WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_TOP,  450, 318,  250, 0x18
+
+			LTEXT		"-64", IDC_DS_HEILOW, 705,  79, 0x0010, 0x0008
+			LTEXT		"  0", IDC_DS_HEINUM, 705, 186, 0x0010, 0x0008
+			LTEXT		"+64", IDC_DS_HEIHIG, 705, 292, 0x0010, 0x0008
+			CONTROL		"", IDC_DS_SCALEY, "msctls_trackbar32", TBS_VERT | WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_LEFT, 718,  75, 0x18,  230
+
+		END
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Version Information
+// -----------------------------------------------------------------------------
+
+1 VERSIONINFO
+FILEVERSION	1,0,0,0
+PRODUCTVERSION	1,0,0,0
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "080904E4"
+		{
+			VALUE "CompanyName",		"MarkeyJester"
+			VALUE "FileDescription",	"Bitmap MD"
+			VALUE "FileVersion",		"1.0"
+			VALUE "InternalName",		"Bitmap MD"
+			VALUE "LegalCopyright",		"MarkeyJester"
+			VALUE "OriginalFilename",	"Bitmap MD.exe"
+			VALUE "ProductName",		"Bitmap MD"
+			VALUE "ProductVersion",		"1.0"
+		}
+	}
+
+	BLOCK "VarFileInfo"
+	{
+		VALUE "Translation", 0x809, 1252
+	}
+}
+
+// =============================================================================

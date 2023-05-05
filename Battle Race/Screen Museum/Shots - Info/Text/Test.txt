@@ -1,0 +1,96 @@
+I think you'll get it then based on what you currently know. I will try to keep the details low and get to the point. Let's start by setting the VDP.
+
+If you want to write data into VRAM, CRAM, VSRAM, or to one of the internal VDP registers, you have to move a word of data into the VDP control port at address C00004-C00005 or C00006-C00007:
+
+Alternatively, you can move two words at a time via a long-word:
+
+Now, we'll look at setting the VDP to VRAM write mode, here is an example:
+
+5B60 and 0000 are being moved into the VDP control port, to understand what these values are, we need to break them up into binary; 0101100001100000 0000000000000000, now some of these bits are setting the VDP into a specific mode, be it read, write, to/from VRAM, CRAM, VSRAM, etc, and some of these bits are the VRAM address we're writing to or reading from, below in a code table is our bits followed below it by a key system:
+
+Mode
+Address
+Unknown/invalid (leave as 0)
+
+We'll start with the mode, I have numbered all of the M's below:
+
+Depending on which of these bits (0 - 5) are set, depends on what mode you are setting the VDP to, here is a table of possible modes:
+
+Now our M bits are:
+
+So this is setting the VDP up to write to VRAM, now we need the address; I have numbered all of the A's below:
+
+Now the bits (0 - F) represent the address, these together can make a word value from 0000 - FFFF, our A bits are:
+
+So this long-word is setting up the VDP to VRAM write mode at address 1860.
+
+--- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+
+Now that the address/mode is set, the VDP data port address at C00000-C00001 and C00002-C00003 can be written to, again, you can do them as words, or as a single long-word, a long-word is preferable since it's smaller and quicker for the 68k CPU as an instruction:
+
+This has now moved 0000 and 0000 into the VDP FIFO, the VDP will then copy these words into VRAM 1860 - 1863, it will then automatically advance the address ready for the next words of data:
+
+This has now moved 0456 and 70FE into VRAM 1864 - 1867, the address has incremented again. This is a repeating process, and so long as you keep moving data into the VDP data port (C00000 - C00003), the data will be copied into VRAM incrementally.
+
+Here is an example of writing a single tiles' worth of art into VRAM 1860:
+set VDP to VRAM write mode (address 1860)
+write pixels into VRAM
+
+You can probably tell, this is writing a tile square with an X in it, obviously, the 0's will use colour 0 in the palette, and A will use colour A in the palette, this is pretty bog-standard...
+
+Now, let's assume we load some uncompressed art (say your hud numbers) into VRAM; starting by loading the address of the art into an address register:
+load address of uncompressed art to a0
+
+Now, we can set the VDP VRAM write address, and then copy the art out of the address using a0, and into the VDP data port, like so:
+set VDP to VRAM write mode (address 1860)
+write first tile of uncompressed art into VRAM
+
+
+Notice the a0 being bracketed, and being suffixed with a +, this will cause the address of a0 to advance to the next long-word after every move.
+
+We can go one step further by copying multiple tiles in a loop:
+load address of uncompressed art to a0
+load VDP data port address to a6
+set VDP to VRAM write mode (address 1860) - a6 = C00000 plus the $04 prefix = C00004
+set number of tiles to load (8 tiles)
+
+LoadTiles
+write a tile of uncompressed art into VRAM
+decrease d1 and loop back to LoadTiles, until d1 has passed 0
+
+Evertime a tile is written, the dbf instruction will subtract 1 from d1, and as long as it hasn't gone below 0, it will jump back to "LoadTiles" over and over again, 8, 7, 6, 5, 4, 3, 2, 1, 0... Then it'll resume below and continue. Notice how the VDP data port was loaded into address register a6, when data is moved into a6 while it has brackets around it, the data is actually moved to the address that a6 has, so "move.w #$0123,(a6)" will move 0123 to address C00000.
+
+Now, I noticed in some code before, you had the following line "locVRAM $F2E0 ; set VRAM address", so I assume by this, the VRAM address these ring numbers are meant to go at F2E0? I am also going to assume that object's sprites are already mapping these tiles on-screen, and that all we need to do is write the uncompressed art to this VRAM address and everything will be solid. If this is not the case, then we may have found yet another issue which needs resolving (you can write art into VRAM perfectly, but it means nothing if there are no sprites or planes mapping out those art tiles).
+
+For now, let's just look at loading the uncompressed numbers correctly into VRAM F2E0+.
+
+The ring count, lives counter, and score, are all hexadecimal/binary numbers, and are not decimal, but, we would like to display them as decimal since the average human (let alone player) deals with numbers on a base 10 system rather than base 2 or 16. So we need to convert the hex numbers into decimal.
+
+The subroutines in Sonic games for displaying the HUD numbers, don't just copy uncompressed number art into VRAM, they actually realtime convert the hex number into decimal while writing the numbers to VRAM. This is done by subtracting the decimal 100's, 10's and units from the hex number. Remember the Hud_100 that's loaded into a2 in your code?
+
+These are the decimal digit places, notice how they lack a $ sign these are decimal numbers, when the assembler goes to assemble these, it'll convert them to hex, so these numbers are actually:
+
+Now here's how it works... Let's say you have 619 rings. In RAM, this will be $26B, so we need to convert this hex number into decimal 619. Start by subtracting the 100 units (this is $64 in hex):
+
+It took 6 times to subtract 64 from the number until it went below 0, this 6 count just happens to be the first digit of our ring number (619), next we subtract the 10 units (this is $0A in hex):
+
+This one took less time, only 1 which happens to be the second digit in our ring count (619), finally, we subtract the 1 units:
+
+This took 9 times, the last digit in our ring count (619).
+
+Now, this conversion process is used for the score as well, which is why the table is larger than 100's, and why it goes up to as large as 100000:
+
+Same principle is used.
+
+Now, keep in mind as you well know, the HUD humbers are two tiles tall, this means two tiles need to be copied per digit. Lucky for you, we can reuse Sonic 1's subroutine for rendering the ring numbers, however, the subroutine expects you to provide it some information first, here's how it works:
+load VDP data port address to a6
+prepare VDP VRAM write mode and address
+clear d1 (clears entire long-word)
+load number of rings Sonic has to the lower word of d1
+convert hex to decimal, and dump the number art to VRAM address in d0
+
+The subroutine "Hud_Rings" needs a6 to have the address of the VDP data port, it needs d0 to have the long-word VDP VRAM write address inside of it, and it needs d1 to have the number to convert and display. The subroutine will move the long-word address from d0 into the VDP control port, and it'll then convert the value in d1 into decimal, and write the correct tile art depending on the digit, into the VDP data port inside a6.
+
+The jsr will jump to Hud_Rings, and then once the conversion and dumping is done, it will return back to just after the jsr, and continue going down. But... we'll cross that bridge once we get to it.
+
+This is by no means the solution to your problem, but it should supply you with at least a decent amount of understanding and make fixing it a little bit easier. Get back to me on things like, where in VRAM the numbers are being dumped to, and whether or not the sprites are setup to display those numbers and so on, I would also like to know where (VRAM addres) and how (68k code) exactly you loaded the "RINGS" text art, this could be important. 

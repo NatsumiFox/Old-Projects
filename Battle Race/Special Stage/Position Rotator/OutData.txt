@@ -1,0 +1,28 @@
+SSRLN06_A:	dc.w	                     $01FF, $0100, $0101
+		dc.w	              $00FE, $00FF, $0000, $0001, $0002
+		dc.w	              $FFFE, $FFFF, $FF00, $FF01, $FF02
+		dc.w	       $FEFD, $FEFE, $FEFF, $FE00, $FE01, $FE02, $FE03
+		dc.w	$FDFC, $FDFD, $FDFE, $FDFF, $FD00, $FD01, $FD02, $FD03, $FD04
+		dc.w	$FCFC, $FCFD, $FCFE, $FCFF, $FC00, $FC01, $FC02, $FC03, $FC04
+
+SSRLN06_B:	dc.w	                     $0101, $0001, $FF01
+		dc.w	              $0200, $0100, $0000, $FF00, $FE00
+		dc.w	              $02FF, $01FF, $00FF, $FFFF, $FEFF
+		dc.w	       $03FE, $02FE, $01FE, $00FE, $FFFE, $FEFE, $FDFE
+		dc.w	$04FD, $03FD, $02FD, $01FD, $00FD, $FFFD, $FEFD, $FDFD, $FCFD
+		dc.w	$04FC, $03FC, $02FC, $01FC, $00FC, $FFFC, $FEFC, $FDFC, $FCFC
+
+SSRLN06_C:	dc.w	                     $FF01, $FF00, $FFFF
+		dc.w	              $0002, $0001, $0000, $00FF, $00FE
+		dc.w	              $0102, $0101, $0100, $01FF, $01FE
+		dc.w	       $0203, $0202, $0201, $0200, $02FF, $02FE, $02FD
+		dc.w	$0304, $0303, $0302, $0301, $0300, $03FF, $03FE, $03FD, $03FC
+		dc.w	$0404, $0403, $0402, $0401, $0400, $04FF, $04FE, $04FD, $04FC
+
+SSRLN06_D:	dc.w	                     $FFFF, $00FF, $01FF
+		dc.w	              $FE00, $FF00, $0000, $0100, $0200
+		dc.w	              $FE01, $FF01, $0001, $0101, $0201
+		dc.w	       $FD02, $FE02, $FF02, $0002, $0102, $0202, $0302
+		dc.w	$FC03, $FD03, $FE03, $FF03, $0003, $0103, $0203, $0303, $0403
+		dc.w	$FC04, $FD04, $FE04, $FF04, $0004, $0104, $0204, $0304, $0404
+

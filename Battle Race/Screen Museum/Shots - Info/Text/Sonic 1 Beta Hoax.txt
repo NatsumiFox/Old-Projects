@@ -1,0 +1,31 @@
+The Sonic 1 Beta Hoax
+
+This is an early Sonic hack of Sonic 1 (Sonic The Hedgehog 16-bit) by
+Cyan Helkaraxe in 1999.  For testing purposes, here is a snippet from
+Sonic Retro's wiki:
+
+Sonic 1 Beta Hoax is a ROM hack created by Cyan Helkaraxe in 1999. When it
+was first released, it was purposely not described as being a hoax. As a result,
+many individuals mistakenly thought for a time that it was a legitimate prototype
+of Sonic the Hedgehog for the Sega Mega Drive.
+
+History
+
+In 1999, Cyan Helkaraxe wanted to stir up more interest in Sonic 1 among the
+Sonic community. He decided to do something which had never been done at that
+time: create a ROM hack. The resulting hack would become known as the
+Sonic 1 Beta Hoax.
+
+Cyan set to work on the Sonic 1 ROM, researching its internal workings
+primarily by a trial and error process, since there was absolutely no
+documentation on Sonic 1 available at the time. His goal was to create
+a hoax prototype - a game that mimicked the behavior of a "genuine" Sonic
+1 prototype.
+
+In May 1999, Cyan released his hack to Simon Wai's Sonic 2 Beta page. The
+ROM was deliberately not listed as a hoax; rather, it was released under
+the title "Sonic 1 beta?".
+
+The release of the hoax prototype stirred up more interest in Sonic 1, and
+when it was identified as a hoax, Andy Wolan invited Cyan to the Sonic Stuff
+Research Group for his work in creating the ROM hack.

@@ -1,0 +1,6 @@
+SSRLN06_A:	dc.w	                     $01FF, $0100, $0101
+		dc.w	              $00FE, $00FF, $0000, $0001, $0002
+		dc.w	              $FFFE, $FFFF, $FF00, $FF01, $FF02
+		dc.w	       $FEFD, $FEFE, $FEFF, $FE00, $FE01, $FE02, $FE03
+		dc.w	$FDFC, $FDFD, $FDFE, $FDFF, $FD00, $FD01, $FD02, $FD03, $FD04
+		dc.w	$FCFC, $FCFD, $FCFE, $FCFF, $FC00, $FC01, $FC02, $FC03, $FC04

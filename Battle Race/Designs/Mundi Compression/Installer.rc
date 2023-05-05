@@ -1,0 +1,40 @@
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Resources
+// -----------------------------------------------------------------------------
+
+#include "Installer.h"
+
+PRO_ICON	ICON		"Icon/Icon.ico"
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Program/File info
+// -----------------------------------------------------------------------------
+
+1 VERSIONINFO
+FILEVERSION	1,0,0,0
+PRODUCTVERSION	1,0,0,0
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "080904E4"
+		{
+			VALUE "CompanyName",		" "
+			VALUE "FileDescription",	"Mundi Installer"
+			VALUE "FileVersion",		"1.0"
+			VALUE "InternalName",		"Mundi Installer"
+			VALUE "LegalCopyright",		"Dean Coward"
+			VALUE "OriginalFilename",	"Installer.exe"
+			VALUE "ProductName",		"Mundi Installer"
+			VALUE "ProductVersion",		"1.0"
+		}
+	}
+
+	BLOCK "VarFileInfo"
+	{
+		VALUE "Translation", 0x809, 1252
+	}
+}
+
+// =============================================================================
