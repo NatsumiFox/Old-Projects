@@ -1,0 +1,58 @@
+<svg version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+	<style>
+		.a { font: 13px sans-serif; fill: #fff; stroke-width: 0.7; stroke-linejoin: miter; }
+		.s { stroke-width: 1.5; }
+	</style>
+	<g transform="translate(-8, 0)" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="square" stroke-linejoin="round">
+		<rect x="70" y="10" width="20" height="20"></rect>
+		<rect x="10" y="10" width="20" height="20"></rect>
+		<rect x="10" y="70" width="20" height="20"></rect>
+		<rect x="70" y="70" width="20" height="20"></rect>
+
+		<text x="16.5" y="24.5" class="a">1</text>
+		<text x="76.5" y="24.5" class="a">2</text>
+		<text x="16.5" y="84.5" class="a">3</text>
+		<text x="76.5" y="84.5" class="a">4</text>
+
+		<path class="s" d="
+			M40 20
+			V40
+			H20
+			V33
+
+			M17 35
+			L20 32
+			L23 35
+		" />
+
+		<path class="s" d="
+			M67 20
+			H30
+
+			M63 15
+			L68 20
+			L63 25
+		" />
+
+		<path class="s" d="
+			M30 80
+			H67
+
+			M63 75
+			L68 80
+			L63 85
+		" />
+
+		<path class="s" d="
+			M80 30
+			V70
+
+			M80 50
+			H105
+
+			M103 47
+			L106 50
+			L103 53
+		" />
+	</g>
+</svg>

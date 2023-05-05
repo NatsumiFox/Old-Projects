@@ -1,0 +1,32 @@
+<html>
+<head>
+    <script>
+        function tmpc(e){
+            let a = parseInt(document.getElementById(e).value, 16);
+            if(a !== a || a == undefined) return;
+
+            if(e == "tmsh2") a = (-a) & 0xFF;
+
+            let n = ((a == 0) << 8) | a;
+            n = ((((n - 1) << 8) + (n >> 1)) / n) & 0xFF;
+            n = (0x100 - ((n == 0) | n)) & 0xFF;
+
+            if(e == "tmctr") {
+                let x = a;
+                a = n;
+                n = x;
+            }
+
+            document.getElementById("tmctr").value = n.toString(16).toUpperCase();
+            document.getElementById("sonic2").value = ((-a) & 0xFF).toString(16).toUpperCase();
+            document.getElementById("tmsh2").value = a.toString(16).toUpperCase();
+        }
+    </script>
+
+</head>
+<h2>Sonic 1, 2 and 3K tempo converter</h2>
+Sonic 1 <input id="sonic1" /><button onclick="cv('sonic1')">convert</button><br/>
+Sonic 2 <input id="sonic2" /><button onclick="cv('sonic2')">convert</button><br/>
+Sonic 3 <input id="sonic3k" /><button onclick="cv('sonic3k')">convert</button><br/>
+
+</html>

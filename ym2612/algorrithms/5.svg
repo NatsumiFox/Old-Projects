@@ -1,0 +1,63 @@
+<svg version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+	<style>
+		.a { font: 13px sans-serif; fill: #fff; stroke-width: 0.7; stroke-linejoin: miter; }
+		.s { stroke-width: 1.5; }
+	</style>
+	<g transform="translate(-8, 0)" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="square" stroke-linejoin="round">
+		<rect x="10" y="40" width="20" height="20"></rect>
+		<rect x="60" y="10" width="20" height="20"></rect>
+		<rect x="60" y="40" width="20" height="20"></rect>
+		<rect x="60" y="70" width="20" height="20"></rect>
+
+		<text x="16.5" y="54.5" class="a">1</text>
+		<text x="66.5" y="24.5" class="a">2</text>
+		<text x="66.5" y="54.5" class="a">3</text>
+		<text x="66.5" y="84.5" class="a">4</text>
+
+		<path class="s" d="
+			M45 28
+			H20
+			V37
+
+			M17 35
+			L20 38
+			L23 35
+		" />
+
+		<path class="s" d="
+			M30 50
+			H57
+
+			M57 20
+			H45
+			V80
+			H57
+
+			M53 45
+			L58 50
+			L53 55
+
+			M53 15
+			L58 20
+			L53 25
+
+			M53 75
+			L58 80
+			L53 85
+		" />
+
+		<path class="s" d="
+			M80 50
+			H105
+
+			M80 20
+			H95
+			V80
+			H80
+
+			M103 47
+			L106 50
+			L103 53
+		" />
+	</g>
+</svg>

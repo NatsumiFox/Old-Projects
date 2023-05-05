@@ -1,0 +1,851 @@
+<style>
+
+</style>
+
+Insert hex below, or upload a file: <input id="upl" type="file" />
+<textarea style="width:100%;height:25%" id="inp" ></textarea>
+Offset of data: <input id="offs" value="0" /> <button onclick="convert()">Update</button><br/>
+<textarea readonly style="width:100%;height:50%" id="outp" ></textarea>
+
+<!-- SHITTY CODE BELOW -->
+<script>
+    function convert(){
+        off = document.getElementById("offs").value;
+        off = Number("0x"+ off);
+        if(off !== off || off == undefined || off == null){
+            document.getElementById("outp").value = "Non-numeric value as offset!";
+        }
+        if((off & 0xFFFFFFFF) !== off){
+            document.getElementById("outp").value = "Number is out of range in offset!";
+            return;
+        }
+
+        let f = document.getElementById("upl").files[0];
+        if(f) {
+            document.getElementById("outp").value = "Loading....";
+            let fr = new FileReader();
+            fr.onload = function(){
+                document.getElementById("outp").value = dasm(new Uint8Array(this.result));
+            };
+            fr.readAsArrayBuffer(f);
+
+        } else {
+            let bytes = [];
+            let str = document.getElementById("inp").value;
+
+            while(str.length > 0){
+                if(str.indexOf(" ") == 0) str = str.substring(1);
+
+                if(str.indexOf(" ") != -1){
+                    let v = Number("0x"+ str.substring(0, str.indexOf(" ")));
+
+                    if(v !== v || v == undefined || v == null){
+                        document.getElementById("outp").value = "Non-numeric value in input!";
+                        return;
+                    }
+                    if((v & 0xFF) !== v){
+                        document.getElementById("outp").value = "Number is out of range in input!";
+                        return;
+                    }
+
+                    bytes.push(v);
+                    str = str.substring(3);
+
+                } else if(str.length > 0){
+                    let v = Number("0x"+ str);
+
+                    if(v !== v || v == undefined || v == null){
+                        document.getElementById("outp").value = "Non-numeric value in input!";
+                        return;
+                    }
+                    if((v & 0xFF) !== v){
+                        document.getElementById("outp").value = "Number is out of range in input!";
+                        return;
+                    }
+
+                    bytes.push(v);
+                    break;
+                }
+            }
+
+            document.getElementById("outp").value = dasm(bytes);
+        }
+    }
+
+    var dat, pos, ret, off;
+
+    function dasm(data){
+     //   if(data.length > 16 * 1024)
+    //        return "File too large! Max 16KB!";
+
+        dat = data;
+        ret = "";
+        pos = 0;
+
+        while(pos < data.length){
+            // write offset
+            ret += ((pos + off) & 0xFFFFFF).hex("000000");
+            ret += ':\t';
+
+            let w = rw();
+            ihnibble[(w & 0xF000) >> 12](w);
+            ret += '\n';
+        }
+
+        return ret;
+    }
+
+    // instr ptrs for highest nibble of instruction word
+    ihnibble = [
+        ix0xxx, imove, imove, imove,
+        function(i){ ix4xxxdat[(i & 0x0FC0) >> 6](i) }, ix5xxx, ibcc, imoveq,
+        ix8xxx, isub, data, ixBxxx,
+        ixCxxx, iadd, ixExxx, data
+    ];
+
+    bccc = ["btst", "bchg", "bclr", "bset"];
+    function ix0xxx(i){
+        if((i & 0x0038) == 8 && (i & 0x0100) != 0) {
+            // MOVEP
+            let dreg = (i & 0x0E00) >> 9, areg = i & 0x0007;
+            ret += "movep." + ((i & 0x0040) == 0 ? 'w' : 'l') + '\t';
+
+            if((i & 0x0080) == 0) {
+                // d16(aN), dN
+                ret += rw().hex("0000") + "(a" + areg + "), d" + dreg;
+
+            } else {
+                // dN, d16(aN)
+                ret += "d"+ dreg +", "+ rw().hex("0000") + "(a" + areg + ')';
+            }
+
+        } else if((i & 0x0100) == 0) {
+            ix00xxdat[(i & 0x0E00) >> 9](i);
+
+        } else {
+            // BXXX dN, <ea>
+            let ins = bccc[(i & 0x00C0) >> 6];
+            let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007, reg = (i & 0x0E00) >> 9;
+
+            let ck = addrmodes[eamode](eareg, eamode == 0 ? 'l' : 'b');
+            if(ck !== ck){
+                data(i);
+                return;
+            }
+
+            ret += ins +"\td"+ reg +","+ ck;
+        }
+    }
+
+    function bxxx(i){
+        // BXXX #, <ea>
+        let ins = bccc[(i & 0x00C0) >> 6];
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+
+        let ck = addrmodes[eamode](eareg, eamode == 0 ? 'l' : 'b');
+        if(ck !== ck){
+            data(i);
+            return;
+        }
+
+        ret += ins +"\t#$"+ rw().hex("0000") +","+ ck;
+    }
+
+    ix00xxdat = [
+        function(i){ generici2("ori", i) },
+        function(i){ generici2("andi", i) },
+        function(i){ generici1("subi", i) },
+        function(i){ generici1("addi", i) },
+        bxxx,
+        function(i){ generici2("eori", i) },
+        function(i){ generici2("cmpi", i) },
+        data,
+    ];
+
+    function imove(i){
+        let size = inssz2((i & 0x3000) >> 12);
+        if(size !== size){
+            data(i);
+            return;
+        }
+
+        let destreg = (i & 0x0E00) >> 9, destmode = (i & 0x01C0) >> 6, srcmode = (i & 0x0038) >> 3, srcreg = i & 0x0007;
+        let cks = addrmodes[srcmode](srcreg, size), ckd = addrmodes[destmode](destreg, size);
+
+        if(cks !== cks || ckd !== ckd){
+            data(i);
+            return;
+        }
+
+        if(destmode == 1)
+            ret += "movea";
+        else ret += "move";
+
+        ret += "."+ size +"\t"+ cks +","+ ckd;
+    }
+
+    ix4xxxdat = [
+        function(i){ generic2("nexg", i, "b") },
+        function(i){ generic2("nexg", i, "w") },
+        function(i){ generic2("nexg", i, "l") },
+        function(i){ movesrccr(i, true, "sr") },
+        data,
+        data,
+        function(i){ leachk(i, 0, 0) },
+        function(i){ leachk(i, 1, 0) },
+        function(i){ generic2("clr", i, "b") },
+        function(i){ generic2("clr", i, "w") },
+        function(i){ generic2("clr", i, "l") },
+        data,
+        data,
+        data,
+        function(i){ leachk(i, 0, 1) },
+        function(i){ leachk(i, 1, 1) },
+        function(i){ generic2("neg", i, "b") },
+        function(i){ generic2("neg", i, "w") },
+        function(i){ generic2("neg", i, "l") },
+        function(i){ movesrccr(i, false, "ccr") },
+        data,
+        data,
+        function(i){ leachk(i, 0, 2) },
+        function(i){ leachk(i, 1, 2) },
+        function(i){ generic2("not", i, "b") },
+        function(i){ generic2("not", i, "w") },
+        function(i){ generic2("not", i, "l") },
+        function(i){ movesrccr(i, false, "sr") },
+        data,
+        data,
+        function(i){ leachk(i, 0, 3) },
+        function(i){ leachk(i, 1, 3) },
+        function(i){ generic3("nbcd", i, "w") },
+        ix484x,
+        movemorext,
+        movemorext,
+        data,
+        data,
+        function(i){ leachk(i, 0, 4) },
+        function(i){ leachk(i, 1, 4) },
+        function(i){ generic2("tst", i, "b") },
+        function(i){ generic2("tst", i, "w") },
+        function(i){ generic2("tst", i, "l") },
+        ix4ACx,
+        data,
+        data,
+        function(i){ leachk(i, 0, 5) },
+        function(i){ leachk(i, 1, 5) },
+        data,
+        data,
+        function(i){ movem(i, 'w', false); },
+        function(i){ movem(i, 'l', false); },
+        data,
+        data,
+        function(i){ leachk(i, 0, 6) },
+        function(i){ leachk(i, 1, 6) },
+        data,
+        function(i){ ix4E4xdat[(i & 0x0038) >> 3](i) },
+        function(i){ generic3("jsr", i, "w") },
+        function(i){ generic3("jmp", i, "w") },
+        data,
+        data,
+        function(i){ leachk(i, 0, 7) },
+        function(i){ leachk(i, 1, 7) },
+    ];
+
+    function movesrccr(i, from, reg){
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+
+        let ck = addrmodes[eamode](eareg, "w");
+        if(ck !== ck){
+            data(i);
+            return;
+        }
+
+        ret += "move\t";
+        if(from) ret += reg +",";
+        ret += ck;
+        if(!from) ret += ","+ reg;
+    }
+
+    function leachk(i, ins, reg){
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+
+        let ck = addrmodes[eamode](eareg, "w");
+        if(ck !== ck){
+            data(i);
+            return;
+        }
+
+        ret += (ins == 0 ? "chk" : "lea") +"\t"+ ck +","+ (ins == 0 ? "d" : "a") + reg;
+    }
+
+    function movemorext(i){
+        let reg = i & 0x0007;
+        if ((i & 0x0038) == 0)
+        // EXT
+            ret += "ext."+ ((i & 0x00C0) == 0x80 ? 'w' : 'l') +"\td" + reg;
+        else
+        // MOVEM
+            movem(i, (i & 0x0040) == 0 ? 'w' : 'l', true);
+    }
+
+    function movem(i, size, tomem){
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        let m = rw();
+
+        let ck = addrmodes[eamode](eareg, size);
+        if(ck !== ck){
+            pos -= 2;   // fix that rw call
+            data(i);
+            return;
+        }
+
+        ret += "movem."+ size +"\t";
+        if(!tomem) ret += ck +",";
+
+        if(eamode == 4) {
+            // -(aN)
+            // bit order is negated
+            let r = "";
+            let start = -1;
+            for (let z = 15;z >= 0;z--) {
+                let y = (m & (1 << z)) == 0;
+                if (!y && start == -1) {
+                    start = z;
+
+                } else if (y && start != -1) {
+                    r += "/" + movemregs(15 - start, 15 - z);
+                    start = -1;
+                }
+            }
+
+            ret += r.substring(1);
+
+        } else {
+            let r = "";
+            let start = -1;
+            for(let z = 0;z < 16;z++) {
+                let y = (m & (1 << z)) == 0;
+                if (!y && start == -1) {
+                    start = z;
+
+                } else if(y && start != -1) {
+                    r += "/"+ movemregs(start, z);
+                    start = -1;
+                }
+            }
+
+            ret += r.substring(1);
+        }
+
+        if(tomem) ret += ","+ ck;
+    }
+
+    function movemregs(start, m){
+        if (m - start > 1) {
+            return movemreg(start) +'-'+ movemreg(m - 1);
+
+        } else {
+            return movemreg(m - 1);
+        }
+    }
+
+    function movemreg(m){
+        return ((m & 8) == 0 ? "d" : "a") + (m & 7);
+    }
+
+    function ix484x(i){
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        if(eamode == 0) {
+            // SWAP
+            ret += "swap\td" + eareg;
+
+        } else {
+            // PEA
+            let ck = addrmodes[eamode](eareg, "w");
+            if(ck !== ck){
+                data(i);
+                return;
+            }
+
+            ret += "pea\t" + ck;
+        }
+    }
+
+    function ix4ACx(i){
+        if ((i & 0x003F) == 0x003C) {
+            ret += "illegal";
+            return;
+        }
+        // TAS
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        let ck = addrmodes[eamode](eareg, "b");
+        if(ck !== ck){
+            data(i);
+            return;
+        }
+
+        ret += "tas\t" + ck;
+    }
+
+    ix4E4xdat = [
+        trap,
+        trap,
+        function(i){ ret += "link\ta" + (i & 0x0007) + ", #$"+ rw().hex("0000") },
+        function(i){ ret += "unlk\ta"+ (i & 0x0007)},
+        function(i){ ret += "move.l\ta"+ (i & 0x0007) +",usp" },
+        function(i){ ret += "move.l\tusp,a"+ (i & 0x0007) },
+        ix4E7x,
+        data,
+    ];
+
+    function trap(i){
+        ret += "trap\t#"+ (i & 0x000F)
+    }
+
+    ix4E7xdat = ["reset", "nop", "stop", "rte", null, "rts", "trapv", "rtr"];
+    function ix4E7x(i){
+        let o = ix4E7xdat[i & 0x0007];
+        if(o == null) data(i);
+        ret += o;
+
+        if(o === "stop"){
+            ret += "\t$"+ rw().hex("0000");
+        }
+    }
+
+    dbcc = ["dbt", "dbf", "dbhi", "dbls", "dbcc", "dbcs", "dbne", "dbeq", "dbvc", "dbvs", "dbpl", "dbmi", "dbge", "dblt", "dbgt", "dble"];
+    scc = ["st", "sf", "shi", "sls", "scc", "scs", "sne", "seq", "svc", "svs", "spl", "smi", "sge", "slt", "sgt", "sle"];
+    function ix5xxx(i){
+        if ((i & 0x00C0) != 0x00C0) {
+            // addq/subq
+            let val = (i & 0x0E00) >> 9, eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+            let size = inssz1((i & 0x00C0) >> 6);
+            if(size !== size){
+                data(i);
+                return;
+            }
+
+            let ck = addrmodes[eamode](eareg, size);
+            if(ck !== ck){
+                data(i);
+                return;
+            }
+
+            if ((i & 0x0100) == 0) {
+                var ins = "addq";
+
+            } else {
+                var ins = "subq";
+            }
+
+            if(val == 0) val = 8;
+            ret += ins +"."+ size +"\t#"+ val +","+ ck;
+
+        } else {
+            let cc = (i & 0x0F00) >> 8, eamode = (i & 0x0038) >> 3, reg = i & 0x0007;
+
+            if(eamode == 1) {
+                // dbcc
+                ret += dbcc[cc] +"\td"+ reg +",$"+ offdispw(rw()).hex("000000");
+
+            } else {
+                // scc
+                let ck = addrmodes[eamode](reg, "b");
+                if(ck !== ck){
+                    data(i);
+                    return;
+                }
+
+                ret += scc[cc] +"\t"+ ck;
+            }
+        }
+    }
+
+    bcc = ["bra", "bsr", "bhi", "bls", "bcc", "bcs", "bne", "beq", "bvc", "bvs", "bpl", "bmi", "bge", "blt", "bgt", "ble"];
+    function ibcc(i){
+        if((i & 0xFF) == 0){
+            // word
+            var p = offdispw(rw());
+            var s = "w";
+        } else {
+            // byte
+            var p = offdispb(i);
+            var s = "s";
+        }
+
+        ret += bcc[(i & 0x0F00) >> 8] +"."+ s +"\t$"+ p.hex("000000");
+    }
+
+    function imoveq(i){
+        if((i & 0x100) != 0){
+            data(i);
+            return;
+        }
+
+        ret += "moveq\t#$"+ (i & 0xFF).hex("00") +",d"+ ((i & 0x0E00) >> 9);
+    }
+
+    function ix8xxx(i){
+        let opmode = (i & 0x01C0) >> 6;
+        if(opmode == 3){
+            // DIVU
+            muldiv("divu", i);
+
+        } else if(opmode == 4 && (i & 0x0030) == 0x0000){
+            sabcd("sbcd", i);
+
+        } else if (opmode == 7) {
+            // DIVS
+            muldiv("divs", i);
+
+        } else {
+            // OR
+            generici1("or", i);
+        }
+    }
+
+    function sabcd(ins, i){
+        let reg2 = (i & 0x0E00) >> 9, reg1 = i & 0x0007;
+        if((i & 0x0008) == 0) {
+            ret += ins + "\td" + reg1 + ",d" + reg2;
+
+        } else {
+            ret += ins + "\t-(a" + reg1 + "),-(a" + reg2 +")";
+        }
+    }
+
+    function isub(i){
+        iaddsub("sub", i);
+    }
+
+    function ixBxxx(i){
+        let reg = (i & 0x0E00) >> 9, eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        var size = inssz1((i & 0x00C0) >> 6);
+        var ins = null;
+
+        if(size !== size) {
+            // CMPA
+            ins = "cmpa";
+            size = (i & 0x0100) == 0 ? "w" : "l";
+        }
+
+        let ck = addrmodes[eamode](eareg, size);
+        if(ck !== ck){
+            data(i);
+            return;
+        }
+
+        if(ins == null) {
+            if ((i & 0x0100) != 0) {
+                if (eamode == 1) {
+                    // CMPM
+                    ret += "cmpm." + size + "\t(a" + eareg + ")+,(" + reg + ")+";
+                    return;
+
+                } else {
+                    // EOR
+                    ret += "eor." + size + "\td" + reg + "," + ck;
+                    return;
+                }
+
+                // CMP
+            } else ins = "cmp";
+        }
+
+        ret += ins +"."+ size +"\t"+ ck +","+ (ins == "cmp" ? "d" : "a")+ reg;
+    }
+
+    function ixCxxx(i){
+        let opmode = (i & 0x01C0) >> 6;
+        if (opmode == 3) {
+            // MULU
+            muldiv("muls", i);
+
+        } else if (opmode == 4 && (i & 0x0030) == 0x0000) {
+            // ABCD
+            sabcd("abcd", i);
+
+        } else if (opmode == 7) {
+            // MULS
+            muldiv("mulu", i);
+
+        } else if (opmode == 5 || opmode == 6) {
+            let reg1 = (i & 0x0E00) >> 9, reg2 = i & 0x0007;
+            // EXG
+            switch ((i & 0x00F8) >> 3) {
+                case 8:// dN <-> dN
+                    ret += "exg\td" + reg1 + ", d" + reg2;
+                    break;
+                case 9:// aN <-> aN
+                    ret += "exg\ta" + reg1 + ", a" + reg2;
+                    break;
+                case 17:// dN <-> aN
+                    ret += "exg\td" + reg1 + ", a" + reg2;
+                    break;
+                default:
+                    data(i);
+                    break;
+            }
+
+        } else {
+            // AND
+            generici1("and", i);
+        }
+    }
+
+    function muldiv(ins, i){
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007, reg = (i & 0x0E00) >> 9;
+        let ck = addrmodes[eamode](eareg, "w");
+        if(ck !== ck){
+            data(i);
+            return;
+        }
+
+        ret += ins +"\t"+ ck +",d"+ reg;
+    }
+
+    function iadd(i){
+        iaddsub("add", i);
+    }
+
+    function iaddsub(ins, i){
+        if((i & 0x0100) != 0 && (i & 0x0030) == 0) {
+            // addx/subx
+            let sz = inssz1((i & 0x00C0) >> 6);
+            if(sz !== sz){
+                data(i);
+                return;
+            }
+
+            let o = ins + "x." + sz +'\t';
+            let rx = (i & 0x0E00) >> 9, ry = i & 0x0007;
+
+            if((i & 0x0008) != 0) {
+                ret += o + "-(a" + ry + "),-(a" + rx +")";
+
+            } else {
+                ret += o +"d"+ ry +",d"+ rx;
+            }
+        } else if((i & 0x00C0) == 0xC0) {
+            // adda/suba
+            let areg = (i & 0x0E00) >> 9, eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+            let size = (i & 0x0100) == 0 ? "w" : "l";
+            let ck = addrmodes[eamode](eareg, size);
+            if(ck !== ck){
+                data(i);
+                return;
+            }
+
+            ret += ins + "a." + size + '\t'+ ck +",a"+ areg;
+
+        } else generici1(ins, i);
+    }
+
+    function ixExxx(i){
+        if((i & 0x00C0) == 0x00C0) {
+            // ea
+            let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+            let ck = addrmodes[eamode](eareg, "w");
+            if(ck !== ck){
+                data(i);
+                return;
+            }
+
+            ret += shiftins((i & 0x0600) >> 9, i) +"\t"+ ck;
+
+        } else {
+            // cnt/reg
+            let cntreg = (i & 0x0E00) >> 9, reg = i & 0x0007;
+            let size = inssz1((i & 0x00C0) >> 6);
+            if(size !== size){
+                data(i);
+                return;
+            }
+
+            ret += shiftins((i & 0x0018) >> 3, i) + '.' + size + '\t';
+
+            if((i & 0x0020) != 0) {
+                ret += 'd';
+
+            } else {
+                ret += '#';
+                if (cntreg == 0) {
+                    cntreg = 8;
+                }
+            }
+
+            ret += cntreg +",d"+ reg;
+        }
+    }
+
+    function shiftins(ins, i){
+        return ["as", "ls", "rox", "ro"][ins] + ((i & 0x0100) == 0 ? "r" : "l");
+    }
+
+    // disassembly support functions
+    function generici1(ins, i){
+        generic1(ins, i, i & 0x0100, inssz1((i & 0x00C0) >> 6), (i & 0x0E00) >> 9, (i & 0x0038) >> 3, i & 0x0007);
+    }
+
+    function generici2(ins, i){
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        let size = inssz1((i & 0x00C0) >> 6);
+        if(size !== size){
+            data(i);
+            return;
+        }
+
+        let o = ins + '.' + size + "\t#$";
+
+        if (size == 'l') {
+            o += rl().hex("00000000");
+
+        } else {
+            o += rw().hex(size == 'b' ? "00" : "0000");
+        }
+
+        o += ",";
+        if (eamode == 7 && eareg == 4) {
+            ret += o + (size == 'b' ? "ccr" : "sr");
+
+        } else {
+            let ck = addrmodes[eamode](eareg, size);
+            if(ck !== ck){
+                data(i);
+                return;
+            }
+
+            ret += o + ck;
+        }
+    }
+
+    function generic1(ins, i, dsrc, size, reg, eamode, eareg){
+        let ck = addrmodes[eamode](eareg, size);
+        if(ck !== ck){
+            data(i);
+            return;
+        }
+
+        ret += ins + "."+ size +"\t";
+        if(dsrc) ret += "d"+ reg +",";
+        ret += ck;
+        if(!dsrc) ret += ",d"+ reg;
+    }
+
+    function generic2(ins, i, size){
+        generic3(ins +"."+ size, i, size)
+    }
+
+    function generic3(ins, i, size){
+        let ck = addrmodes[(i & 0x0038) >> 3](i & 0x0007, size);
+        if(ck !== ck){
+            data(i);
+            return;
+        }
+
+        ret += ins +"\t"+ ck;
+    }
+
+    addrmodes = [
+        function(p,s){ return "d"+ p; },
+        function(p,s){
+            if(s == "b")
+                return Number.NaN;
+            return "a"+ p; },
+        function(p,s){ return "(a"+ p +")"; },
+        function(p,s){ return "(a"+ p +")+"; },
+        function(p,s){ return "-(a"+ p +")"; },
+        function(p,s){ return "$"+ rw().hex("0000") +"(a"+ p +")"; },
+        function(p,s){
+            let x = rw();
+            return "$"+ (x & 0xFF).hex("00") +"(a"+ p +",d"+ ((x & 0x7000) >> 12) +"."+ ((x & 0x0800) != 0 ? 'l' : 'w') +")"; },
+        function(p,s){ return addrmodes2[p](s); },
+    ];
+
+    addrmodes2 = [
+        function(s){
+            let x = rw();
+            if ((x & 0x8000) == 0)
+                return "($" + x.hex("00000000") + ").w";
+            return "($" + x.sexwl().hex("00000000") + ").w";
+        },
+        function(s){ return "($" + rl().hex("00000000") + ").l"; },
+        function(s){ return "$"+ offdispw(rw()).hex("000000") +"(pc)"; },
+        function(s){
+            let x = rw();
+            return "$"+ (offdispb(x) - 2).hex("000000") +"(pc,d"+ ((x & 0x7000) >> 12) +"."+ ((x & 0x0800) != 0 ? 'l' : 'w') +")";
+        },
+        function(s){
+            return "#$"+ (s == "l" ? rl() : rw() & (s == "b" ? 0xFF : 0xFFFF)).hex(s == "l" ? "00000000" : s == "w" ? "0000" : "00");
+        },
+        function(s){ return Number.NaN; },
+        function(s){ return Number.NaN; },
+        function(s){ return Number.NaN; },
+    ];
+
+    function inssz1(i){
+        if(i > 2) return Number.NaN;
+        return ["b", "w", "l"][i];
+    }
+
+    function inssz2(i){
+        if(i > 3) return Number.NaN;
+        return [Number.NaN, "b", "l", "w"][i];
+    }
+
+    function data(i){
+        ret += "dc.w $"+ i.hex("0000");
+    }
+
+    function offdispb(byte){
+        if((byte & 0x80) == 0)
+            return pos + off + (byte & 0xFF);
+        return pos + off - (0x80 - (byte & 0x7F));
+    }
+
+    function offdispw(word){
+        if((word & 0x8000) == 0)
+            return (pos + off + word - 2) & 0xFFFFFF;
+        return (pos + off - (0x10000 - word) - 2) & 0xFFFFFF;
+    }
+
+    function rb(){
+        if(dat.length > pos) return dat[pos++];
+        pos++;
+        return 0;
+    }
+
+    function rw(){
+        return (rb() << 8) | rb();
+    }
+
+    function rl(){
+        return (rw() << 16) | rw();
+    }
+
+    // javascript support functionality
+    if (!String.prototype.padStart) {
+        String.prototype.padStart = function padStart(targetLength,padString) {
+            targetLength = targetLength>>0;
+            padString = String((typeof padString !== 'undefined' ? padString : ' '));
+            if (this.length > targetLength) {
+                return String(this);
+            }
+            else {
+                targetLength = targetLength-this.length;
+                if (targetLength > padString.length) {
+                    padString += padString.repeat(targetLength/padString.length);
+                }
+                return padString.slice(0,targetLength) + String(this);
+            }
+        };
+    }
+
+    Number.prototype.hex = function hex(pad) {
+        return (this >>> 0).toString(16).toUpperCase().padStart(pad.length, pad);
+    };
+
+    Number.prototype.sexwl = function sexwl() {
+        if(this > 0x8000) return 0xFFFF0000 | this;
+        return this & 0xFFFF;
+    };</script>

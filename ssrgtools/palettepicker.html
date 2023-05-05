@@ -1,0 +1,295 @@
+<html>
+<head>
+	<title>Mega Drive palette picker tool</title>
+	<style>
+		body {
+			margin: 0;
+			background: rgb(43, 43, 43);
+			overflow: hidden;
+		}
+
+		#selector {
+			text-align: center;
+			margin-top: 1%;
+			z-index: 1;
+		}
+
+		#selector > div {
+			width: calc((98% - (var(--palettes) * .4%)) / var(--palettes));
+			height: 20%;
+			display: inline-block;
+			border: 2px solid gray;
+			margin: .2%;
+			background: black;
+			box-sizing: border-box;
+
+			transition: transform .33s;
+			transform-origin: 50% 0;
+			cursor: pointer;
+		}
+
+		.current {
+			transform: scaleY(1.15);
+		}
+
+		#selector > div:hover {
+			transform: scale(1.5);
+		}
+
+		#editor {
+			display: block;
+			margin: 1%;
+			margin-top: 2.2%;
+			width: 98%;
+			height: 73%;
+			z-index: -1;
+		}
+
+		#rgb {
+			margin-left: 3%;
+			width: 10%;
+			display: inline-block;
+		}
+
+		#rgb > div {
+			text-align:center;
+			display: inline-block;
+			height: 95%;
+			width: 26%;
+			background: #424242;
+			margin: 1% 2%;
+			border-radius: 70px;
+			overflow: hidden;
+		}
+
+		.rgbtext {
+			font: 40pt monospace;
+			font-weight: bold;
+		}
+
+		.rgbbar {
+			height: 91%;
+			border-radius: 70px;
+			margin-top: 1%;
+			position: relative;
+			cursor: pointer;
+		}
+
+		.rgbball {
+			position: absolute;
+			left: 0;
+			right: 0;
+			height: 9%;
+			background: #797979;
+			border-radius: 50%;
+
+			transition: top .2s;
+			pointer-events: none;
+		}
+
+		.rgbbar:hover > .rgbball {
+			background: #a7a7a7;
+		}
+
+		#s_r > .rgbbar { background: linear-gradient(to top, rgba(0,0,0,.8) 5%, rgba(127,0,0,.8) 60%, rgba(240,0,0,.8)); }
+		#s_g > .rgbbar { background: linear-gradient(to top, rgba(0,0,0,.8) 5%, rgba(0,127,0,.8) 60%, rgba(0,240,0,.8)); }
+		#s_b > .rgbbar { background: linear-gradient(to top, rgba(0,0,0,.8) 5%, rgba(0,0,127,.8) 60%, rgba(0,0,240,.8)); }
+
+		#display {	
+			display: inline-block;
+			width: 20%;
+			margin-left: 3%;
+		}
+
+		#display > input {
+			color: whitesmoke;
+			font: 40pt monospace;
+			margin-bottom: 1%;
+			background: transparent;
+			border: 2px solid #555555;
+			border-radius: 20px;
+			padding: 2% 4%;
+			outline: none;
+			transition: all .33s;
+			background: rgba(0,0,0,.2);
+		}
+
+		#display > input:focus {
+			border-radius: 30px;
+			border-color: #969696;
+		}
+
+		#showcolor {
+			width: 100%;
+			height: 50%;
+			display: inline-block;
+			border: 2px solid gray;
+			margin: .2%;
+			margin-top: 10%;
+			background: black;
+			transition: background-color .33s;
+			border-radius: 30px;
+		}
+
+		#copy {
+			position: absolute;
+			right: .3%;
+			bottom: .3%;
+			font-size: 15pt;
+			color: #613a61;
+		}
+
+		:root {
+			--palettes: 16;
+		}
+	</style>
+
+	<script>
+		var colors = [], sel = 0;
+		var table = [ 0, 52, 87, 116, 144, 172, 206, 255 ];
+
+		// init selectors and system
+		function init() {
+			let html = "", pals = getComputedStyle(document.body).getPropertyValue('--palettes');
+			colors = new Array(pals);
+
+			// generate html for 16 blank entries
+			for(let i = 0;i < pals; i++){
+				html += "<div id='se"+ i +"' onclick='select("+ i +")'></div>";
+			}
+
+			for(let i = 0;i < pals;i ++){
+				colors[i] = 0;
+			}
+
+			document.getElementById("selector").innerHTML = html;
+			select(0);
+
+			for(let x of [ "r_", "g_", "b_" ])
+				document.getElementById(x).onmousedown = ballDrag;
+		}
+
+		// select the color element
+		function select(id){
+			sel = id;
+
+			for(let i = 0;i < colors.length; i++){
+				document.getElementById("se"+ i).classList[i === id ? "add" : "remove"]("current");
+			}
+
+			// update ball position
+			setBall("rball", colors[id] & 0xE);
+			setBall("gball", (colors[id] >> 4) & 0xE);
+			setBall("bball", (colors[id] >> 8) & 0xE);
+			setPanelColor(id);
+		}
+
+		// set ball position relative to top
+		function setBall(id, value) {
+			document.getElementById(id).style.top = ((92 / 0xE * (0xE - value)) - .5) +"%";
+		}
+
+		// set panel color
+		function setPanelColor(id) {
+			const color = "rgb("+ table[(colors[id] >> 1) & 7] +","+ table[(colors[id] >> 5) & 7] +","+ table[(colors[id] >> 9) & 7] +")";
+			document.getElementById("se"+ id).style.backgroundColor = color;
+			document.getElementById("showcolor").style.backgroundColor = color;
+
+			document.getElementById("colorrgb").value = color;
+			document.getElementById("colormd").value = "$"+ pad(3, colors[id].toString(16).toUpperCase());
+			document.getElementById("colorhex").value = "#"+ hex(table[(colors[id] >> 1) & 7]) + hex(table[(colors[id] >> 5) & 7]) + hex(table[(colors[id] >> 9) & 7]);
+
+			document.getElementById("r_t").innerText = hex2(colors[id] & 0xE);
+			document.getElementById("g_t").innerText = hex2((colors[id] >> 4) & 0xE);
+			document.getElementById("b_t").innerText = hex2((colors[id] >> 8) & 0xE);
+		}
+
+		// convert to hex function for use above
+		function hex(n) {
+			return pad(2, hex2(n));
+		}
+
+		// convert to hex function for use above
+		function hex2(n) {
+			return n.toString(16).toUpperCase();
+		}
+
+		// function to pad string with 0's until right size
+		function pad(n, str) {
+			return str.padStart(n, "0");
+		}
+
+		// ball drag event handler
+		function ballDrag(eb) {
+			eb.preventDefault();
+			console.log("select", eb.target.id);
+
+			const move = function(e) {
+				// calcuate the right value to use
+				let color = 0xE - (Math.round((e.clientY - eb.target.getBoundingClientRect().top - (eb.target.offsetHeight / 23)) / (eb.target.offsetHeight / 8)) * 2);
+				console.log("move", color);
+
+				if(color < 0) color = 0;
+				else if(color > 0xE) color = 0xE;
+
+				// make use of the color
+				const shift = eb.target.id == "r_" ? 0 : eb.target.id == "g_" ? 4 : 8;
+
+				const _c = colors[sel];
+				colors[sel] &= 0xEEE - (0xE << shift);
+				colors[sel] |= color << shift;
+
+				// update stats
+				if(_c != colors[sel]){
+					setPanelColor(sel);
+					setBall(eb.target.id.replace("_", "ball"), (colors[sel] >> shift) & 0xE);
+				}
+			};
+
+			const up = function(e) {
+				// disable old events
+				document.onmousemove = undefined;
+				document.onmouseup = undefined;
+				console.log("deselect");
+			};
+
+			// enable mouse events
+			document.onmousemove = move;
+			document.onmouseup = up;
+			move(eb);
+		}
+	</script>
+</head>
+<body onload="init()">
+	<div id="selector"></div>
+	<div id="editor">
+		<div id="rgb">
+			<div id="s_r">
+				<div class="rgbtext" id="r_t">0</div>
+				<div class="rgbbar" id="r_">
+					<div class="rgbball" id="rball"></div>
+				</div>
+			</div>
+			<div id="s_g">
+				<div class="rgbtext" id="g_t">0</div>
+				<div class="rgbbar" id="g_">
+					<div class="rgbball" id="gball"></div>
+				</div>
+			</div>
+			<div id="s_b">
+				<div class="rgbtext" id="b_t">0</div>
+				<div class="rgbbar" id="b_">
+					<div class="rgbball" id="bball"></div>
+				</div>
+			</div>
+		</div>
+		<div id="display">
+			<input id="colormd"></input>
+			<input id="colorhex"></input>
+			<input id="colorrgb"></input>
+			<div id="showcolor"></div>
+		</div>
+	</div>
+	<div id="copy">&copy; AURORA☆FIELDS 2021</div>
+</body>
+</html>

@@ -1,0 +1,1700 @@
+<html>
+<head>
+	<title>MOTOROLA 68000 CYCLE COUNT v0</title>
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+	<script>
+		// regex for various things
+		const rexLabel = new RegExp("^(\\s*\\.?\\@?[A-z0-9_]+:)", "i");
+		const rexLabel2 = new RegExp("^(\\.?\\@?[A-z0-9_]+:?)", "i");
+		const rexSpace = new RegExp("^(\\s+)", "i");
+		const rexListReg = new RegExp("^(d[0-7]|a[0-7]|sp)", "i");
+		
+		// regex for argument types
+		const checkSep = "(?=(\\s|\\t)*(,|;|$))";
+		const rexEAd8 = new RegExp("^(([^,]*)\\(((pc)|(a[0-7]|sp)),(a[0-7]|d[0-7]|sp)(|\\.w|\\.l)\\))"+ checkSep, "i");
+		const rexEAd16 = new RegExp("^(([^,]+)\\((pc|a[0-7]|sp)\\))"+ checkSep, "i");
+		const rexDn = new RegExp("^\\((d[0-7])\\)(\\+?)"+ checkSep, "i");
+		const rexPc = new RegExp("^\\((pc)\\)(\\+?)"+ checkSep, "i");
+		const rexAp = new RegExp("^\\((a[0-7]|sp)\\)(\\+?)"+ checkSep, "i");
+		const rexAm = new RegExp("^\\-\\((a[0-7]|sp)\\)"+ checkSep, "i");
+		const rexData = new RegExp("^#([^,]+)", "i");
+		const rexAddr = new RegExp("^(\\t*\\s*\\(?\\.?\\@?[^,\\.]+\\)?)(\\.(w|l))?", "i");
+		const rexReg = new RegExp("^(d[0-7]|a[0-7]|sp|usp|ssp|sr|ccr)" + checkSep, "i");
+		const rexList = new RegExp("^((d|a)[0-7]((\\-|\\/)(d|a)[0-7])+)"+ checkSep, "i");
+
+		// regex for instructions
+		const arrCC = (mdt, mdf) => "(" + mdt + "|" + mdf +"|eq|ne|pl|mi|cc|cs|vc|vs|lo|ls|hi|hs|lt|le|gt|ge)";
+		const arrIns = [
+			"b(tst|clr|set|chg)", "(ls|as|ro|rox)(l|r)", "b" + arrCC("ra", "sr"), "s" + arrCC("t", "f"), "db" + arrCC("t", "f"), "move(|a|q|p|m)", "link", "unlk",
+			"(add|sub)(|i|a|x|q)", "cmp(|i|a|m)", "neg(|x)", "(and|or|eor)(|i)", "dc", "dcb", "ds", "tst", "(mul|div)(u|s)", "chk", "ext", "trap", "trapv", "nop",
+			"reset", "illegal", "stop", "rt(e|s|d|r)", "jmp", "jsr", "pea", "lea", "exg", "swap", "clr", "(a|s|n)bcd", "tas", "not",
+		];
+		const rexIns = new RegExp("^(\\s*(" + arrIns.join("|") + ")(\\.[bwls])?)(?=(\\s+|$))", "i");
+		const rexUnkIns = new RegExp("^(\\s*[^\\s]*)(?=(\\s+|$))", "i");
+
+		// function to excape stuff
+		const _esc = (text) => {
+			return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;").replaceAll("'", "&#039;");
+		}
+
+		// function to highlight 68k code
+		var cyc = "";
+
+		const _highlight = (lnum) => {
+			if(!edit) return;
+
+			cyc = "";
+			let text = edit.value;
+			let res = "", lx = 0;
+
+			// loop for every line of the file
+			for(let line of text.split("\n")){
+
+				if(line.trim().length > 0) {
+					let out = "", invalid = false;
+					let instruction = [];
+
+					// split comment off
+					let cmt = line.indexOf(";");
+					let comment = null;
+
+					if (cmt >= 0) {
+						comment = line.substring(cmt);
+						line = line.substring(0, cmt);
+					} 
+
+					// check if this line contains a label
+					let rx = line.match(rexLabel);
+
+					if (!rx || !rx.length)
+						rx = line.match(rexLabel2);
+
+					if (rx && rx.length) {
+						// does contain a label
+						out += "<p_label>" + _esc(rx[1]) + "</p_label>";
+						line = line.substring(rx[1].length);
+					}
+
+					// check for instructions
+					rx = line.match(rexIns);
+
+					if (rx && rx.length) {
+						// does contain an instruction
+						out += "<p_ins>" + _esc(rx[1]) + "</p_ins>";
+						line = line.substring(rx[1].length);
+						instruction.push({ ea: -10, reg: -1, ins: rx[1].trim() });
+
+					} else {
+						// check for unknown instructions
+						rx = line.match(rexUnkIns);
+
+						if (rx && rx.length) {
+							// does contain an instruction
+							out += "<p_unk>" + _esc(rx[1]) + "</p_unk>";
+							line = line.substring(rx[1].length);
+
+							// if instruction had text, then uh oh spaghettios
+							if(rx[1].trim().length > 0){
+								instruction.push({ ea: -10, reg: -1, ins: rx[1].trim() });
+								invalid = true;
+							}
+						}
+					}
+
+					if (line.length > 0) {
+						rx = line.match(rexSpace);
+
+						if (rx && rx.length) {
+							// does contain additional space
+							out += _esc(rx[1]);
+							line = line.substring(rx[1].length);
+						}
+
+						let first = true;
+
+						// check for parameters
+						while (line.length > 0) {
+							if(line.charAt(0) == ","){
+								// separator
+								out += ",";
+								line = line.substring(1);
+
+								// detect invalid modes
+							} else if(!first && line.trim().length > 0) invalid = true;
+							first = false;
+
+							rx = line.match(rexEAd8);
+
+							if (rx && rx.length) {
+								// d8(pc|ax|dx,ax|dx)
+								out += expression(rx[2]) + "(<p_reg>" + rx[3] + "</p_reg>,<p_reg>" + rx[6] + "</p_reg>" + (rx[7] ? "<p_ins>" + rx[7] + "</p_ins>" : "") + ")";
+								line = line.substring(rx[1].length);
+
+								// handle instruction mode
+								if(rx[3].toLowerCase() === "pc"){
+									instruction.push({ ea: 7, reg: 3, data: rx[2].trim(), ix: getRegister(rx[6]), ixs: rx[7] });
+
+								} else {
+									instruction.push({ ea: 6, reg: getRegister(rx[3]), data: rx[2].trim(), ix: getRegister(rx[6]), ixs: rx[7] });
+								}
+								continue;			
+							}
+
+							rx = line.match(rexAp);
+
+							if (rx && rx.length) {
+								// (ax)+
+								out += "(<p_reg>" + rx[1] + "</p_reg>)<p_math>" + rx[2] +"</p_math>";
+								line = line.substring(rx[0].length);
+
+								instruction.push({ ea: rx[2] ? 3 : 2, reg: getRegister(rx[1]) - 8 });
+								continue;
+							}
+
+							rx = line.match(rexAm);
+
+							if (rx && rx.length) {
+								// -(ax)
+								out += "<p_math>-</p_math>(<p_reg>" + rx[1] + "</p_reg>)";
+								line = line.substring(rx[0].length);
+
+								instruction.push({ ea: 4, reg: getRegister(rx[1]) - 8 });
+								continue;
+							}
+
+							rx = line.match(rexPc);
+
+							if (rx && rx.length) {
+								// -(ax)
+								out += "(<p_reg>pc</p_reg>)";
+								line = line.substring(rx[0].length);
+
+								instruction.push({ ea: 7, reg: 2, data: "" });
+								continue;
+							}
+
+							rx = line.match(rexDn);
+
+							if (rx && rx.length) {
+								// (dx)
+								out += "(<p_reg>"+ rx[1] +"</p_reg>)";
+								line = line.substring(rx[0].length);
+
+								instruction.push({ ea: -2, reg: -100, data: rx[0].toLowerCase() });
+								invalid = true;
+								continue;
+							}
+
+							rx = line.match(rexEAd16);
+
+							if (rx && rx.length) {
+								// d16(pc|ax)
+								out += expression(rx[2]) + "(<p_reg>" + rx[3] + "</p_reg>)";
+								line = line.substring(rx[0].length);
+
+								// handle instruction mode
+								if(rx[3].toLowerCase() === "pc"){
+									instruction.push({ ea: 7, reg: 2, data: rx[2].trim() });
+
+								} else {
+									instruction.push({ ea: 5, reg: getRegister(rx[3])  - 8, data: rx[2].trim() });
+								}
+								continue;
+							}
+
+							rx = line.match(rexData);
+
+							if (rx && rx.length) {
+								// #<data>
+								out += "#" + expression(rx[1]);
+								line = line.substring(rx[0].length);
+
+								instruction.push({ ea: 7, reg: 4, data: rx[1].trim() });
+								continue;
+							}
+
+							rx = line.match(rexList);
+
+							if (rx && rx.length) {
+								// movem register list
+								line = line.substring(rx[1].length);
+								let s = rx[1];
+								rx = s.match(rexSpace);
+
+								let list = [];
+
+								if (rx && rx.length) {
+									// does contain additional space
+									out += _esc(rx[1]);
+									s = s.substring(rx[1].length);
+								}
+
+								while (s.length > 0) {
+									// check if a separator character
+									if (s.charAt(0) === '-' || s.charAt(0) === '/') {
+										list.push(s.charAt(0) === '-');
+
+										out += "<p_math>" + s.charAt(0) + "</p_math>";
+										s = s.substring(1);
+									}
+
+									rx = s.match(rexListReg);
+
+									if (rx && rx.length) {
+										// register
+										out += "<p_reg>" + rx[1] + "</p_reg>";
+										s = s.substring(rx[1].length);
+										list.push(getRegister(rx[1]));
+										continue;
+									}
+
+									out += "<p_unk>" + _esc(s) + "</p_unk>";
+									list.push(null);
+									invalid = true;
+									break;
+								}
+
+								// convert movem list and mark invalid
+								list = convMovemList(list);
+								invalid |= list == null;
+								instruction.push({ ea: -1, reg: -1, list: list  });
+								continue;
+							}
+
+							rx = line.match(rexReg);
+
+							if (rx && rx.length) {
+								// register
+								out += "<p_reg>" + rx[1] + "</p_reg>";
+								line = line.substring(rx[1].length);
+
+								let r = getRegister(rx[1]);
+								if(r == undefined || r > 15) instruction.push({ ea: -2, reg: r });
+								else instruction.push({ ea: (r > 7) ? 1 : 0, reg: r & 7 });
+								continue;
+							}
+
+							rx = line.match(rexAddr);
+
+							if (rx && rx.length) {
+								// <addr>
+								out += expression(rx[1]) + (rx[2] ? "<p_ins>" + rx[2] + "</p_ins>" : "");
+								line = line.substring(rx[0].length);
+
+								// hack to fix white space
+								if(rx[1].trim().length > 0)
+									instruction.push({ ea: 7, reg: (rx[2] === ".W" || rx[2] === ".w") ? 0 : 1, data: rx[1].trim(), size: rx[2] });
+								continue;
+							}
+
+							out += "<p_unk>" + _esc(line) + "</p_unk>";
+							line = "";
+							break;
+						}
+					}
+
+					// write comment
+					if (comment != null)
+						out += "<p_cmt>"+ line + comment +"</p_cmt>";
+
+					// write line number
+					if(lnum)
+						out += "<p_lnum>"+ lx++ +"</p_lnum>";
+
+					// call the instruction function
+					invalid |= procIns(instruction, invalid);
+
+					// add line
+					res += "<p_line "+ (invalid ? "class='error'" : "") +">"+ out + "</p_line>\n";
+
+				} else {
+					// only empty space. Sad :(
+					res += line +"\n";
+					cyc += "\n";
+				} 
+			}
+
+			display.innerHTML = res;
+			cycles.innerHTML = cyc;
+			requestAnimationFrame(textHeight);
+		}
+
+		// regex for various expression parts
+		const rexMath = new RegExp("^(([\\+\\-\\*/%\\^\\|&<>=!~]|@(?!\\w))+)", "i");
+		const rexStr = new RegExp("^((\"|')[^\"']*(\\\"|\\'))", "i");
+		const rexBrack = new RegExp("^(\\(|\\)|\\[|\\])", "i");
+
+		const rexNum = [
+			new RegExp("^(\\d+)", "i"), new RegExp("^((0x|\\$)[0-9A-F]+)", "i"), new RegExp("^(\\d+[0-9A-F]*h)", "i"),
+			new RegExp("^([0-1]+b)", "i"), new RegExp("^((%|0b)[0-1]+)", "i"),
+		];
+
+		// function for highlighting an expression
+		const expression = (text) => {
+			let out = "";
+			let rx = text.match(rexSpace);
+
+			if (rx && rx.length) {
+				// does contain additional space
+				out = _esc(rx[1]);
+				text = text.substring(rx[1].length);
+			}
+
+			let chars = "", waschars = false;
+
+			// write chars helper
+			let dochars = () => {
+				if (chars.length > 0) {
+					out += "<p_label>" + _esc(chars) + "</p_label>";
+					chars = "";
+				}
+			};
+
+			// helper function
+			let help = (rex, fun) => {
+				let r = text.match(rex);
+
+				if (r && r.length) {
+					dochars();
+
+					// process entry
+					out += fun(r);
+					text = text.substring(r[1].length);
+					
+					waschars = false;
+					return true;
+				}
+
+				return false;
+			};
+
+			// helper function for numbers
+			let num = (n) => {
+				return help(rexNum[n], (r) => "<p_num>" + _esc(r[1]) + "</p_num>");
+			};
+
+			// loop for all text entries
+			while (text.length > 0) {
+				if (help(rexMath, (r) => "<p_math>" + _esc(r[1]) + "</p_math>")) continue;
+				if (help(rexStr, (r) => "<p_str>" + _esc(r[1]) + "</p_str>")) continue;
+				if (!waschars && (num(0) || num(1) || num(2) || num(3) || num(4))) continue;
+				if (help(rexBrack, (r) => _esc(r[1]))) continue;
+
+				chars += text.charAt(0);
+				text = text.substring(1);
+				waschars = true;
+			}
+
+			dochars();
+			return out;
+		}
+
+		// function to convert movem register list to bitfield
+		function convMovemList(list) {
+			// if starts with an invalid character
+			if(list[0] === true || list[0] === false) return null;
+
+			let ret = 0, start = null, md = false;
+
+			let singlebit = () => {
+				// must not be trying to use the - operator
+				if(md) return null;
+
+				if(start != null){
+					// get register and check it
+					if(start == undefined || start < 0 || start > 15) return null;
+
+					// add single bit
+					ret |= 1 << start;
+					start = null;
+				}
+			}
+
+			// loop for all characters
+			for(let x of list){
+				if(x === false){
+					singlebit();
+
+				} else if(x === true) {
+					// must have source register
+					if(start == null || md) return null;
+					md = true;
+
+				} else {
+					// get register and check it
+					if(x == undefined || x < 0 || x > 15) return null;
+
+					if(!md){
+						// single register
+						if(start != null) return null;
+						start = x;
+
+					} else if(start == null) return null;
+					else {
+						// register list
+						if(x < start) return null;
+
+						// add a range of bits
+						for(let y = start; y <= x;y ++)
+							ret |= 1 << y;
+
+						// reset modes
+						md = false;
+						start = null;
+					}
+				}
+			}
+
+			singlebit();
+			return ret;
+		}
+
+		// function to help with getting the register number from string
+		const _rexEquates = {
+			"d0": 0,  "d1": 1,  "d2": 2,  "d3": 3,  "d4": 4,  "d5": 5,  "d6": 6,  "d7": 7,
+			"a0": 8,  "a1": 9,  "a2": 10, "a3": 11, "a4": 12, "a5": 13, "a6": 14, "a7": 15, 
+			"sp": 15, "sr": 16,"ccr": 17,"usp": 18,"ssp": 19, "pc": 20,
+		};
+
+		function getRegister(str) {
+			return _rexEquates[str.toLowerCase()];
+		}
+
+		// example function to process instructions. If you want to write your own programs, use this as a starting point!
+/*		function procIns(data, invalid) {
+			if(invalid || data.length == 0) return false;		// lets ignore clearly invalid lines and lines without any instructions
+
+			console.log(data);
+			return true;		// look, this is completely valid!
+		}*/
+
+		// function to process an instruction
+		function procIns(data, invalid) {
+			if(invalid || data.length == 0 || !data[0].ins) {
+				cyc += "\n";
+				return false;
+			}
+			
+			let ins = data[0].ins, size = 0;
+
+			if(ins.indexOf(".") >= 0){
+				ins = ins.split(".");
+
+				// must only have 1 parameter
+				if(ins.length > 2) return true;
+
+				// convert parameter
+				switch(ins[1].toLowerCase()){
+					case "s": size = -1; break;
+					case "b": size = 1; break;
+					case "w": size = 2; break;
+					case "l": size = 4; break;
+					default: return true;
+				}
+
+				ins = ins[0].toLowerCase();
+
+				// always convert to lowercase
+			} else ins = ins.toLowerCase();
+
+			// check function
+			if(!insFunctions[ins]) {
+				cyc += "\n";
+				return true;
+			}
+
+			// run data function
+			let res = insFunctions[ins](ins, size, data);
+
+			if(res == null) {
+				cyc += "\n";
+				return true;
+			}
+
+			// append str
+			cyc += res +"\n";
+			return false;
+		}
+
+		// helper function to return standardized cycle format string
+		function cycfmt(cycles) {
+			return cyctxt(cycles, null);
+		}
+
+		// helper function to return cycle format string with custom tooltip text
+		function cyctxt(cycles, tool) {
+			if(tool) return cyccst(tool, cycstr(cycles));
+			return "<p_cyc>"+ cycstr(cycles) +"</p_cyc>";
+		}
+
+		// helper function to return custom cycle html
+		function cyccst(tool, disp) {
+			return "<p_cyc class='text'><p_tt>"+ tool +"</p_tt>"+ disp +"</p_cyc>";
+		}
+
+		// helper function to convert cycle array to string
+		function cycstr(arr) {
+			if(arr.length != 3) return "ERROR";
+			return arr[0] +" ("+ arr[1] +"/"+ arr[2] +")";
+		}
+
+		// helper function for instructions with cycle timings
+		function cycleins(cycles, size, sizelist, data, params) {
+			if(data.length != 1 + params.length) return null;
+			if(!sizelist.includes(size)) return null;
+
+			// return cycle format
+			return cycleinsunsafe(cycles, size || (sizelist.length > 0 ? sizelist[1] : 2), data, params);
+		}
+
+		// helper function for instructions with cycle timings
+		function cycleinsunsafe(cycles, size, data, params) {
+			if(!size) size = 2;
+
+			// validate params and calculate cycles
+			for(let i = 0; i < params.length; i ++){
+				if(!chkparam(data[i + 1], params[i]))
+					return null;
+
+				let cn = getModeCycles(data[i + 1], size, i == 0);
+				if(cn == null) return null;
+				cycles = addCycles(cycles, cn);
+			}
+
+			// return cycle format
+			return cycfmt(cycles);
+		}
+
+		// helper function for instructions with a single parameter
+		function cycleinssingle(cycles, size, data, param, source) {
+			// validate param and calculate cycles
+			if(!chkparam(data, param))
+				return null;
+
+			let cn = getModeCycles(data, size, source);
+			if(cn == null) return null;
+
+			// return cycle format
+			return cycfmt(addCycles(cycles, cn));
+		}
+
+		// helper function for simple instruction formats
+		function simpleins(str, size, data, params) {
+			if(size) return null;
+			if(data.length != 1 + params.length) return null;
+
+			// validate params
+			for(let i = 0; i < params.length; i ++)
+				if(!chkparam(data[i + 1], params[i]))
+					return null;
+
+			return str;
+		}
+
+		// function to check if parameters actually match up
+		function chkparam(data, bitfield) {
+			// calculate the correct bit
+			let bit = getbit(data);
+			if(bit < 0) return false;
+
+			// check if bit is set in the bitfield
+			return bitfield & (1 << bit);
+		}
+
+		// function to return the correct bit for te current operation, or -1 for invalid
+		function getbit(data) {
+			// misc mode check
+			if(data.ea < 0) return -1;
+
+			// calculate the proper bit. if ea == 7, reg contaisn additional info
+			let bit = data.ea;
+			if(bit == 7) bit += data.reg;
+			return bit;
+		}
+
+		// function to calculate addressing mode cycles
+		function addCycles(c1, c2) {
+			return [ c1[0] + c2[0], c1[1] + c2[1], c1[2] + c2[2] ];
+		}
+
+		// function to calculate addressing mode cycles
+		function getModeCycles(data, size, source) {
+			// calculate the correct bit
+			let bit = getbit(data);
+			if(bit < 0) return null;
+
+			// run the custom function
+			return modeCyc[bit](size, source);
+		}
+
+		const modeCycAind = (size, source) => size == 4 ? [8, 2, 0] : [4, 1, 0];
+
+		const modeCyc = [
+			(size, source) => [0, 0, 0],								// dn
+			(size, source) => size == 1 ? null : [0, 0, 0],				// an
+			modeCycAind,												// (an)
+			modeCycAind,												// (an)+
+			(size, source) => source ? size == 4 ? [10, 2, 0] : [6, 1, 0] : modeCycAind(size, source),// -(an)
+			(size, source) => size == 4 ? [12, 3, 0] : [8, 2, 0],		// d(an)
+			(size, source) => size == 4 ? [14, 3, 0] : [10, 2, 0],		// d(an,ix)
+
+			(size, source) => size == 4 ? [12, 3, 0] : [8, 2, 0],		// xxx.w
+			(size, source) => size == 4 ? [16, 4, 0] : [12, 3, 0],		// xxx.l
+			(size, source) => size == 4 ? [12, 3, 0] : [8, 2, 0],		// d(pc)
+			(size, source) => size == 4 ? [14, 3, 0] : [10, 2, 0],		// d(pc,ix)
+			(size, source) => size == 4 ? [8, 2, 0] : [4, 1, 0],		// #data
+		];
+
+		const movemCycles = [
+			[ null, null, [ 12, 3, 0 ], [ 12, 3, 0 ], null, [ 16, 4, 0 ], [ 18, 4, 0 ], [ 16, 4, 0 ], [ 20, 5, 0 ], [ 16, 4, 0 ], [ 18, 4, 0 ], null ],
+			[ null, null, [  8, 2, 0 ], null, [  8, 2, 0 ], [ 12, 3, 0 ], [ 14, 3, 0 ], [ 12, 3, 0 ], [ 16, 4, 0 ], null, null, null ],
+		];
+
+		// common instruction handler 1 - 1 argument, used by clr, not neg, etc
+		const commonIns1data = [
+			[ 4, 1, 0 ], [  6, 1, 0 ],		// dn
+			[ 8, 1, 1 ], [ 12, 1, 2 ],		// ea
+		];
+
+		function commonIns1(ins, size, data) {
+			if(data.length != 2) return null;
+
+			// EXCEPTION: dn has special rules
+			if(data[1].ea == 0)	return cycfmt(commonIns1data[ size == 4 ? 1 : 0 ]);
+
+			// normal handling
+			return cycleins(commonIns1data[ size == 4 ? 3 : 2 ], size || 2, [ 0, 1, 2, 4 ], data, [ 0x1FD ]);
+		}
+
+		// common instruction handler 2 - 2 arguments, used by add/adda/addi, etc
+		function commonIns2(type, size, data) {
+			if(data.length != 3) return null;
+
+			let params = null, cycles = null;
+
+			// handle special rules
+			if(type === 1 || (type === 0 && data[2].ea === 1)){
+				// adda
+				params = [ 0xFFF, 0x2 ];
+				cycles = (size !== 4 && (data[1].ea === 0 || isData(data[1]))) ? [ 8, 1, 0 ] : [ 6, 1, 0 ];
+				
+			} else if(type === 2 || (type === 0 && isData(data[1]))){
+				// addi
+				params = [ 0x800, 0x1FD ];
+				cycles = size !== 4 ? [ data[2].ea === 0 ? 4 : 8, 1, data[2].ea === 0 ? 0 : 1 ] : [ data[2].ea === 0 ? 8 : 12, 1, data[2].ea === 0 ? 0 : 2 ];
+
+			} else if(type === 0) {
+				if(data[2].ea === 0) {
+					// add ea, dn
+					params = [ 0xFFF, 0x1 ]; cycles = size === 4 ? [ (data[1].ea === 0 || isData(data[1])) ? 8 : 6, 1, 0 ] : [ 4, 1, 0 ];
+
+				} else if(data[1].ea === 0) {
+					// add dn, ea
+					params = [ 0x1, 0x1FD ]; cycles = size === 4 ? [ 12, 1, 2 ] : [ 8, 1, 1 ];
+
+				} else return null;
+			} else return null;
+
+			// normal handling
+			return cycleins(cycles, size || 2, [ 0, 1, 2, 4 ], data, params);
+		}
+
+		// common instruction handler 3 - 2 arguments, used by or/and, etc. Almost the same as type 2 but with few differences
+		function commonIns3(type, size, data) {
+			if(data.length != 3) return null;
+
+			let params = null, cycles = null;
+
+			// handle special rules
+			switch(type) {
+				case false:	
+					if(data[2].ea === 0) {
+						// or ea, dn
+						params = [ 0xFFD, 0x1 ]; cycles = size === 4 ? [ (data[1].ea === 0 || isData(data[1])) ? 8 : 6, 1, 0 ] : [ 4, 1, 0 ];
+
+					} else if(data[1].ea === 0) {
+						// or dn, ea
+						params = [ 0x1, 0x1FD ]; cycles = size === 4 ? [ 12, 1, 2 ] : [ 8, 1, 1 ];
+
+					} else return null;
+					break;
+
+				case true:		// ori
+					if(data[2].ea === -2){
+						// special mode: destination
+						switch(data[2].reg){
+							case 17: {		// ea -> ccr
+								// only allow word access
+								if(![0, 1].includes(size)) return null;
+								return cycfmt([ 20, 3, 0 ]);
+							}
+
+							case 16: {		// ea -> sr
+								// only allow word access
+								if(![0, 2].includes(size)) return null;
+								return cycfmt([ 20, 3, 0 ]);
+							}
+
+							default: return null;
+						}
+					}
+
+					params = [ 0x800, 0x1FD ];
+					cycles = size !== 4 ? [ data[2].ea === 0 ? 4 : 8, 1, data[2].ea === 0 ? 0 : 1 ] : [ data[2].ea === 0 ? 8 : 12, 1, data[2].ea === 0 ? 0 : 2 ];
+					break;
+
+				default: return null;
+			}
+
+			// normal handling
+			return cycleins(cycles, size || 2, [ 0, 1, 2, 4 ], data, params);
+		}
+
+		// helper function to check if eamode is #data
+		function isData(arg) {
+			return arg.ea === 7 && arg.reg === 4;
+		}
+
+		// global instruction table
+		const insFunctions = {
+			// misc instructions
+			"dcb": () => "",
+			"dc": () => "",
+			"ds": () => "",
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/MISC.htm
+			"reset": (ins, size, data) => simpleins(cycfmt([ 132, 1, 0 ]), size, data, []),
+			"nop": (ins, size, data) => simpleins(cycfmt([ 4, 1, 0 ]), size, data, []),
+			"unlk": (ins, size, data) => simpleins(cycfmt([ 12, 3, 0 ]), ![0, 2].includes(size), data, [ 0x2 ]),
+			"link": (ins, size, data) => simpleins(cycfmt([ 16, 2, 2 ]), ![0, 2].includes(size), data, [ 0x2, 0x800 ]),
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/UNKNOWN.htm
+			"illegal": (ins, size, data) => simpleins(cycfmt([ 34, 4, 3 ]), size, data, []),
+			"rte": (ins, size, data) => simpleins(cycfmt([ 20, 5, 0 ]), size, data, []),
+			"stop": (ins, size, data) => simpleins(cycfmt([ 4, 0, 0 ]), size, data, [ 0x800 ]),
+			"trap": (ins, size, data) => simpleins(cycfmt([ 16, 2, 2 ]), size, data, [ 0x800 ]),
+			"trapv": (ins, size, data) => simpleins(cyccst("trap: 4 (1/0), no trap: 34 (4/3)", "check"), size, data, []),
+			"chk": (ins, size, data) => {
+				if(data.length != 3) return null;
+
+				// calculate the cycle size
+				let cn = getModeCycles(data[1], 2, true);
+				if(cn == null) return null;
+
+				// process this entire thing now!
+				return simpleins(cyccst("trap: "+ cycstr(addCycles(cn, [8, 1, 0])) +", no trap: "+ cycstr(addCycles(cn, [40, 5, 3])), "check"), ![0, 2].includes(size), data, [0xFFD, 0x1]);
+			},
+			
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/CMPM.htm
+			"cmpm": (ins, size, data) => {
+				if(data.length != 3 || ![ 0, 1, 2, 4 ].includes(size)) return null;
+				if(data[1].ea !== 3 || data[2].ea !== 3) return null;
+
+				// calculate the cycle size
+				let cn = getModeCycles(data[1], 2, true);
+				if(cn == null) return null;
+
+				// process this entire thing now!
+				return cycfmt([ size == 4 ? 20 : 12, size == 4 ? 5 : 3, 0 ]);
+			},
+		
+			"move": (ins, size, data) => insMove(false, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/MOVE.htm
+			"movea": (ins, size, data) => insMove(true, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/MOVEA.htm
+			
+			"add":  (ins, size, data) => commonIns2(0, size, data),		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ADD.htm
+			"adda": (ins, size, data) => commonIns2(1, size, data),		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ADDA.htm
+			"addi": (ins, size, data) => commonIns2(2, size, data),		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ADDI.htm
+
+			"sub":  (ins, size, data) => commonIns2(0, size, data),		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/SUB.htm
+			"suba": (ins, size, data) => commonIns2(1, size, data),		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/SUBA.htm
+			"subi": (ins, size, data) => commonIns2(2, size, data),		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/SUBI.htm
+
+			"or":   (ins, size, data) => commonIns3(false, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/OR.htm
+			"ori":  (ins, size, data) => commonIns3(true, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ORI.htm
+			"and":  (ins, size, data) => commonIns3(false, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/AND.htm
+			"andi": (ins, size, data) => commonIns3(true, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ANDI.htm
+			"eori": (ins, size, data) => commonIns3(true, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/EORI.htm
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/CMP.htm
+			"cmp": (ins, size, data) => {
+				if(data.length != 3 || ![ 0, 1, 2, 4 ].includes(size) || data[2].ea !== 0) return null;
+ 
+				// get cycle timing
+				return cycleins(size === 4 ? [ 6, 1, 0 ] : [ 4, 1, 0 ], size, [ 0, 1, 2, 4 ], data, [ 0xFFF, 0x1 ]);
+			},
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/CMPI.htm
+			"cmpi": (ins, size, data) => {
+				if(data.length != 3 || ![ 0, 1, 2, 4 ].includes(size) || !isData(data[1])) return null;
+ 
+				// get cycle timing
+				if(data[2].ea === 0 && size === 4) return cycfmt([ 14, 3, 0 ]);
+				return cycleinssingle(size === 4 ? [ 12, 3, 0 ] : [ 8, 2, 0 ], size || 2, data[2], 0x1FD, true);
+			},
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/CMPA.htm
+			"cmpa": (ins, size, data) => {
+				if(data.length != 3 || ![ 0, 2, 4 ].includes(size) || data[2].ea !== 1) return null;
+ 
+				// get cycle timing
+				return cycleinssingle([ 6, 1, 0 ], size || 2, data[1], 0xFFF, true);
+			},
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/EOR.htm
+			"eor": (ins, size, data) => {
+				if(data.length != 3 || ![ 0, 1, 2, 4 ].includes(size) || data[1].ea !== 0) return null;
+ 
+				// get cycle timing
+				if(data[2].ea === 0) return cycfmt(size === 4 ? [ 8, 1, 0 ] : [ 4, 1, 0 ]);
+				return cycleins(size === 4 ? [ 12, 1, 2 ] : [ 8, 1, 1 ], size, [ 0, 1, 2, 4 ], data, [ 0x1, 0x1FD ]);
+			},
+			
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/MOVEP.htm
+			"movep": (ins, size, data) => {
+				if(data.length != 3 || ![ 0, 2, 4 ].includes(size)) return null;
+				
+				// mode = null:		invalid
+				// mode = true:		ea -> dx
+				// mode = false:	dx -> ea
+				let mode = null;
+				     if(data[2].ea === 0 && (data[1].ea === 5 || data[1].ea === 2)) mode = true;
+				else if(data[1].ea === 0 && (data[2].ea === 5 || data[2].ea === 2)) mode = false;
+				
+				// if no mode is valid, return
+				else return null;
+				
+				// return cycles
+				return cycfmt([ size == 4 ? 24 : 16, !mode ? 2 : size == 4 ? 6 : 4, mode ? 0 : size == 4 ? 4 : 2 ]);
+			},
+			
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/MOVEM.htm
+			"movem": (ins, size, data) => {
+				if(data.length != 3 || ![ 0, 2, 4 ].includes(size)) return null;
+				
+				// mode = null:		invalid
+				// mode = true:		ea -> list
+				// mode = false:	list -> ea
+				let mode = null;
+
+				// check for movem list, dx or ax
+				     if(data[2].ea >= -1 && data[2].ea <= 1) mode = true;
+				else if(data[1].ea >= -1 && data[1].ea <= 1) mode = false;
+
+				// check for #data and xxx.l
+				else if(data[2].ea === 7 && (data[2].reg === 4 || data[2].reg === 1) && data[2].data && data[2].data == 0) mode = true;
+				else if(data[1].ea === 7 && (data[1].reg === 4 || data[1].reg === 1) && data[1].data && data[1].data == 0) mode = false;
+				
+				// if no mode is valid, return
+				else return null;
+
+				// convert register list
+				let regs = 0;
+				     if(data[mode ? 2 : 1].ea === -1) regs = data[mode ? 2 : 1].list;
+				else if(data[mode ? 2 : 1].ea === 0) regs = 1 << data[mode ? 2 : 1].reg;
+				else if(data[mode ? 2 : 1].ea === 1) regs = 1 << (data[mode ? 2 : 1].reg + 8);
+				else regs = 0;
+
+				// count the number of set registers
+				let regr = 0;
+				for(let x = 0;x < 15;x ++)
+					regr += (!!(regs & (1 << x))) | 0;
+
+				// calculate the proper cycles
+				if(!chkparam(data[mode ? 1 : 2], mode ? 0x7EC : 0x1F4))
+					return null;
+
+				// return cycles count
+				let cycs = addCycles(
+					[ (size == 4 ? 8 : 4) * regr, mode ? 0 : regr * (size == 4 ? 2 : 1), !mode ? 0 : regr * (size == 4 ? 2 : 1) ], 
+					movemCycles[mode ? 0 : 1][ getbit(data[mode ? 1 : 2]) ]);
+
+				if(regr) return cycfmt(cycs);
+				return cyctxt(cycs, "There is an extra read cycle");
+			},
+			
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/MOVEQ.htm
+			"moveq": (ins, size, data) => {
+				if(data.length != 3 || ![ 0, 4 ].includes(size)) return null;
+				if(data[2].ea != 0 || getbit(data[1]) != 11) return null;
+
+				// process this entire thing now!
+				return cycfmt([ 4, 1, 0 ]);
+			},
+
+			"clr": commonIns1,		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/CLR.htm
+			"not": commonIns1,		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/NOT.htm
+			"neg": commonIns1,		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/NEG.htm
+			"negx": commonIns1,		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/NEGX.htm
+			
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/SWAP.htm
+			"swap": (ins, size, data) => simpleins(cycfmt([ 4, 1, 0 ]), ![ 0, 2 ].includes(size), data, [ 0x1 ]),
+			
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/TST.htm
+			"tst": (ins, size, data) => cycleins([ 4, 1, 0 ], size, [ 0, 1, 2, 4 ], data, [ 0x1FD ]),
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/TAS.htm
+			"tas": (ins, size, data) => {
+				if(data.length != 2) return null;
+
+				// EXCEPTION: tas dx is always 4 cycles.
+				if(data[1].ea == 0)	return cycfmt([ 4, 1, 0 ]);
+				return cycleins([ 10, 1, 1 ], size, [ 0, 1 ], data, [ 0x1FD ]);
+			},
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/NBCD.htm
+			"nbcd": (ins, size, data) => {
+				if(data.length != 2) return null;
+ 
+				// get cycle timing
+				if(data[1].ea == 0)	return cycfmt([ 6, 1, 0 ]);
+				return cycleins([ 8, 1, 1 ], size, [ 0, 1 ], data, [ 0x1FD ]);
+			},
+			
+			"abcd": insBCD,				// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ABCD.htm
+			"sbcd": insBCD,				// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/SBCD.htm
+			
+			"addx": insADDXSUBX,		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ADDX.htm
+			"subx": insADDXSUBX,		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/SUBX.htm
+			
+			"addq": insADDQSUBQ,		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ADDQ.htm
+			"subq": insADDQSUBQ,		// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/SUBQ.htm
+			
+			"mulu": (ins, size, data) => insMULXDIVX(size, data, 70),		// wtf this does not exist
+			"muls": (ins, size, data) => insMULXDIVX(size, data, 70),		// wtf this does not exist
+			"divu": (ins, size, data) => insMULXDIVX(size, data, 140),		// wtf this does not exist
+			"divs": (ins, size, data) => insMULXDIVX(size, data, 158),		// wtf this does not exist
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/EXT.htm
+			"ext": (ins, size, data) => simpleins(cycfmt([ 4, 1, 0 ]), ![0, 2, 4].includes(size), data, [ 0x1 ]),
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/EXG.htm
+			"exg": (ins, size, data) => simpleins(cycfmt([ 6, 1, 0 ]), ![0, 4].includes(size), data, [ 0x3, 0x3 ]),
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/LEA.htm
+			"lea": (ins, size, data) => jmplea(![0, 4].includes(size), data, [ 0xFFD, 0x2 ], [ null, null, [ 4, 1, 0 ], null, null, [ 8, 2, 0 ], [ 12, 2, 0 ], [ 8, 2, 0 ], [ 12, 3, 0 ], [ 8, 2, 0 ], [ 12, 2, 0 ], null ]),
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/PEA.htm
+			"pea": (ins, size, data) => jmplea(![0, 2].includes(size), data, [ 0x7E4 ], [ null, null, [ 12, 1, 2 ], null, null, [ 16, 2, 2 ], [ 20, 2, 2 ], [ 16, 2, 2 ], [ 20, 3, 2 ], [ 16, 2, 2 ], [ 20, 2, 2 ], null ]),
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/JXX.htm
+			"jmp": (ins, size, data) => jmplea(size, data, [ 0x7E4 ], [ null, null, [  8, 2, 0 ], null, null, [ 10, 2, 0 ], [ 14, 3, 0 ], [ 10, 2, 0 ], [ 12, 3, 0 ], [ 10, 2, 0 ], [ 14, 3, 0 ], null ]),
+			"jsr": (ins, size, data) => jmplea(size, data, [ 0x7E4 ], [ null, null, [ 16, 2, 2 ], null, null, [ 18, 2, 2 ], [ 22, 2, 2 ], [ 18, 2, 2 ], [ 20, 3, 2 ], [ 18, 2, 2 ], [ 22, 2, 2 ], null ]),
+			"rtr": (ins, size, data) => simpleins(cycfmt([ 20, 5, 0 ]), size, data, []),
+			"rts": (ins, size, data) => simpleins(cycfmt([ 16, 4, 0 ]), size, data, []),
+
+			"btst":  (ins, size, data) => insBxxx(1, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/BTST.htm
+			"bchg":  (ins, size, data) => insBxxx(2, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/BCHG.htm
+			"bset":  (ins, size, data) => insBxxx(0, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/BSET.htm
+			"bclr":  (ins, size, data) => insBxxx(0, size, data),	// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/BCLR.htm
+			
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ROXEA.htm
+			"roxr": insRot,			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ROXR.htm
+			"roxl": insRot,			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ROXL.htm
+			"ror": insRot,			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ROR.htm
+			"rol": insRot,			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ROL.htm
+		
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ASXEA.htm
+			"asr": insRot,			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ASR.htm
+			"asl": insRot,			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/ASL.htm
+		
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/LSXEA.htm
+			"lsr": insRot,			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/LSR.htm
+			"lsl": insRot,			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/LSL.htm
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/SXX.htm
+			"st":  (ins, size, data) => insSCC(true, size, data),
+			"sf":  (ins, size, data) => insSCC(false,size, data),
+			"seq": (ins, size, data) => insSCC(null, size, data),
+			"sne": (ins, size, data) => insSCC(null, size, data),
+			"scc": (ins, size, data) => insSCC(null, size, data),
+			"scs": (ins, size, data) => insSCC(null, size, data),
+			"shi": (ins, size, data) => insSCC(null, size, data),
+			"slo": (ins, size, data) => insSCC(null, size, data),
+			"shs": (ins, size, data) => insSCC(null, size, data),
+			"sls": (ins, size, data) => insSCC(null, size, data),
+			"sge": (ins, size, data) => insSCC(null, size, data),
+			"sgt": (ins, size, data) => insSCC(null, size, data),
+			"sle": (ins, size, data) => insSCC(null, size, data),
+			"slt": (ins, size, data) => insSCC(null, size, data),
+			"spl": (ins, size, data) => insSCC(null, size, data),
+			"smi": (ins, size, data) => insSCC(null, size, data),
+			"svc": (ins, size, data) => insSCC(null, size, data),
+			"svs": (ins, size, data) => insSCC(null, size, data),
+
+			// http://mrjester.hapisan.com/04_MC68/00_CycleTimes/BXX.htm
+			"bra": (ins, size, data) => insBCC(true, size, data),
+			"bsr": (ins, size, data) => insBCC(false,size, data),
+			"beq": (ins, size, data) => insBCC(null, size, data),
+			"bne": (ins, size, data) => insBCC(null, size, data),
+			"bcc": (ins, size, data) => insBCC(null, size, data),
+			"bcs": (ins, size, data) => insBCC(null, size, data),
+			"bhi": (ins, size, data) => insBCC(null, size, data),
+			"blo": (ins, size, data) => insBCC(null, size, data),
+			"bhs": (ins, size, data) => insBCC(null, size, data),
+			"bls": (ins, size, data) => insBCC(null, size, data),
+			"bge": (ins, size, data) => insBCC(null, size, data),
+			"bgt": (ins, size, data) => insBCC(null, size, data),
+			"ble": (ins, size, data) => insBCC(null, size, data),
+			"blt": (ins, size, data) => insBCC(null, size, data),
+			"bpl": (ins, size, data) => insBCC(null, size, data),
+			"bmi": (ins, size, data) => insBCC(null, size, data),
+			"bvc": (ins, size, data) => insBCC(null, size, data),
+			"bvs": (ins, size, data) => insBCC(null, size, data),
+			"dbt":  (ins, size, data) => insDBCC(true, size, data),
+			"dbf":  (ins, size, data) => insDBCC(false,size, data),
+			"dbra": (ins, size, data) => insDBCC(false,size, data),
+			"dbeq": (ins, size, data) => insDBCC(null, size, data),
+			"dbne": (ins, size, data) => insDBCC(null, size, data),
+			"dbcc": (ins, size, data) => insDBCC(null, size, data),
+			"dbcs": (ins, size, data) => insDBCC(null, size, data),
+			"dbhi": (ins, size, data) => insDBCC(null, size, data),
+			"dblo": (ins, size, data) => insDBCC(null, size, data),
+			"dbhs": (ins, size, data) => insDBCC(null, size, data),
+			"dbls": (ins, size, data) => insDBCC(null, size, data),
+			"dbge": (ins, size, data) => insDBCC(null, size, data),
+			"dbgt": (ins, size, data) => insDBCC(null, size, data),
+			"dble": (ins, size, data) => insDBCC(null, size, data),
+			"dblt": (ins, size, data) => insDBCC(null, size, data),
+			"dbpl": (ins, size, data) => insDBCC(null, size, data),
+			"dbmi": (ins, size, data) => insDBCC(null, size, data),
+			"dbvc": (ins, size, data) => insDBCC(null, size, data),
+			"dbvs": (ins, size, data) => insDBCC(null, size, data),
+		};
+
+		// ASx, LSx, ROx and ROXx instruction handler
+		function insRot(ins, size, data) {
+			if(data.length === 2){
+				if(![ 0, 2 ].includes(size)) return null;
+
+				// rot ea
+				return cycleinssingle([ 8, 1, 1 ], size || 2, data[1], 0x1FC, true);
+
+			} else if(data.length === 3 && (data[1].ea === 0 || isData(data[1]))){
+				if(![ 0, 1, 2, 4 ].includes(size)) return null;
+				
+				// rot #,dn or rot dn,dn
+				return cyccst("cycle count (n = shift count): "+ cycfmt([ (size === 4 ? 8 : 6) + "+2*n", 1, 0 ]), "check");
+			}
+
+			return null;
+		}
+
+		// MULx and DIVx instruction handler
+		function insMULXDIVX(size, data, base) {
+			if(data.length != 3 || ![ 0, 2 ].includes(size)) return null;
+			if(data[2].ea !== 0) return null;
+
+			// check if parameter is correct
+			if(!chkparam(data[1], 0xFFD)) return null;
+
+			// calculate the cycle size
+			let cn = getModeCycles(data[1], 2, false);
+			if(cn == null) return null;
+
+			return cyccst("max cycle count: "+ cycfmt(addCycles(cn, [ base, 1, 0 ])), "check");
+		}
+
+		// xBCD instruction handler
+		function insBCD(ins, size, data) {
+			if(data.length != 3 || ![ 0, 1 ].includes(size)) return null;
+
+			// check if the source and destination eamode are the same
+			if(data[1].ea !== data[2].ea) return null;
+
+			// check dn, dn and then -(an), -(an)
+			if(data[1].ea === 0) return cycfmt([ 6, 1, 0 ]);
+			else if(data[1].ea === 4) return cycfmt([ 18, 3, 1 ]);
+			return null;
+		}
+
+		// ADDX and SUBX instruction handler
+		function insADDXSUBX(ins, size, data) {
+			if(data.length != 3 || ![ 0, 1, 2, 4 ].includes(size)) return null;
+
+			// check if the source and destination eamode are the same
+			if(data[1].ea !== data[2].ea) return null;
+
+			// check dn, dn and then -(an), -(an)
+			if(data[1].ea === 0) return cycfmt([ size == 4 ? 8 : 4, 1, 0 ]);
+			else if(data[1].ea === 4) return cycfmt(size == 4 ? [ 30, 5, 2 ] : [ 18, 3, 1 ]);
+			return null;
+		}
+
+		// ADDQ and SUBQ instruction handler
+		function insADDQSUBQ(ins, size, data) {
+			if(data.length != 3 || ![ 0, 1, 2, 4 ].includes(size)) return null;
+
+			// check if source is #data
+			if(data[1].ea !== 7 || data[1].reg !== 4) return null;
+
+			// check modes
+			     if(data[2].ea === 0) return cycfmt([ size == 4 ? 8 : 4, 1, 0 ]);
+			else if(data[2].ea === 1) return cycfmt([ 8, 1, 0 ]);
+			else return cycleinssingle([ size == 4 ? 12 : 8, 1, size == 4 ? 2 : 1 ], size || 2, data[2], 0x1FF, true);
+		}
+
+		// Bxxx instruction handler
+		function insBxxx(type, size, data) {
+			if(data.length != 3) return null;
+
+			// special: if destination is dn, must be longword instead of byte!
+			if(!(data[2].ea == 0 ? [ 0, 4 ] : [ 0, 1 ]).includes(size)) return null;
+
+			if(data[1].ea === 0){
+				// check if destination is dn
+				if(data[2].ea == 0) return cycfmt([ [ 8, 6, 10 ][type], 1, 0 ]);
+
+				// bxxx dn, ea
+				if(!chkparam(data[2], type === 1 ? 0xFFD : 0x1FD)) return null;
+
+				// calculate the cycle size
+				let cn = getModeCycles(data[2], 1, false);
+				if(cn == null) return null;
+				return cycfmt(addCycles(cn, [ type === 1 ? 4 : 8, 1, type === 1 ? 0 : 1 ]));
+			
+			} else if(isData(data[1])) {
+				// check if destination is dn
+				if(data[2].ea == 0) return cycfmt([ [ 12, 10, 14 ][type], 2, 0 ]);
+
+				// bxxx #, ea
+				if(!chkparam(data[2], type === 1 ? 0x7FD : 0x1FD)) return null;
+
+				// calculate the cycle size
+				let cn = getModeCycles(data[2], 1, false);
+				if(cn == null) return null;
+				return cycfmt(addCycles(cn, [ type === 1 ? 8 : 12, 2, type === 1 ? 0 : 1 ]));
+			}
+
+			return null;
+		}
+
+		// JMP, JSR and LEA handlers
+		function jmplea(size, data, params, table) {
+			if(size) return null;
+			if(data.length != 1 + params.length) return null;
+
+			// calculate the correct bit to use
+			let bit = getbit(data[1]);
+			if(bit < 0) return null;
+
+			// validate params
+			for(let i = 0; i < params.length; i ++)
+				if(!chkparam(data[i + 1], params[i]))
+					return null;
+
+			// return the cycles from the table at correct address
+			return cycfmt(table[bit]);
+		}
+
+		// Scc instruction handler
+		function insSCC(mode, size, data) {
+			if(data.length != 2) return null;
+
+			// calculate the cycle size
+			let cn = getModeCycles(data[1], 1, true);
+			if(cn == null) return null;
+
+			// some shit for dealing with the exception when dst = dn, it may use 2 extra cycles...
+			let cctrue = [data[1].ea == 0 ? 6 : 4, 1, data[1].ea == 0 ? 0 : 1];
+			let ccfalse = [4, 1, data[1].ea == 0 ? 0 : 1];
+			let text = cycfmt(addCycles(cn, ccfalse));
+
+			if(data[1].ea == 0){
+				switch(mode) {
+					case true:
+						text = cycfmt(cctrue);
+						break;
+
+					case null:
+						text = cyccst("cc true: "+ cycstr(cctrue) +", cc false: "+ cycstr(ccfalse), "check");
+						break;
+				}
+			}
+
+			// process this entire thing now!
+			return simpleins(text, ![0, 2].includes(size), data, [0x1FD]);
+		}
+
+		// Bcc instruction handler
+		function insBCC(mode, size, data) {
+			if(data.length != 2) return null;
+			if(size == -1) size = 1;
+
+			// some shit for dealing with the exception when dst = dn, it may use 2 extra cycles...
+			let cctrue = [10, 2, 0];
+			let ccfalse = [size == 1 ? 8 : 12, 1, 0];
+			let text = "";
+
+			switch(mode) {
+				case true:
+					text = cycfmt(cctrue);
+					break;
+
+				case false:
+					text = cycfmt([ 18, 2, 2 ]);
+					break;
+
+				case null:
+					text = cyccst("cc true: "+ cycstr(cctrue) +", cc false: "+ cycstr(ccfalse), "check");
+					break;
+			}
+
+			// process this entire thing now!
+			return simpleins(text, ![0, 1, 2].includes(size), data, [0x300]);
+		}
+
+		// DBcc instruction handler
+		function insDBCC(mode, size, data) {
+			if(data.length != 3) return null;
+
+			// some shit for dealing with the exception when dst = dn, it may use 2 extra cycles...
+			let cctrue = [12, 2, 0];
+			let ccfalse = [ [14, 3, 0], [12, 2, 0] ];
+			let text = "";
+
+			switch(mode) {
+				case true:
+					text = cyccst("cc is always true", cycstr(cctrue));
+					break;
+
+				case false:
+					text = cyccst("branch: "+ cycstr(ccfalse[0]) +", no branch: "+ cycstr(ccfalse[1]), "check");
+					break;
+
+				case null:
+					text = cyccst("cc true: "+ cycstr(cctrue) +", branch: "+ cycstr(ccfalse[0]) +", no branch: "+ cycstr(ccfalse[1]), "check");
+					break;
+			}
+
+			// process this entire thing now!
+			return simpleins(text, ![0, 2].includes(size), data, [0x1, 0x300]);
+		}
+
+		// MOVE instruction handler
+		function insMove(movea, size, data) {
+			// check if the size is allowed and right number of arguments exist
+			if(data.length != 3) return null;
+			if(![0, 1, 2, 4].includes(size)) return null;
+
+			if(!movea){
+				// check special modes
+				if(data[1].ea === -2){
+					// special mode: source
+					switch(data[1].reg){
+						case 16: {		// sr -> ea
+							// only allow word access
+							if(![0, 2].includes(size)) return null;
+							if(data[2].ea === 0) return cycfmt([ 6, 1, 0 ]);
+							return cycleinssingle([ 8, 1, 1 ], size  || 2, data[2], 0x3FD, true);
+						}
+
+						case 18: {		// usp -> an
+							// only allow word access
+							if(![0, 4].includes(size)) return null;
+							if(data[2].ea !== 1) return null;
+							return cycfmt([ 4, 1, 0 ]);
+						}
+
+						default: return null;
+					}
+				} else if(data[2].ea === -2){
+					// special mode: destination
+					switch(data[2].reg){
+						case 17:		// ea -> ccr
+						case 16: {		// ea -> sr
+							// only allow word access
+							if(![0, 2].includes(size)) return null;
+							return cycleinssingle([ 12, 1, 0 ], size || 2, data[1], 0xFFD, true);
+						}
+
+						case 18: {		// an -> usp
+							// only allow word access
+							if(![0, 4].includes(size)) return null;
+							if(data[1].ea !== 1) return null;
+							return cycfmt([ 4, 1, 0 ]);
+						}
+
+						default: return null;
+					}
+				}
+
+				// movea destination must be areg
+			} else if(data[2].ea !== 1) return null;
+
+			// normal cycle timings
+			return cycleinsunsafe([ 4, 1, 0 ], size, data, [ 0xFFF, 0x1FF ]);
+		}
+
+		// helper function to deal with the fact that document.execCommand("insertText")
+		// does not work on Firefox for some fucking god-awful asshole reason
+		function insertText(e, text) {
+			// try using built-in feature first!
+			if(document.execCommand("insertText", false, text)) return;
+
+			// well fuck, now we gotta do it manually and break CTRL+Z support
+			let selp = e.selectionStart + text.length;
+
+			// cut str
+			e.value = e.value.substring(0, e.selectionStart) + text + e.value.substring(e.selectionEnd);
+
+			// set selection
+			e.setSelectionRange(selp, selp);
+		}
+
+		var edit, display, update, cycles;
+
+		function init() {
+			display = document.getElementById("display");
+			edit = document.getElementById("text");
+			cycles = document.getElementById("cycles");
+
+			// force-disable scrolling on textarea
+			let scrfix = () => {
+				edit.scrollLeft = 0;
+				requestAnimationFrame(scrfix);
+			};
+
+			scrfix();
+
+			edit.value = 
+				"\t; hello there! This is ASM Cycle Count, written originally by Aurora Fields, ported to HTML by her too.\n"+
+				"\t; write some 68000 code here, and the program will automatically highlight and display cycle counts.\n"+
+				"\t; this tool only lazily parses assembly and therefore may allow invalid code to work. It's capable of only so much.\n"+
+				"\t; if you see any bugs, please report them to Aurora Fields, I do not guarantee this program will work 100% correctly at all times.\n"+
+				"\t; the cycle timings use the following format: \"total cycles (read cycles / write cycles)\". Be sure to check specific notes if they exist.\n"+
+				"\t; please enjoy our lord and savior 68k and this handy tool! (ps, if you want to look at the code, you're absolutely welcome to!)\n"+
+				"\n"+
+				"\t\tbtst\td0,#$AF\t\t\t\t\t\t; test bit in d0 against a constant\n"+
+				"\t\tbne.s\t.skip\t\t\t\t\t\t; if set, skip some code here\n"+
+				"\t\tmove.l\tSomeAddress.w,d1\t\t\t\t; load another value into d1\n"+
+				"\n.skip:\n"+
+				"\t; resources used for consulting cycle timings:\n"+
+				"\t; http://oldwww.nvg.ntnu.no/amiga/MC680x0_Sections/mc68000timing.HTML\n"+
+				"\t; http://mrjester.hapisan.com/04_MC68/00_CycleTimes/";
+
+			// fix CRLF line endings because fucking of course
+			edit.onpaste = (e) => {
+				insertText(edit, e.clipboardData.getData("text").replaceAll("\r\n", "\n"));
+				e.preventDefault();
+			};
+
+			// detect for text dragging
+			edit.oninput = (e) => {
+				if(e.inputType == "deleteByDrag" || e.inputType == "insertFromDrop"){
+					// update highlighting
+					if(update) clearTimeout(update);
+					update = setTimeout(_highlight, 100);
+				}
+			};
+
+			// prevent certain characters from breaking input field
+			edit.onkeydown = (e) => {
+				if(e.ctrlKey){
+					// handle some hotkeys
+					switch(e.keyCode){
+						case 90: case 88: case 89: case 86: case 83: case 82: case 65: case 67:
+							// update highlighting
+							if(update) clearTimeout(update);
+							update = setTimeout(_highlight, 1);
+							return;
+					}
+				}
+
+				// helper function to append strings and prevent default
+				let k = (s) => {
+					box(s);
+					// the fuck!!!
+					insertText(edit, s);
+					e.preventDefault();
+
+					// set the highlight timeout
+					if(update) clearTimeout(update);
+					update = setTimeout(_highlight, 1000);
+				}
+
+				let t = kevent(e.keyCode), x = null;;
+				switch(t){
+					case 9: return k("\t");
+					case 1: return;
+					case 8: x = -1; break;
+					case 46: x = -2; break;
+					case 13: x = "\n"; break;
+				}
+
+				// otherwise, set the highlight timeout
+				if(update) clearTimeout(update);
+				update = setTimeout(_highlight, 1000);
+
+				box(x ? x : e.key);
+			}
+
+			// force-update text
+			update = setTimeout(_highlight, 1);
+		}
+
+		// special function to mangle the keycode to determine how to process it
+		function kevent(code) {
+			switch(code) {
+				case 9: return 9;
+				case 8: return 8;
+				case 13: return 13;
+				case 46: return 46;
+			}
+
+			// checking specific codes
+			if(code >= 16 && code <= 20) return 1;
+			if(code >= 33 && code <= 47) return 1;
+			if(code >= 90 && code <= 93) return 1;
+			if(code >= 112 && code <= 145) return 1;
+			if(code >= 166 && code <= 168) return 1;
+			if(code >= 173 && code <= 183) return 1;
+			if(code >= 240 && code <= 255) return 1;
+			if(code == 27 || code == 151 || code == 172 || code == 225) return 1;
+			return null;
+		}
+
+		// function to insert text into the display box... yay
+		function box(str) {
+			// check if any text was selected
+			let ss = edit.selectionStart, sl = ss == null ? null : edit.selectionEnd - ss;
+			let html = display.innerHTML;
+			let pos = 0, tag = false, spec = false;
+			
+			if(str === -1){
+				// special check for backspace
+				if(sl == 0 && ss != 0){
+					sl = 1;
+					ss--;
+				}
+				str = "";
+
+			} else if(str === -2){
+				// special check for delete backspace
+				if(sl == 0) sl = 1;
+				str = "";
+			}
+
+			// find start position
+			while(ss > 0 && html.length > pos){
+				// check if tag status should be inverted
+				let iv = html.charAt(pos) === (tag ? '>' : '<');
+				tag ^= iv;
+
+				// check special characters
+				if(spec && html.charAt(pos) === ';') spec = false;
+				else if(!spec && html.charAt(pos) === '&') spec = true;
+
+				// if tag changed to true or was true, do not decrement ss
+				if(!spec && !tag && !iv) ss--;
+				pos++;
+			}
+
+			if(sl > 0) {
+				let stpos = pos;
+
+				// we need to erase text...
+				while(html.length > pos){
+					// check if tag status should be inverted
+					let iv = html.charAt(pos) === (tag ? '>' : '<');
+					tag ^= iv;
+
+					if(iv && !tag) stpos = pos;
+
+					// check special characters
+					if(spec && html.charAt(pos) === ';') spec = false;
+					else if(!spec && html.charAt(pos) === '&') spec = true;
+
+					// check to remove text or increment pos
+					if(!spec && !tag && !iv) {
+						// cut str out
+						html = html.substring(0, stpos) + html.substring(pos + 1);
+
+						--sl;
+						pos = stpos;
+						if(!sl) break;
+
+					} else pos++;
+				}
+			}
+			
+			// hack to fix scrolling
+			if(str === "\n") setTimeout(() => {		
+				if(edit.selectionStart == edit.value.length){
+					let e = document.getElementById("scr");
+					e.scrollTop = e.scrollHeight;
+				}
+			}, 50);
+
+			// fix str whoo
+			if(str == "\n") str = "\n";
+			else str = "<p_unk>"+ str + "</p_unk>";
+
+			// insert str
+			html = html.substring(0, pos) + str + html.substring(pos);
+			display.innerHTML = html;
+
+			// update edit height
+			requestAnimationFrame(textHeight);
+		}
+
+		// function to update textarea height because yes
+		function textHeight() {
+			edit.style.height = display.getBoundingClientRect().height +"px";
+			edit.scrollLeft = 0;
+			edit.blur();
+			edit.focus();
+		}
+
+		// by the way this code sucks I dont like it please god help us
+	</script>
+	<style>
+		body {
+			margin: 0;
+			background: #272822E8;
+			overflow: hidden;
+		}
+
+		#scr {
+			display: block;
+			position: relative;
+			width: 100%;
+			height: 100%;
+			overflow-y: scroll;
+			overflow-x: hidden;
+		}
+
+		m68k, textarea {
+			display: block;
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			min-height: 100%;
+			padding: 10px 15px 10px 15px;
+			border: none;
+			outline: none;
+
+			font: 13pt 'Roboto Mono', monospace;
+			box-sizing: border-box;
+			overflow: hidden;
+			scroll-behavior: smooth;
+
+			white-space: pre;
+			text-overflow: ellipsis;
+		}
+
+		textarea {
+			resize: none;
+			color: transparent;
+			background: transparent;
+			caret-color: white;
+			width: 100%;
+		}
+
+		::selection {
+			background: rgba(190, 179, 255, 0.2);
+		}
+
+		#cycles {
+			left: calc(100vw - 140px);
+			background: #28222777;
+			padding: 10px 0 10px 0;
+			z-index: 2;
+			border-left: 4px solid #150f1483;
+			overflow: visible;
+		}
+
+		#cycles > * {
+			padding: 0 10px 0 4px;
+			position: initial;
+			pointer-events: all;
+		}
+
+		p_cyc p_tt {
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity .5s;
+			position: absolute;
+			right: -1px;
+			margin-top: -4px;
+			
+			background: black;
+			border-radius: 10px 0 0 10px;
+			padding: 4px 10px;
+		}
+
+		p_cyc:hover p_tt {
+			cursor: none;
+			pointer-events: all;
+			opacity: 1;
+		}
+
+		p_cyc.text::before {
+			content: " ";
+			pointer-events: none;
+			transition: opacity .5s;
+			position: absolute;
+			right: -1px;
+			margin-top: -2px;
+			width: 0;
+			height: 0;
+			
+			border: 14px solid transparent;
+			border-right-color: black;
+		}
+
+		#display {
+			padding-right: 123px;
+		}
+
+		m68k {
+			color: white;
+			pointer-events: none;
+			tab-size: 8;
+		}
+
+		m68k > p_line {
+			background: transparent;
+			z-index: 1;
+		}
+
+		m68k > * {
+			transition: background-color 0.5s, height .75s;
+			overflow: hidden;
+			position: relative;
+		}
+
+		m68k .p_hilite { background: #30301c; }
+		m68k p_label { color: #D4D4D4; font-weight: bold; }
+		m68k p_ins { color: #A8BFFF; }
+		m68k p_reg { color: #4CBD00; }
+		m68k p_unk { color: #F8F8F2; }
+		m68k p_cmt { color: #adadad; }
+		m68k p_num { color: #FF7575; }
+		m68k p_str { color: #FF8597; background: #5729467D; }
+		m68k p_math { color: #FFC273; }
+		m68k p_lnum { color: rgba(255, 255, 255, 0.158); float: left; width: 2vh; }
+		m68k p_cyc { color: #3698f3; }
+		m68k .p_hidden { height: 0; }
+
+		m68k .error::before {
+			background: #6f3f4273;
+			position: absolute;
+			content: "";
+			left: -10vw;
+			right: -100vw;
+			top: 0;
+			bottom: 0;
+			z-index: -1;
+		}
+	</style>
+</head>
+<body onload="init()">
+	<div id="scr">
+		<textarea spellcheck="false" wrap="hard" id="text"></textarea>
+		<m68k id="display"><noscript>Mate what you are doing, this tool requires piles of JavaScript, enable it now please!!!</noscript></m68k>
+		<m68k id="cycles"></m68k>
+	</div>
+</body>
+</html>

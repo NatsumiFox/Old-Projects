@@ -1,0 +1,636 @@
+<style>
+
+</style>
+
+Insert hex below, or upload a file: <input id="upl" type="file" />
+<textarea style="width:100%;height:25%" id="inp" ></textarea>
+Offset of data: <input id="offs" value="0" /> <button onclick="convert()">Update</button><br/>
+<textarea readonly style="width:100%;height:50%" id="outp" ></textarea>
+
+<!-- SHITTY CODE BELOW -->
+<script>
+    function convert(){
+        off = document.getElementById("offs").value;
+        off = Number("0x"+ off);
+        if(off !== off || off == undefined || off == null){
+            document.getElementById("outp").value = "Non-numeric value as offset!";
+        }
+        if((off & 0xFFFF) !== off){
+            document.getElementById("outp").value = "Number is out of range in offset!";
+            return;
+        }
+
+        let f = document.getElementById("upl").files[0];
+        if(f) {
+            document.getElementById("outp").value = "Loading....";
+            let fr = new FileReader();
+            fr.onload = function(){
+                document.getElementById("outp").value = dasm(new Uint8Array(this.result));
+            };
+            fr.readAsArrayBuffer(f);
+
+        } else {
+            let bytes = [];
+            let str = document.getElementById("inp").value;
+
+            while(str.length > 0){
+                if(str.indexOf(" ") == 0) str = str.substring(1);
+
+                if(str.indexOf(" ") != -1){
+                    let v = Number("0x"+ str.substring(0, str.indexOf(" ")));
+
+                    if(v !== v || v == undefined || v == null){
+                        document.getElementById("outp").value = "Non-numeric value in input!";
+                        return;
+                    }
+                    if((v & 0xFF) !== v){
+                        document.getElementById("outp").value = "Number is out of range in input!";
+                        return;
+                    }
+
+                    bytes.push(v);
+                    str = str.substring(3);
+
+                } else if(str.length > 0){
+                    let v = Number("0x"+ str);
+
+                    if(v !== v || v == undefined || v == null){
+                        document.getElementById("outp").value = "Non-numeric value in input!";
+                        return;
+                    }
+                    if((v & 0xFF) !== v){
+                        document.getElementById("outp").value = "Number is out of range in input!";
+                        return;
+                    }
+
+                    bytes.push(v);
+                    break;
+                }
+            }
+
+            document.getElementById("outp").value = dasm(bytes);
+        }
+    }
+
+    var dat, pos, ret, off;
+
+    function dasm(data){
+        if(data.length > 16 * 1024)
+            return "File too large! Max 16KB!";
+
+        dat = data;
+        ret = "";
+        pos = 0;
+
+        while(pos < data.length){
+            // write offset
+            ret += ((pos + off) & 0xFFFF).hex("000000");
+            ret += ':\t';
+
+            let b = rb();
+            ihnibble[((b & 0xC0) >> 2) | (b & 0x0F)](b);
+            ret += '\n';
+        }
+
+        return ret;
+    }
+
+    // instr ptrs for highest nibble of instruction byte
+    // basically each group of 16 represents 16 vertical rows of 4 instructions
+    // there are 4 groups. So in total, there are 64 pointers here
+    ihnibble = [
+        function(i){ ix00[(i & 0x30) >> 4](i) },
+        function(i){ insdatawrow(["ld\tbc,", "ld\tde,", "ld\thl,", "ld\tsp,"], i) },
+        function(i){ ix02[(i & 0x30) >> 4](i) },
+        function(i){ insregrow("inc\t", r_bcdehlsp, i) },
+        function(i){ insregrow("inc\t", r_bdhhl, i) },
+        function(i){ insregrow("dec\t", r_bdhhl, i) },
+        function(i){ insdatabrow(["ld\tb,", "ld\td,", "ld\th,", "ld\t(hl),"], i) },
+        function(i){ insrow(["rlca", "rla", "daa", "scf"], i) },
+        function(i){ ix08[(i & 0x30) >> 4](i) },
+        function(i){ insregrow2("add\thl", r_bcdehlsp, i) },
+        function(i){ ix0A[(i & 0x30) >> 4](i) },
+        function(i){ insregrow("dec\t", r_bcdehlsp, i) },
+        function(i){ insregrow("inc\t", r_cela, i) },
+        function(i){ insregrow("dec\t", r_cela, i) },
+        function(i){ insdatabrow(["ld\tc,", "ld\te,", "ld\tl,", "ld\ta,"], i) },
+        function(i){ insrow(["rrca", "rra", "cpl", "ccf"], i) },
+
+        // row 40h
+        function(i){ insregrow3("ld", r_bdhhl, "b", i) },
+        function(i){ insregrow3("ld", r_bdhhl, "c", i) },
+        function(i){ insregrow3("ld", r_bdhhl, "d", i) },
+        function(i){ insregrow3("ld", r_bdhhl, "e", i) },
+        function(i){ insregrow3("ld", r_bdhhl, "h", i) },
+        function(i){ insregrow3("ld", r_bdhhl, "l", i) },
+        function(i){
+            if(i == 0x76)
+                ret += "halt";
+            else insregrow3("ld", r_bdhhl, "(hl)", i)
+        },
+        function(i){ insregrow3("ld", r_bdhhl, "a", i) },
+        function(i){ insregrow3("ld", r_cela, "b", i) },
+        function(i){ insregrow3("ld", r_cela, "c", i) },
+        function(i){ insregrow3("ld", r_cela, "d", i) },
+        function(i){ insregrow3("ld", r_cela, "e", i) },
+        function(i){ insregrow3("ld", r_cela, "h", i) },
+        function(i){ insregrow3("ld", r_cela, "l", i) },
+        function(i){ insregrow3("ld", r_cela, "(hl)", i) },
+        function(i){ insregrow3("ld", r_cela, "a", i) },
+
+        // row 80h
+        function(i){ insregrow4(i_addasubandor, "b", i) },
+        function(i){ insregrow4(i_addasubandor, "c", i) },
+        function(i){ insregrow4(i_addasubandor, "d", i) },
+        function(i){ insregrow4(i_addasubandor, "e", i) },
+        function(i){ insregrow4(i_addasubandor, "h", i) },
+        function(i){ insregrow4(i_addasubandor, "l", i) },
+        function(i){ insregrow4(i_addasubandor, "(hl)", i) },
+        function(i){ insregrow4(i_addasubandor, "a", i) },
+        function(i){ insregrow4(i_adcsbcxorcp, "b", i) },
+        function(i){ insregrow4(i_adcsbcxorcp, "c", i) },
+        function(i){ insregrow4(i_adcsbcxorcp, "d", i) },
+        function(i){ insregrow4(i_adcsbcxorcp, "e", i) },
+        function(i){ insregrow4(i_adcsbcxorcp, "h", i) },
+        function(i){ insregrow4(i_adcsbcxorcp, "l", i) },
+        function(i){ insregrow4(i_adcsbcxorcp, "(hl)", i) },
+        function(i){ insregrow4(i_adcsbcxorcp, "a", i) },
+
+        // row 0C0h
+        function(i){ insregrow("ret\t", r_nzncpop, i) },
+        function(i){ insregrow("pop\t", r_bcdehlaf, i) },
+        function(i){ inscond("jp", i) },
+        function(i){ ixC3[(i & 0x30) >> 4](i) },
+        function(i){ inscond("call", i) },
+        function(i){ insregrow("push\t", r_bcdehlaf, i) },
+        function(i){ insdatabrow(["add\ta,", "sub\t", "and\t", "or\t"], i) },
+        function(i){ insregrow("rst\t", rst1, i) },
+        function(i){ insregrow("ret\t", r_zcpem, i) },
+        function(i){ ixC9[(i & 0x30) >> 4](i) },
+        function(i){ inscond("jp", i) },
+        function(i){ ixCB[(i & 0x30) >> 4](i) },
+        function(i){ inscond("call", i) },
+        function(i){ ixCD[(i & 0x30) >> 4](i) },
+        function(i){ insdatabrow(["adc\ta,", "sbc\ta,", "xor\t", "cp\t"], i) },
+        function(i){ insregrow("rst\t", rst2, i) },
+    ];
+
+    ix00 = [
+        function(i){ ret += "nop"; },
+        function(i){ insjr("djnz\t"); },
+        function(i){ insjr("jr\tnz,"); },
+        function(i){ insjr("jr\tnc,"); },
+    ];
+
+    ix08 = [
+        function(i){ ret += "ex\taf,af'"; },
+        function(i){ insjr("jr\t"); },
+        function(i){ insjr("jr\tz,"); },
+        function(i){ insjr("jr\tc,"); },
+    ];
+
+    ix02 = [
+        function(i){ ret += "ld\t(bc),a"; },
+        function(i){ ret += "ld\t(de),a"; },
+        function(i){ insoffw2("ld\t", "hl") },
+        function(i){ insoffw2("ld\t", "a") },
+    ];
+
+    ix0A = [
+        function(i){ ret += "ld\ta,(bc)"; },
+        function(i){ ret += "ld\ta,(de)"; },
+        function(i){ insoffw("ld\thl") },
+        function(i){ insoffw("ld\ta") },
+    ];
+
+    ixC3 = [
+        function(i){ inscond2("jp") },
+        function(i){ insoffb2("out", "a") },
+        function(i){ ret += "ex\t(sp),hl"; },
+        function(i){ ret += "di"; },
+    ];
+
+    ixCB = [
+        function(x){
+            let i = rb();
+            if(i < 0x40)
+                ret += ["rlc", "rrc", "rl", "rr", "sla", "sra", "sll", "srl"][(i & 0x38) >> 3] +"\t"+ r_all[i & 0x7];
+            else ret += [, "bit", "res", "set"][(i & 0xC0) >> 6] +"\t"+ ((i & 0x38) >> 3) + ","+ r_all[i & 0x7];
+        },
+        function(i){ insoffb("in\ta") },
+        function(i){ ret += "ex\tde,hl"; },
+        function(i){ ret += "ei"; },
+    ];
+
+    ixC9 = [
+        function(i){ ret += "ret"; },
+        function(i){ ret += "exx"; },
+        function(i){ ret += "jp\t(hl)"; },
+        function(i){ ret += "ld\tsp,hl"; },
+    ];
+
+    ixCD = [
+        function(i){ inscond2("call") },
+        function(i){ ixiy(0, 0xDD) },
+        function(x){
+            let i = rb();
+            if(i >= 0xA0 && i < 0xC0){
+                let v = [
+                    "ldi", "cpi", "ini", "outi", ,,,,
+                    "ldd", "cpd", "ind", "outd", ,,,,
+                    "ldir","cpir","inir","otir", ,,,,
+                    "lddr","cpdr","indr","otdr", ,,,,
+                ][i & 0x1F];
+
+                if(v != null && v != undefined){
+                    ret += v;
+                    return;
+                } else {
+                    data(x);
+                    return;
+                }
+            }
+
+            if(i >= 0x40 && i < 0x80){
+                extd[i & 0xF](x, i);
+                return;
+            }
+
+            data(x);
+        },
+        function(i){ ixiy(1, 0xFD) },
+    ];
+
+    function insjr(ins){
+        ret += ins + ((pos + off + rb().signb() + 1) & 0xFFFF).hex("0000") +"h";
+    }
+
+    function inscond(ins, i){
+        ret += ins +"\t"+ ((i & 0x08) == 0 ? r_nzncpop : r_zcpem)[(i & 0x30) >> 4] +"," + rw().hex("0000") +"h";
+    }
+
+    function inscond2(ins){
+        ret += ins +"\t"+ rw().hex("0000") +"h";
+    }
+
+    i_addasubandor = ["add\ta,", "sub\t", "and\t", "or\t"];
+    i_adcsbcxorcp = ["adc\ta,", "sbc\ta,", "xor\t", "cp\t"];
+    rst1 = ["00h", "10h", "20h", "30h"];
+    rst2 = ["08h", "18h", "28h", "38h"];
+
+    extd = [
+        function(x, i) {
+            if (i == 0x70) ret += "in\t(c)";
+            else insregrow3("in", r_bdhhl, "(c)", i);
+        },
+        function(x, i){ insregrow("out\t(c)", r_bdh0, i) },
+        function(x, i){ insregrow("sbc\thl", r_bcdehlsp, i) },
+        function(x, i){ insoffw2("ld\t", r_bcdehlsp[(i & 0x30) >> 4]) },
+        function(x, i){ ret += "neg" },
+        function(x, i){ ret += "retn" },
+        function(x, i){ ret += "im\t"+ ((i & 0x10) >> 4) },
+        function(x, i){ ex7[(i & 0x30) >> 4](x) },
+        function(x, i){ insregrow3("out", r_cela, "(c)", i) },
+        function(x, i){ insregrow("out\t(c)", r_cela, i) },
+        function(x, i){ insregrow("adc\thl", r_bcdehlsp, i) },
+        function(x, i){ insoffw("ld\t"+ r_bcdehlsp[(i & 0x30) >> 4]) },
+        function(x, i){ ret += "neg" },
+        function(x, i){ ret += i > 0x4D ? "retn" : "reti" },
+        function(x, i){ ret += "im\t"+ (((i & 0x10) >> 4) == 0 ? "0/1" : "2") },
+        function(x, i){ exF[(i & 0x30) >> 4](x) },
+    ];
+
+    ex7 = [
+        function(x){ ret += "ld\ti,a" },
+        function(x){ ret += "ld\ta,i" },
+        function(x){ ret += "rrd" },
+        data
+    ];
+
+    exF = [
+        function(x){ ret += "ld\tr,a" },
+        function(x){ ret += "ld\ta,r" },
+        function(x){ ret += "rld" },
+        data
+    ];
+
+    function ixiy(t, b){
+        let i = rb();
+        if(i >= 0x60 && i <= 0x66){
+            ret += "ld\t"+ r_ixiy[t + 2] +","+ r_ixiy_bcdehla[t + ((i & 0x7) * 2)];
+            return;
+        }
+
+        if(i >= 0x68 && i <= 0x6D){
+            ret += "ld\t"+ r_ixiy[t + 4] +","+ r_ixiy_bcdehla[t + ((i & 0x7) * 2)];
+            return;
+        }
+
+        if(i >= 0x70 && i < 0x78){
+            if(i == 0x76){
+                data(b);
+                return;
+            }
+
+            ret += "ld\t("+ r_ixiy[t + 2] +"+"+ rb().hex("00") +"h),"+ r_ixiy_bcdehla[t + ((i & 0x7) * 2)];
+            return;
+        }
+
+        if((i & 0x7) == 6 && i >= 0x46 && i < 0x76){
+            ret += "ld\t"+ + r_all[t + (((i & 0xF8) >> 3) - 8)] +",("+ r_ixiy[t] +"+"+ rb().hex("00") +"h)";
+            return;
+        }
+
+        if(i == 0x67 || i == 0x6F){
+            ret += "ld\t"+ r_ixiy[t + 2 + ((i & 0x8) >> 2)] +",a";
+            return;
+        }
+
+        if(i == 0x44 || i == 0x45){
+            ret += "ld\tb,"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0x54 || i == 0x55){
+            ret += "ld\td,"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0x4C || i == 0x4D){
+            ret += "ld\tc,"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0x5C || i == 0x5D){
+            ret += "ld\te,"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0x7C || i == 0x7D){
+            ret += "ld\ta,"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+
+        if((i & 0xF) == 6 && i >= 0x86 && i < 0xBF){
+            ret += i_addasubandor[(i & 0x30) >> 4] +"("+ r_ixiy[t] +"+"+ rb().hex("00") +"h)";
+            return;
+        }
+
+        if((i & 0xF) == 0xE && i >= 0x86 && i < 0xBF){
+            ret += i_adcsbcxorcp[(i & 0x30) >> 4] +"("+ r_ixiy[t] +"+"+ rb().hex("00") +"h)";
+            return;
+        }
+
+        if(i == 0x84 || i == 0x85){
+            ret += "add\ta,"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0x94 || i == 0x95){
+            ret += "sub\t"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0xA4 || i == 0xA5){
+            ret += "and\t"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0xB4 || i == 0xB5){
+            ret += "or\t"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0x8C || i == 0x8D){
+            ret += "adc\ta,"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0x9C || i == 0x9D){
+            ret += "sdc\ta,"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0xAC || i == 0xAD){
+            ret += "xor\t"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if(i == 0xBC || i == 0xBD){
+            ret += "cp\t"+ r_ixiy[t + 2 + ((i & 1) * 2)];
+            return;
+        }
+
+        if((i & 0xF) == 9 && i < 0x3A){
+            insregrow2("add\t" + r_ixiy[t], ["bc", "de", r_ixiy[t], "sp"]);
+            return;
+        }
+
+        if(i == 0x21){
+            ret += "ld\t"+ r_ixiy[t] +","+ rw().hex("0000") +"h";
+            return;
+        }
+
+        if(i == 0x2A){
+            ret += "ld\t"+ r_ixiy[t] +",("+ rw().hex("0000") +"h)";
+            return;
+        }
+
+        if(i == 0x22){
+            ret += "ld\t("+ rw().hex("0000") +"h),"+ r_ixiy[t];
+            return;
+        }
+
+        if(i == 0x23){
+            ret += "inc\t"+ r_ixiy[t];
+            return;
+        }
+
+        if(i == 0x2B){
+            ret += "dec\t"+ r_ixiy[t];
+            return;
+        }
+
+        if(i == 0x24){
+            ret += "inc\t"+ r_ixiy[t + 2];
+            return;
+        }
+
+        if(i == 0x25){
+            ret += "dec\t"+ r_ixiy[t + 2];
+            return;
+        }
+
+        if(i == 0x2C){
+            ret += "inc\t"+ r_ixiy[t + 4];
+            return;
+        }
+
+        if(i == 0x2D){
+            ret += "dec\t"+ r_ixiy[t + 4];
+            return;
+        }
+
+        if(i == 0x2E){
+            ret += "ld\t"+ r_ixiy[t + 4] +","+ rb().hex("00") +"h";
+            return;
+        }
+
+        if(i == 0x34){
+            ret += "inc\t("+ r_ixiy[t] + "+"+ rb().hex("00") +"h)";
+            return;
+        }
+
+        if(i == 0x35){
+            ret += "dec\t("+ r_ixiy[t] + "+"+ rb().hex("00") +"h)";
+            return;
+        }
+
+        if(i == 0x36){
+            ret += "ld\t("+ r_ixiy[t] +"+"+ rb().hex("00") +"h),"+ rb().hex("00") +"h";
+            return;
+        }
+
+        if(i == 0xE2){
+            ret += "pop\t"+ r_ixiy[t];
+            return;
+        }
+
+        if(i == 0xE4){
+            ret += "ex\t(sp),"+ r_ixiy[t];
+            return;
+        }
+
+        if(i == 0xE5){
+            ret += "push\t"+ r_ixiy[t];
+            return;
+        }
+
+        if(i == 0xE9){
+            ret += "jp\t("+ r_ixiy[t] +")";
+            return;
+        }
+
+        if(i == 0xF9){
+            ret += "ld\tsp,"+ r_ixiy[t];
+            return;
+        }
+
+        if(i == 0xCB){
+            let o = rb();
+            let i = rb();
+            if(i < 0x40)
+                ret += ["rlc", "rrc", "rl", "rr", "sla", "sra", "sll", "srl"][(i & 0x38) >> 3] +"\t("+ r_ixiy[t] +"+"+ o.hex("00") +"h)"+ r_cb[i & 0x7];
+            else ret += [, "bit", "res", "set"][(i & 0xC0) >> 6] +"\t"+ ((i & 0x38) >> 3) +",("+ r_ixiy[t] +"+"+ o.hex("00") +"h)" + ((i & 0xC0) == 0x40 ? "" : r_cb[i & 0x7]);
+            return;
+        }
+
+        data(b);
+    }
+
+    r_cb = [",b", ",c", ",d", ",e", ",h", ",l", "", ",a"];
+
+// disassembly support functions
+    r_bcdehlsp = ["bc", "de", "hl", "sp"];
+    r_bcdehlaf = ["bc", "de", "hl", "af"];
+    r_bdhhl = ["b", "d", "h", "(hl)"];
+    r_bdh0 = ["b", "d", "h", "0"];
+    r_cela = ["c", "e", "l", "a"];
+    r_nzncpop = ["nz", "nc", "po", "p"];
+    r_zcpem = ["z", "c", "pe", "m"];
+    r_ixiy = ["ix", "iy", "ixh", "iyh", "ixl", "iyl"];
+    r_ixiy_bcdehla = ["b", "b", "c", "c", "d", "d", "e", "e", "ixh", "iyh", "ixl", "iyl", ,, "a", "a"];
+    r_all = ["b", "c", "d", "e", "h", "l", "(hl)", "a"];
+
+    function insregrow(ins, list, i){
+        ret += ins + list[(i & 0x30) >> 4];
+    }
+
+    function insregrow2(ins, list, i){
+        ret += ins +","+ list[(i & 0x30) >> 4];
+    }
+
+    function insregrow3(ins, list, reg, i){
+        ret += ins +"\t"+ list[(i & 0x30) >> 4] +","+ reg;
+    }
+
+    function insregrow4(list, reg, i){
+        ret += list[(i & 0x30) >> 4] + reg;
+    }
+
+    function insrow(list, i){
+        ret += list[(i & 0x30) >> 4];
+    }
+
+    function insdatabrow(list, i){
+        ret += list[(i & 0x30) >> 4] + rb().hex("00") +"h";
+    }
+
+    function insdatawrow(list, i){
+        ret += list[(i & 0x30) >> 4] + rw().hex("0000") +"h";
+    }
+
+    function insoffw(ins){
+        ret += ins +",("+ rw().hex("0000") +"h)";
+    }
+
+    function insoffw2(ins, reg){
+        ret += ins +"("+ rw().hex("0000") +"h),"+ reg;
+    }
+
+    function insoffb(ins){
+        ret += ins +",("+ rb().hex("00") +"h)";
+    }
+
+    function insoffb2(ins, reg){
+        ret += ins +"("+ rb().hex("00") +"h),"+ reg;
+    }
+
+    function data(i){
+        ret += "db "+ i.hex("00") +"h";
+    }
+
+    function rb(){
+        if(dat.length > pos) return dat[pos++];
+        pos++;
+        return 0;
+    }
+
+    function rw(){
+        return rb() | (rb() << 8);
+    }
+
+// javascript support functionality
+if (!String.prototype.padStart) {
+    String.prototype.padStart = function padStart(targetLength, padString) {
+        targetLength = targetLength >> 0;
+        padString = String((typeof padString !== 'undefined' ? padString : ' '));
+        if (this.length > targetLength) {
+            return String(this);
+        }
+        else {
+            targetLength = targetLength - this.length;
+            if (targetLength > padString.length) {
+                padString += padString.repeat(targetLength / padString.length);
+            }
+            return padString.slice(0, targetLength) + String(this);
+        }
+    };
+}
+
+Number.prototype.hex = function hex(pad) {
+    let xxx = (this >>> 0).toString(16).toUpperCase().padStart(pad.length, pad);
+    if(xxx.charAt(0) >= "A" && xxx.charAt(0) <= "F") return "0"+ xxx;
+    return xxx;
+};
+
+Number.prototype.signb = function signb() {
+    if(this < 0x80) return this;
+    else return -(0x100 - this);
+};
+
+Number.prototype.sexwl = function sexwl() {
+    if (this > 0x8000) return 0xFFFF0000 | this;
+    return this & 0xFFFF;
+};</script>

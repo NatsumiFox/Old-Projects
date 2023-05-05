@@ -1,0 +1,2 @@
+		dc.w   $F00,  $F03,  $E06,  $D08,  $B0B,  $80D,	 $60E,	$30F,	$10, $FC0F, $F90E, $F70D, $F40B, $F208,	$F106, $F003
+		dc.w  $F000, $F0FC, $F1F9, $F2F7, $F4F4, $F7F2,	$F9F1, $FCF0, $FFF0,  $3F0,  $6F1,  $8F2,  $BF4,  $DF7,	 $EF9,	$FFC

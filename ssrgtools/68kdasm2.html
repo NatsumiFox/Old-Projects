@@ -1,0 +1,1195 @@
+<style>
+
+</style>
+
+Insert hex below, or upload a file: <input id="dupload" type="file" />
+<textarea style="width:100%;height:25%" id="dinput" ></textarea>
+File base address: <input id="daddress" value="0" /> <button onclick="setTimeout(convert, 10)">Update</button><br/>
+<textarea readonly style="width:100%;height:50%" id="doutput" ></textarea>
+<br/><button onclick="_enum()">Enumerate</button>
+
+<script>
+    var element = null;
+    function _enum(){
+        document.getElementById("doutput").value = "";
+        let out = [], str = "";
+
+        for(let w = 0;w < 0x10000;w ++){
+            // prepare file data array
+            ret = "";
+            position = 2;
+            address = 0;
+            file = [ (w >> 8) & 0xFF, w & 0xFF, 0, 0, 0, 0, 0, 0, 0, 0 ];
+
+            try {
+                // process the instruction
+                ihnibble[(w & 0xF000) >> 12](w);
+
+            } catch (err){
+                // check if this is data exception, handle that...
+                if(err == eData){
+                    data(w);
+                    position = 2;
+
+                } else {
+                    // some other failure
+                    ret = "FAIL: "+ err;
+                    position = 0;
+                }
+            }
+
+            // write the output!
+            str += out.length.hex("0000") +" "+ w.hex("0000") +" "+ position +"\t"+ ret +"\n";
+
+            // add data to output file
+            for(let i = 0;i < position;i ++)
+                out.push(file[i]);
+        }
+
+        document.getElementById("doutput").value = str;
+
+        // if child was created, delete it
+        if(element) document.body.removeChild(element);
+
+        // convert shit into base64
+        let binary = '';
+        for (var i = 0; i < out.length; i++) {
+            binary += String.fromCharCode(out[i]);
+        }
+
+        // make le download link
+        element = document.createElement('a');
+        element.innerText = "Download data...";
+        element.setAttribute('href', 'data:application/octet-stream;base64,' + encodeURIComponent(window.btoa(binary)));
+        element.setAttribute('download', '68kdasm.bin');
+        document.body.appendChild(element);
+    }
+
+    // function to convert a number sequence to int
+    function getNum(val){
+        return Number((val.toLowerCase().indexOf("0x") != 0 ? "0x" : "") + (val.indexOf("$") == 0 ? val.substring(1) : val));
+    }
+
+    var dump = true, dmpdat = true, dmpsize;
+
+    // function to prepare data for conversion
+    function convert(){
+        // process address field. Valid formats: $hex, 0xhex, 0x$hex
+        address = getNum(document.getElementById("daddress").value);
+
+        // if we can not convert the number, complain
+        if(!address && address != 0){ // checks for NaN, undefined and null
+            document.getElementById("doutput").value = "Address could not be converted a number!";
+        }
+
+        // if out of range, complain
+        if(address < 0 || (address & 0xFFFFFFFF) !== address){
+            document.getElementById("doutput").value = "Address is out of range!";
+            return;
+        }
+
+        // check if need to dump these strings
+	    if(dump){
+	    	let str = "", str2 = "";
+
+	    	for(let i = 0;i < 0x10000;i ++){
+	    		file = [ (i)>>8, i & 0xFF ];
+			    dmpsize = 0;
+	    		str += disassemble().replace("\t", " ");
+
+				dmpsize -= 2;
+				str2 += (dmpsize / 2);
+				if((dmpsize / 2) > 9)
+				 	str2 += "x";
+		    }
+
+	    	console.log(str, str2);
+	    	return;
+	    }
+
+        // check if user uploaded a file here
+        let f = document.getElementById("dupload").files[0];
+        if(f) {
+            // did, initialize file read into a buffer
+            document.getElementById("doutput").value = "Loading....";
+
+            let fr = new FileReader();
+            fr.onload = function(){
+                // file read successful, disassemble it
+                file = new Uint8Array(this.result);
+                document.getElementById("doutput").value = disassemble();
+            };
+            fr.readAsArrayBuffer(f);
+
+        } else {
+            // fun, try reading the text field as bytes
+            let str = document.getElementById("dinput").value;
+            let v, p = 0;
+            file = [];
+
+            while(str){     // loops as long as str is neither null or ""
+                // delete all space characters from the start
+                while(str.indexOf(" ") == 0)
+                    str = str.substring(1);
+
+                // check if the string has space characters at all
+                if(str.indexOf(" ") != -1){
+                    // if yes, get the next part and remove from string
+                    v = str.substring(0, str.indexOf(" "));
+                    str = str.substring(v.length);
+
+                    // convert to number
+                    v = getNum(v);
+                    p++;
+
+                } else if(str.length > 0){
+                    // convert rest of the string to a number
+                    v = getNum(str);
+                    str = null;
+                    p++;
+                }
+
+                // if we can not convert the number, complain
+                if(!v && v != 0){   // checks for NaN, undefined and null
+                    document.getElementById("doutput").value = "Non-numeric value in input at position: "+ p +"!";
+                    return;
+                }
+
+                // if out of range, complain
+                if((v & 0xFF) !== v){
+                    document.getElementById("doutput").value = "Number is out of range in input at position: "+ p +"!";
+                    return;
+                }
+
+                // put the byte into output array
+                file.push(v);
+            }
+
+            // if we succeeded, disassemble file
+            document.getElementById("doutput").value = disassemble();
+        }
+    }
+
+    var file, address, position, ret;
+
+    var eBufferEmpty = "Tried reading from an empty buffer!";
+    var eData = 1000;
+
+    function disassemble(){
+        try {
+            // make sure that data length is not too large. Don't want to freeze up browsers doing this...
+            if (file.length > 16 * 1024)
+                return "File too large! Max 16KB!";
+
+            ret = "";
+            position = 0;
+
+            // loop as so long until we are done with the array
+            while (position < file.length) {
+                // write offset
+	            if(!dump) positionStr();
+
+                let stpos = position;
+                try {
+                    let w = word();
+                    ihnibble[(w & 0xF000) >> 12](w);
+                    ret += '\n';
+
+                } catch (err) {
+                    if(err == eData){
+                        // we get here if we need to safely abort processing, to indicate this is an invalid word
+                        position = stpos;
+                        data(word());
+                        ret += '\n';
+
+                    } else if (err == eBufferEmpty) {
+                        position = stpos;
+
+                        // out of range error. We must input last bytes as invalid
+                        if(file.length < position + 2){
+                            ret += "dc.b $" + byte().hex("00") + "\t; failed to process an instruction here\n";
+
+                        } else {
+                            data(word());
+                            ret += "\t; failed to process an instruction here\n";
+
+                            // write the remaining bytes
+                            while (position < (file.length & 0xFFFFFE)) {
+                                data(word());
+                                ret += '\n';
+                            }
+
+                            // if the data size is not even, write last byte
+                            if ((file.length & 1) != 0) {
+                                positionStr();
+                                ret += "dc.b $" + byte().hex("00") + "\n";
+                            }
+                        }
+
+                        break;
+                    } else throw err;
+                }
+            }
+
+        } catch (err){
+            ret += "\n; Uncaught exception: "+ err +"\n";
+        }
+
+        return ret;
+    }
+
+    // simply write the default position string into output
+    function positionStr(){
+        ret += ((position + address) & 0xFFFFFF).hex("000000") + ':\t';
+    }
+
+    // function to read a byte from input, or throw an error if failed
+    function byte(){
+	    dmpsize++;
+        if(file.length > position)
+            return file[position++];
+
+        // if we can read no more, throw an error
+	    if(dump) return 0;
+        throw eBufferEmpty;
+    }
+
+    // function to read a word from input, or throw an error if failed
+    function word(){
+        return (byte() << 8) | byte();
+    }
+
+    // function to read a long from input, or throw an error if failed
+    function long(){
+        return (word() << 16) | word();
+    }
+
+    // function to write a word as dc.w statement
+    function data(i){
+	    if(dump) dmpsize = 2;
+        ret += "dc.w\t$"+ i.hex("0000");
+    }
+
+    // helper function that will process mode + reg and a bitfield to determine if the chosen mode is valid.
+    function invalidMode(mode, reg, field) {
+        // if mode is exactly 7, we need to add reg for field checking
+        if(mode == 7) mode += reg;
+
+        // if bit was not set, throw data exception
+        if (!(field & (1 << mode))) throw eData;
+    }
+
+    // routines to process the highest nibble of instruction
+    ihnibble = [
+        ix0xxx, imove, imove, imove,
+        function(i){ ix4xxxdat[(i & 0x0FC0) >> 6](i) }, ix5xxx, ibcc, imoveq,
+        ix8xxx, isub, data, ixBxxx,
+        ixCxxx, iadd, ixExxx, data
+    ];
+
+    //// $0xxx - Bxxx, movep, and various other instructions.
+    bccc = ["btst", "bchg", "bclr", "bset"];
+    function ix0xxx(i){
+        if((i & 0x0100) == 0){
+            // call another array for instructions
+            ix00xxdat[(i & 0x0E00) >> 9](i);
+
+        } else if((i & 0x0038) == 8) {
+            // MOVEP
+
+            // get the registers to use
+            let dreg = (i & 0x0E00) >> 9, areg = i & 0x0007;
+
+            // write first part of the instruction first
+            ret += "movep." + ((i & 0x0040) == 0 ? 'w' : 'l') + '\t';
+
+            if((i & 0x0080) == 0) {
+                // d16(aN), dN
+                ret += "$"+ word().hex("0000") + "(a" + areg + "),d" + dreg;
+
+            } else {
+                // dN, d16(aN)
+                ret += "d"+ dreg +",$"+ word().hex("0000") + "(a" + areg + ')';
+            }
+
+        } else {
+            // BXXX dN, <ea>
+
+            // get the bxxx instruction name to use
+            let ins = bccc[(i & 0x00C0) >> 6];
+
+            // calculate the instruction mode and check if it is valid.
+            let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007, reg = (i & 0x0E00) >> 9;
+            invalidMode(eamode, eareg, ins == "btst" ? 0xFFD : 0x1FD);
+
+            // convert it into a string
+            let ck = addrModes[eamode](eareg, eamode == 0 ? 'l' : 'b');
+
+            // write the instruction out
+            ret += ins +"\td"+ reg +","+ ck;
+        }
+    }
+
+    //// $0Axx - Bxxx #,dst
+    function bxxx(i){
+        // BXXX #, <ea>
+
+        // get the bxxx instruction name to use
+        let ins = bccc[(i & 0x00C0) >> 6];
+
+        // calculate the instruction mode and check if it is valid.
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        invalidMode(eamode, eareg, ins == "btst" ? 0x7FD : 0x1FD);
+
+        // convert it into a string
+        let ck = addrModes[eamode](eareg, eamode == 0 ? 'l' : 'b');
+
+        // write the instruction out
+        ret += ins +"\t#$"+ word().hex("0000") +","+ ck;
+    }
+
+    // Various instructions
+    ix00xxdat = [
+        function(i){ commonIns2("ori", i, true) },
+        function(i){ commonIns2("andi", i, true) },
+        function(i){ commonIns2("subi", i, false) },
+        function(i){ commonIns2("addi", i, false) },
+        bxxx,
+        function(i){ commonIns2("eori", i, true) },
+        function(i){ commonIns2("cmpi", i, false) },
+        data,
+    ];
+
+    //// $1xxx, $2xxx, $3xxx implement the move instruction
+    function imove(i){
+        // get the size string
+        let size = insSize2((i & 0x3000) >> 12);
+
+        // calculate the instruction modes and check they are valid.
+        let destreg = (i & 0x0E00) >> 9, destmode = (i & 0x01C0) >> 6, srcmode = (i & 0x0038) >> 3, srcreg = i & 0x0007;
+        invalidMode(srcmode, srcreg, 0xFFF);
+        invalidMode(destmode, destreg, 0x1FF);
+
+        // convert them into strings
+        let cks = addrModes[srcmode](srcreg, size), ckd = addrModes[destmode](destreg, size);
+
+        // check if this is a movea instruction
+        if(destmode == 1)
+            ret += "movea";
+        else ret += "move";
+
+        // build the instruction here
+        ret += "."+ size +"\t"+ cks +","+ ckd;
+    }
+
+    //// $4xxxx - Various instructions
+    ix4xxxdat = [
+        function(i){ commonIns3("negx", i, "b") },
+        function(i){ commonIns3("negx", i, "w") },
+        function(i){ commonIns3("negx", i, "l") },
+        function(i){ movesrccr(i, true, "sr") },
+	    function(i){ leachk(i, 0, 0) },
+	    function(i){ leachk(i, 1, 0) },
+        function(i){ leachk(i, 0, 0) },
+        function(i){ leachk(i, 1, 0) },
+        function(i){ commonIns3("clr", i, "b") },
+        function(i){ commonIns3("clr", i, "w") },
+        function(i){ commonIns3("clr", i, "l") },
+	    function(i){ movesrccr(i, true, "ccr") },
+	    function(i){ leachk(i, 0, 1) },
+	    function(i){ leachk(i, 1, 1) },
+        function(i){ leachk(i, 0, 1) },
+        function(i){ leachk(i, 1, 1) },
+        function(i){ commonIns3("neg", i, "b") },
+        function(i){ commonIns3("neg", i, "w") },
+        function(i){ commonIns3("neg", i, "l") },
+        function(i){ movesrccr(i, false, "ccr") },
+	    function(i){ leachk(i, 0, 2) },
+	    function(i){ leachk(i, 1, 2) },
+        function(i){ leachk(i, 0, 2) },
+        function(i){ leachk(i, 1, 2) },
+        function(i){ commonIns3("not", i, "b") },
+        function(i){ commonIns3("not", i, "w") },
+        function(i){ commonIns3("not", i, "l") },
+        function(i){ movesrccr(i, false, "sr") },
+	    function(i){ leachk(i, 0, 3) },
+	    function(i){ leachk(i, 1, 3) },
+        function(i){ leachk(i, 0, 3) },
+        function(i){ leachk(i, 1, 3) },
+        function(i){ commonIns4("nbcd", i, "w") },
+        ix484x,
+        movemorext,
+        movemorext,
+	    function(i){ leachk(i, 0, 4) },
+	    function(i){ leachk(i, 1, 4) },
+        function(i){ leachk(i, 0, 4) },
+        function(i){ leachk(i, 1, 4) },
+        function(i){ commonIns3("tst", i, "b") },
+        function(i){ commonIns3("tst", i, "w") },
+        function(i){ commonIns3("tst", i, "l") },
+        ix4ACx,
+	    function(i){ leachk(i, 0, 5) },
+	    function(i){ leachk(i, 1, 5) },
+        function(i){ leachk(i, 0, 5) },
+        function(i){ leachk(i, 1, 5) },
+        data,
+        data,
+        function(i){ movem(i, 'w', false); },
+        function(i){ movem(i, 'l', false); },
+	    function(i){ leachk(i, 0, 6) },
+	    function(i){ leachk(i, 1, 6) },
+        function(i){ leachk(i, 0, 6) },
+        function(i){ leachk(i, 1, 6) },
+        data,
+        function(i){ ix4E4xdat[(i & 0x0038) >> 3](i) },
+        function(i){ jmpjsr("jsr", i) },
+        function(i){ jmpjsr("jmp", i) },
+	    function(i){ leachk(i, 0, 7) },
+	    function(i){ leachk(i, 1, 7) },
+        function(i){ leachk(i, 0, 7) },
+        function(i){ leachk(i, 1, 7) },
+    ];
+
+    function jmpjsr(ins, i){
+        // calculate the instruction mode
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        invalidMode(eamode, eareg, 0x7E4);
+
+        // convert it into a string
+        let ck = addrModes[eamode](eareg, "w");
+
+        // write the instruction
+        ret += ins +"\t"+ ck;
+    }
+
+    // move to/from sr or ccr
+    function movesrccr(i, from, reg){
+        // calculate the mode, and check its valid
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        invalidMode(eamode, eareg, from ? 0x3FD : 0xFFD);
+
+        // convert it into a string
+        let ck = addrModes[eamode](eareg, reg == "sr" ? "w" : "b");
+
+        // write instruction name
+        ret += "move\t";
+
+        // if sr/ccr is source register, write it here
+        if(from) ret += reg +",";
+
+        // write eamode out
+        ret += ck;
+
+        // if sr/ccr is destination register, write it here
+        if(!from) ret += ","+ reg;
+    }
+
+    // implement lea and chk instructions
+    function leachk(i, ins, reg){
+    	if(ins != 0 && (i & 0x80) == 0) throw eData;
+
+        // calculate the mode, and check its valid
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        invalidMode(eamode, eareg, ins == 0 ? 0xFFD : 0x7E4);
+
+        // convert it into a string
+        let ck = addrModes[eamode](eareg, "w");
+
+        // write the instruction
+        ret += (ins == 0 ? "chk" : "lea") +"\t"+ ck +","+ (ins == 0 ? "d" : "a") + reg;
+    }
+
+    // implement the ext instruction and check for movem also
+    function movemorext(i){
+        if ((i & 0x0038) == 0){
+            // EXT
+            ret += "ext."+ ((i & 0x00C0) == 0x80 ? 'w' : 'l') +"\td" + (i & 0x0007);
+
+        } else {
+            // MOVEM
+            movem(i, (i & 0x0040) == 0 ? 'w' : 'l', true);
+        }
+    }
+
+    // movem instruction main code
+    function movem(i, size, tomem){
+        // calculate the mode, and check its valid
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        invalidMode(eamode, eareg, tomem ? 0x1F4 : 0x7EC);
+
+        // load the register bitfield value
+        let registers = word();
+
+        try {
+            // convert eamode into a string
+            var ck = addrModes[eamode](eareg, size);
+
+        } catch (err){
+            // fix the position (the call to get register list broke it!!!)
+           position -= 2;
+
+            // rethrow
+            throw err;
+        }
+
+        // write first part of the instruction already....
+        ret += "movem."+ size +"\t";
+
+        // if eamode is source, write it here
+        if(!tomem) ret += ck +",";
+
+        // prepare variables
+        let r = "";
+        let start = -1;
+
+        if(eamode == 4) {
+            // -(aN)
+            // bit order is negated
+
+            // repeat for each bit
+            for (let z = 15;z >= 0;z--) {
+                // calculate whether bit was set
+                let chk = (registers & (1 << z)) == 0;
+
+                // check if bit is set and start is -1
+                if (!chk && start == -1) {
+                    start = z;
+
+                    // check if bit is not set but start is not -1
+                } else if (chk && start != -1) {
+                    // create a new register list (inverted because yes)
+                    r += "/" + movemregs(15 - start, 15 - z);
+                    start = -1;
+                }
+            }
+
+        } else {
+            // repeat for each bit
+            for(let z = 0;z < 16;z++) {
+                // calculate whether bit was set
+                let chk = (registers & (1 << z)) == 0;
+
+                // check if bit is set and start is -1
+                if (!chk && start == -1) {
+                    start = z;
+
+                    // check if bit is not set but start is not -1
+                } else if(chk && start != -1) {
+                    // create a new register list
+                    r += "/"+ movemregs(start, z);
+                    start = -1;
+                }
+            }
+        }
+
+        // write register list to output
+        ret += r.length == 0 ? 0 : r.substring(1);
+
+        // if eamode is destination, write it here
+        if(tomem) ret += ","+ ck;
+    }
+
+    // helper function to return a list of registers or a single register, from register start to register end numbers
+    function movemregs(start, end){
+        // check if multiple registers were set
+        if (m - start > 1) {
+            // if yes, return rx-ry
+            return movemreg(start) +'-'+ movemreg(end - 1);
+
+        } else {
+            // if no, return rx
+            return movemreg(end - 1);
+        }
+    }
+
+    // helper function to return a register name from the bit number
+    function movemreg(num){
+        return ((num & 8) == 0 ? "d" : "a") + (num & 7);
+    }
+
+    //// $484x - SWAP and PEA instructions
+    function ix484x(i){
+        // calculate the mode
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+
+        // if eamode is 0, this is a swap instruction
+        if(eamode == 0) {
+            // SWAP
+            ret += "swap\td" + eareg;
+
+        } else {
+            // PEA
+
+            // check if eamode is valid
+            invalidMode(eamode, eareg, 0x7E4);
+
+            // write the instruction out
+            ret += "pea\t" + addrModes[eamode](eareg, "w");
+        }
+    }
+
+    //// $48ACx - ILLEGAL and TAS instructions
+    function ix4ACx(i){
+        // in this specific case, its an illegal instruction
+        if ((i & 0x003F) == 0x003C) {
+            ret += "illegal";
+            return;
+        }
+
+        // TAS
+
+        // calculate the mode, and check its valid
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        invalidMode(eamode, eareg, 0x1FD);
+
+        // write the instruction out
+        ret += "tas\t" + addrModes[eamode](eareg, "b");
+    }
+
+    //// $4E4x - Various instructions
+    ix4E4xdat = [
+        trap,
+        trap,
+        function(i){ ret += "link\ta" + (i & 0x0007) + ",#$"+ word().hex("0000") },
+        function(i){ ret += "unlk\ta"+ (i & 0x0007)},
+        function(i){ ret += "move\ta"+ (i & 0x0007) +",usp" },
+        function(i){ ret += "move\tusp,a"+ (i & 0x0007) },
+        ix4E7x,
+        data,
+    ];
+
+    // trap instruction
+    function trap(i){
+        ret += "trap\t#"+ (i & 0x000F)
+    }
+
+    //// $4E7x - various instructions
+    ix4E7xdat = ["reset", "nop", "stop", "rte", null, "rts", "trapv", "rtr"];
+    function ix4E7x(i){
+        // get the instruction to use
+        let o = ix4E7xdat[i & 0x0007];
+        if(o == null) throw eData;
+
+        // add it to output
+        ret += o;
+
+        // if its the stop instruction, add additional parameter
+        if(o === "stop")
+            ret += "\t#$"+ word().hex("0000");
+    }
+
+    //// $5xxx
+    dbcc = ["dbt", "dbf", "dbhi", "dbls", "dbcc", "dbcs", "dbne", "dbeq", "dbvc", "dbvs", "dbpl", "dbmi", "dbge", "dblt", "dbgt", "dble"];
+    scc = ["st", "sf", "shi", "sls", "scc", "scs", "sne", "seq", "svc", "svs", "spl", "smi", "sge", "slt", "sgt", "sle"];
+    function ix5xxx(i){
+        if ((i & 0x00C0) != 0x00C0) {
+            // ADDQ/SUBQ
+
+            // calculate addition value, and mode, and check its valid
+            let val = (i & 0x0E00) >> 9, eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+            invalidMode(eamode, eareg, 0x1FF);
+
+            // get the size string
+            let size = insSize1((i & 0x00C0) >> 6);
+
+            // convert it into a string
+            let ck = addrModes[eamode](eareg, size);
+
+            // this decides the instruction to use
+            if ((i & 0x0100) == 0) {
+                var ins = "addq";
+
+            } else {
+                var ins = "subq";
+            }
+
+            // special case: 0 -> 8
+            if (val == 0) val = 8;
+
+            // write the instruction out
+            ret += ins +"."+ size +"\t#"+ val +","+ ck;
+
+        } else {
+            // calculate condition code, and mode
+            let cc = (i & 0x0F00) >> 8, eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+
+            // if eamode is 1, its dbcc
+            if(eamode == 1) {
+                // DBcc
+                ret += dbcc[cc] +"\td"+ eareg +",$"+ displacementW(word()).hex("000000");
+
+            } else {
+                // Scc
+
+                // check if mode is valid and convert to string
+                invalidMode(eamode, eareg, 0x1FD);
+                let ck = addrModes[eamode](eareg, "b");
+
+                // write the instruction out
+                ret += scc[cc] +"\t"+ ck;
+            }
+        }
+    }
+
+    //// $6xyy zzzz implementing the bcc instructions
+    bcc = ["bra", "bsr", "bhi", "bls", "bcc", "bcs", "bne", "beq", "bvc", "bvs", "bpl", "bmi", "bge", "blt", "bgt", "ble"];
+    function ibcc(i){
+        let p, s;
+
+        // check if lower 8 bits are 0 - this is a special case to make the instruction word sized.
+        if((i & 0xFF) == 0){
+            // word
+            p = displacementW(word());
+            s = "w";
+
+        } else {
+            // byte
+            p = displacementB(i);
+            s = "s";
+        }
+
+        // construct the instruction fully
+        ret += bcc[(i & 0x0F00) >> 8] +"."+ s +"\t$"+ p.hex("000000");
+    }
+
+    //// $7xyy - Moveq instruction implementation
+    function imoveq(i){
+        if((i & 0x100) != 0)
+            throw eData;
+
+        ret += "moveq\t#$"+ (i & 0xFF).hex("00") +",d"+ ((i & 0x0E00) >> 9);
+    }
+
+    //// $8xxxx - divs, divu, sbcd, and or instructions
+    function ix8xxx(i){
+        // get the instruction opmode field
+        let opmode = i & 0x01C0;
+
+        if(opmode == 0xC0){
+            // DIVU
+            muldiv("divu", i);
+
+        } else if (opmode == 0x1C0) {
+            // DIVS
+            muldiv("divs", i);
+
+        } else if(opmode == 0x100 && (i & 0x0030) == 0x0000){
+            sabcd("sbcd", i);
+
+        } else {
+            // OR
+            commonIns1("or", i, 0xFFD, 0x1FD);
+        }
+    }
+
+    //// $9xxx - sub instructions
+    function isub(i){
+        iaddsub("sub", i);
+    }
+
+    //// $Dxxx - add instructions
+    function iadd(i){
+        iaddsub("add", i);
+    }
+
+    // helper function to process add and sub instructions
+    function iaddsub(ins, i){
+        if((i & 0x00C0) == 0xC0) {
+            // adda/suba
+
+            // get the size string (only word and long are valid for suba and adda)
+            let size = (i & 0x0100) == 0 ? "w" : "l";
+
+            // calculate the instruction mode and check if it is valid.
+            let areg = (i & 0x0E00) >> 9, eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+            invalidMode(eamode, eareg, 0xFFF);
+
+            // convert it into a string
+            let ck = addrModes[eamode](eareg, size);
+
+            // write the instruction out
+            ret += ins + "a." + size + '\t'+ ck +",a"+ areg;
+
+        } else if((i & 0x0100) != 0 && (i & 0x0030) == 0) {
+            // addx/subx
+
+            // get the size string
+            let sz = insSize1((i & 0x00C0) >> 6);
+
+            // write p  art of the instruction already
+            ret += ins + "x." + sz +'\t';
+
+            // get the 2 register numbers into variables
+            let rx = (i & 0x0E00) >> 9, ry = i & 0x0007;
+
+            // write the registers also. bit3 decides whether they are -(an) or dn
+            ret += (i & 0x0008) ?
+            "-(a" + ry + "),-(a" + rx +")" :
+            "d"+ ry +",d"+ rx;
+
+        } else commonIns1(ins, i, 0xFFF, 0x1FD);
+    }
+
+    //// $Bxxx - CMP and EOR opcodes
+    function ixBxxx(i){
+        // calculate the instruction mode
+        let reg = (i & 0x0E00) >> 9, eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+
+        // get the size string
+        let size = (i & 0x00C0) >> 6;
+
+        let target = "d";
+        let ins = null;
+
+        if(size == 3) {
+            // CMPA
+            ins = "cmpa";
+            target = "a";
+
+            // check if this is a valid mode
+            invalidMode(eamode, eareg, 0xFFF);
+
+            // determine size from another bit...
+            size = (i & 0x0100) == 0 ? "w" : "l";
+
+            // convert size to a string the normal way
+        } else size = insSize1(size);
+
+        // if this is NOT CMPA instruction, we need to figure out which one it is...
+        if(ins == null) {
+            // this bit is used to determine either EOR or CMPM instruction
+            if ((i & 0x0100) != 0) {
+
+                // if destination eamode is address register, its CMPM
+                if (eamode == 1) {
+                    // CMPM
+                    ret += "cmpm." + size + "\t(a" + eareg + ")+,(a" + reg + ")+";
+
+                } else {
+                    // EOR
+
+                    // check if this is a valid mode
+                    invalidMode(eamode, eareg, 0x1FD);
+
+                    // write the instruction out
+                    ret += "eor." + size + "\td" + reg + "," + addrModes[eamode](eareg, size);
+                }
+
+                return;
+
+            } else {
+                // CMP
+                ins = "cmp";
+
+                // check if this is a valid mode
+                invalidMode(eamode, eareg, 0xFFF);
+            }
+        }
+
+        // contruct the instruction. Only go here for cmp and cmpa.
+        ret += ins +"."+ size +"\t"+ addrModes[eamode](eareg, size) +","+ target + reg;
+    }
+
+    //// $Cxxxx - muls, mulu, abcd, exg, and and instructions
+    function ixCxxx(i){
+        // get the instruction opmode field
+        let opmode = i & 0x01C0;
+
+        if (opmode == 0xC0) {
+            // MULU
+            muldiv("mulu", i);
+
+        } else if (opmode == 0x1C0) {
+            // MULS
+            muldiv("muls", i);
+
+        } else if (opmode == 0x100 && (i & 0x0030) == 0x0000) {
+            // ABCD
+            sabcd("abcd", i);
+
+        } else if ((i & 0x0038) <= 8 && (opmode == 0x180 || opmode == 0x140)) {
+            // get the registers to use
+            let reg1 = (i & 0x0E00) >> 9, reg2 = i & 0x0007;
+
+            // EXG
+            switch ((i & 0x00F8) >> 3) {
+                case 8:// dN <-> dN
+                    ret += "exg\td" + reg1 + ",d" + reg2;
+                    break;
+
+                case 9:// aN <-> aN
+                    ret += "exg\ta" + reg1 + ",a" + reg2;
+                    break;
+
+                case 17:// dN <-> aN
+                    ret += "exg\td" + reg1 + ",a" + reg2;
+                    break;
+
+                default:
+                    data(i);
+                    break;
+            }
+
+        } else {
+            // AND
+            commonIns1("and", i, 0xFFD, 0x1FD);
+        }
+    }
+
+    // helper function to process mul and div instructions
+    function muldiv(ins, i){
+        // calculate the instruction mode and check if it is valid.
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007, reg = (i & 0x0E00) >> 9;
+        invalidMode(eamode, eareg, 0xFFD);
+
+        // convert it into a string
+        let ck = addrModes[eamode](eareg, "w");
+
+        // write the instruction out
+        ret += ins +"\t"+ ck +",d"+ reg;
+    }
+
+    // helper function to process sbcd and abcd instructions
+    function sabcd(ins, i){
+        // calculate the registers to use
+        let reg2 = (i & 0x0E00) >> 9, reg1 = i & 0x0007;
+
+        // choose the mode to use
+        if((i & 0x0008) == 0) {
+            ret += ins + "\td" + reg1 + ",d" + reg2;
+
+        } else {
+            ret += ins + "\t-(a" + reg1 + "),-(a" + reg2 +")";
+        }
+    }
+
+    // various shift instructions
+    function ixExxx(i){
+        let size = (i & 0x00C0) >> 6;
+
+        if(size == 3) {
+            // shift ea
+
+            // calculate the instruction mode and check if it is valid.
+            let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+            invalidMode(eamode, eareg, 0x1FC);
+
+            // convert it into a string
+            let ck = addrModes[eamode](eareg, "w");
+
+            // construct the instruction fully
+            ret += shiftIns((i & 0x0600) >> 9, i) +"\t"+ ck;
+
+        } else {
+            // shift cnt/reg
+
+            // get the count or register to use and the size
+            let cntreg = (i & 0x0E00) >> 9, reg = i & 0x0007;
+            size = insSize1(size);
+
+            // construct the instruction partially
+            ret += shiftIns((i & 0x0018) >> 3, i) + '.' + size + '\t';
+
+            if((i & 0x0020) != 0) {
+                // use register
+                ret += 'd';
+
+            } else {
+                // use count
+                ret += '#';
+
+                // special case: 0 -> 8
+                if (cntreg == 0)
+                    cntreg = 8;
+            }
+
+            // finish constructing the instruction
+            ret += cntreg +",d"+ reg;
+        }
+    }
+
+    // helper function to get the shift instruction to use and its direction.
+    function shiftIns(ins, i){
+        return ["as", "ls", "rox", "ro"][ins] + ((i & 0x0100) == 0 ? "r" : "l");
+    }
+
+    // helper function for defining commonly used instruction format
+    function commonIns1(name, i, field1, field2){
+        // get the dsrc value
+        let dsrc = i & 0x0100;
+
+        // process the instruction itself
+        _commonIns1(name, dsrc ? field2 : field1, dsrc, insSize1((i & 0x00C0) >> 6), (i & 0x0E00) >> 9, (i & 0x0038) >> 3, i & 0x0007);
+    }
+
+    // helper function that inputs bunch of the values and outputs the instruction
+    function _commonIns1(name, field, dsrc, size, reg, eamode, eareg){
+        // check if the eamode is valid
+        invalidMode(eamode, eareg, field);
+
+        // convert eamode into a string
+        let ck = addrModes[eamode](eareg, size);
+
+        // write instruction size and name
+        ret += name + "."+ size +"\t";
+
+        // if dx is source register, write it here
+        if(dsrc) ret += "d"+ reg +",";
+
+        // write eamode out
+        ret += ck;
+
+        // if dx is destination register, write it here
+        if(!dsrc) ret += ",d"+ reg;
+    }
+
+    // helper function for defining commonly used instruction format
+    function commonIns2(ins, i, special){
+        // calculate the instruction mode
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+
+        // get the size string
+        let size = insSize1((i & 0x00C0) >> 6);
+
+        // write first part of the instruction
+        let o = ins + '.' + size + "\t#$";
+
+        // get the data for this instruction here
+        if (size == 'l') {
+            o += long().hex("00000000") + ",";
+
+        } else {
+            let w = word() & (size == 'b' ? 0xFF : 0xFFFF);
+            o += w.hex(size == 'b' ? "00" : "0000") + ",";
+        }
+
+        // special == true: If eamode is 7 and eareg is 4, its a sr or ccr instruction!
+        if (special && eamode == 7 && eareg == 4) {
+            // size of long is not valid here...
+            if(size == "l") throw eData;
+
+            // write out the instruction
+            ret += o + (size == 'b' ? "ccr" : "sr");
+
+        } else {
+            // make sure that the mode is valid
+            invalidMode(eamode, eareg, 0x1FD);
+
+            // convert it into a string
+            let ck = addrModes[eamode](eareg, size);
+
+            // write out the instruction
+            ret += o + ck;
+        }
+    }
+
+    // helper function for defining commonly used instruction format
+    function commonIns3(ins, i, size){
+        commonIns4(ins +"."+ size, i, size)
+    }
+
+    function commonIns4(ins, i, size){
+        // calculate the instruction mode
+        let eamode = (i & 0x0038) >> 3, eareg = i & 0x0007;
+        invalidMode(eamode, eareg, 0x1FD);
+
+        // convert it into a string
+        let ck = addrModes[eamode](eareg, size);
+
+        // write the instruction
+        ret += ins +"\t"+ ck;
+    }
+
+    // LUT for processing addressing modes for instructions
+    addrModes = [
+        function(p,s){ return "d"+ p; },
+        function(p,s){
+            if(s == "b") throw eData;
+            return "a"+ p;
+        },
+        function(p,s){ return "(a"+ p +")"; },
+        function(p,s){ return "(a"+ p +")+"; },
+        function(p,s){ return "-(a"+ p +")"; },
+        function(p,s){ return "$"+ word().hex("0000") +"(a"+ p +")"; },
+        function(p,s){
+            let x = word();
+            return "$"+ (x & 0xFF).hex("00") +"(a"+ p +","+ ((x & 0x8000) != 0 ? 'a' : 'd') + ((x & 0x7000) >> 12) +"."+ ((x & 0x0800) != 0 ? 'l' : 'w') +")";
+        },
+        function(p,s){ return regModes[p](s); },
+    ];
+
+    // LUT for processing register modes for instructions
+    regModes = [
+        function(s){
+            let x = extendWL(word());
+            return "$" + x.hex("00000000") + ".w";
+        },
+        function(s){ return "$" + long().hex("00000000") + ".l"; },
+        function(s){ return "$"+ displacementW(word()).hex("000000") +"(pc)"; },
+        function(s){
+            let x = word();
+            return "$"+ (displacementB(x) - 2).hex("000000") +"(pc,"+ ((x & 0x8000) != 0 ? 'a' : 'd') + ((x & 0x7000) >> 12) +"."+ ((x & 0x0800) != 0 ? 'l' : 'w') +")";
+        },
+        function(s){
+            return "#$"+ (s == "l" ? long() : word() & (s == "b" ? 0xFF : 0xFFFF)).hex(s == "l" ? "00000000" : s == "w" ? "0000" : "00");
+        },
+        function(s){ throw eData; },
+        function(s){ throw eData; },
+        function(s){ throw eData; },
+    ];
+
+    // helper function to return the size parameter of an instruction
+    function insSize1(i){
+        if(i > 2) throw eData;
+        return ["b", "w", "l"][i];
+    }
+
+    // helper function to return the size parameter of an instruction (but different values are used)
+    function insSize2(i){
+        if(i == 0 || i > 3) throw eData;
+        return ["b", "l", "w"][i - 1];
+    }
+
+    // helper function to create a byte offset, used for various instructions such as bcc
+    function displacementB(byte){
+        if((byte & 0x80) == 0)
+            return (position + address + (byte & 0xFF)) & 0xFFFFFF;
+        return (position + address - (0x80 - (byte & 0x7F))) & 0xFFFFFF;
+    }
+
+    // helper function to create a word offset, used for various instructions such as bcc
+    function displacementW(word){
+        if((word & 0x8000) == 0)
+            return (position + address + word - 2) & 0xFFFFFF;
+        return (position + address - (0x10000 - word) - 2) & 0xFFFFFF;
+    }
+
+    // helper function to extend value from word to long
+    function extendWL(val) {
+        if(val > 0x8000) return 0xFFFF0000 | (val & 0xFFFF);
+        return val & 0xFFFF;
+    }
+
+    // helper function to pad a string with cool shit
+    if (!String.prototype.padStart) {
+        String.prototype.padStart = function padStart(targetLength,padString) {
+            targetLength = targetLength>>0;
+            padString = String((typeof padString !== 'undefined' ? padString : ' '));
+            if (this.length > targetLength) {
+                return String(this);
+            }
+            else {
+                targetLength = targetLength-this.length;
+                if (targetLength > padString.length) {
+                    padString += padString.repeat(targetLength/padString.length);
+                }
+                return padString.slice(0,targetLength) + String(this);
+            }
+        };
+    }
+
+    // helper function to create a padded hex string
+    Number.prototype.hex = function hex(pad) {
+        return (this >>> 0).toString(16).toUpperCase().padStart(pad.length, pad);
+    };
+</script>

@@ -1,0 +1,7 @@
+
+SN 68k version 2.53
+
+G:\RESEARCH\Z80 ASM\LIGHTSOUND\Z80.ASM(320) : Warning : Forward reference to redefinable symbol
+
+Assembly completed.
+0 error(s) from 25408 lines in 0.1 seconds
