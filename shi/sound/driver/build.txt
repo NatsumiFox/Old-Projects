@@ -1,0 +1,13 @@
+Assembling S&K driver"
+vasm 1.7c (c) in 2002-2015 Volker Barthelmann
+vasm 8080/gbz80/z80/z180/rcmX000 cpu backend 0.2g (c) 2007,2009 Dominic Morris
+vasm oldstyle syntax module 0.12c (c) 2002-2015 Frank Wille
+vasm binary output module 1.8 (c) 2002-2009,2013,2015 Volker Barthelmann
+
+seg0(acrwx1):	        5656 bytes
+"Assembling S3 driver"
+vasm 1.7c (c) in 2002-2015 Volker Barthelmann
+vasm 8080/gbz80/z80/z180/rcmX000 cpu backend 0.2g (c) 2007,2009 Dominic Morris
+vasm oldstyle syntax module 0.12c (c) 2002-2015 Frank Wille
+vasm binary output module 1.8 (c) 2002-2009,2013,2015 Volker Barthelmann
+"Compressing S&K driver"

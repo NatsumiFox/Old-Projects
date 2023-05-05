@@ -1,0 +1,166 @@
+; --------------------------------------------------------------------------------
+; Dynamic Pattern Loading Cues - output from SonMapEd - Sonic 1 format; --------------------------------------------------------------------------------
+
+SME_58PHF:	
+		dc.w SME_58PHF_D6-SME_58PHF, SME_58PHF_D7-SME_58PHF	
+		dc.w SME_58PHF_E0-SME_58PHF, SME_58PHF_E7-SME_58PHF	
+		dc.w SME_58PHF_EE-SME_58PHF, SME_58PHF_F5-SME_58PHF	
+		dc.w SME_58PHF_FC-SME_58PHF, SME_58PHF_107-SME_58PHF	
+		dc.w SME_58PHF_10C-SME_58PHF, SME_58PHF_111-SME_58PHF	
+		dc.w SME_58PHF_11C-SME_58PHF, SME_58PHF_121-SME_58PHF	
+		dc.w SME_58PHF_128-SME_58PHF, SME_58PHF_13B-SME_58PHF	
+		dc.w SME_58PHF_14A-SME_58PHF, SME_58PHF_15D-SME_58PHF	
+		dc.w SME_58PHF_174-SME_58PHF, SME_58PHF_185-SME_58PHF	
+		dc.w SME_58PHF_194-SME_58PHF, SME_58PHF_1A1-SME_58PHF	
+		dc.w SME_58PHF_1A6-SME_58PHF, SME_58PHF_1AB-SME_58PHF	
+		dc.w SME_58PHF_1B6-SME_58PHF, SME_58PHF_1BB-SME_58PHF	
+		dc.w SME_58PHF_1C2-SME_58PHF, SME_58PHF_1D9-SME_58PHF	
+		dc.w SME_58PHF_1EA-SME_58PHF, SME_58PHF_1F9-SME_58PHF	
+		dc.w SME_58PHF_208-SME_58PHF, SME_58PHF_217-SME_58PHF	
+		dc.w SME_58PHF_222-SME_58PHF, SME_58PHF_229-SME_58PHF	
+		dc.w SME_58PHF_234-SME_58PHF, SME_58PHF_23B-SME_58PHF	
+		dc.w SME_58PHF_246-SME_58PHF, SME_58PHF_253-SME_58PHF	
+		dc.w SME_58PHF_260-SME_58PHF, SME_58PHF_26D-SME_58PHF	
+		dc.w SME_58PHF_27A-SME_58PHF, SME_58PHF_281-SME_58PHF	
+		dc.w SME_58PHF_290-SME_58PHF, SME_58PHF_297-SME_58PHF	
+		dc.w SME_58PHF_2A6-SME_58PHF, SME_58PHF_2B1-SME_58PHF	
+		dc.w SME_58PHF_2BC-SME_58PHF, SME_58PHF_2C7-SME_58PHF	
+		dc.w SME_58PHF_2D2-SME_58PHF, SME_58PHF_2D5-SME_58PHF	
+		dc.w SME_58PHF_2D8-SME_58PHF, SME_58PHF_2DB-SME_58PHF	
+		dc.w SME_58PHF_2DE-SME_58PHF, SME_58PHF_2E1-SME_58PHF	
+		dc.w SME_58PHF_2E6-SME_58PHF, SME_58PHF_2E9-SME_58PHF	
+		dc.w SME_58PHF_2EE-SME_58PHF, SME_58PHF_2F1-SME_58PHF	
+		dc.w SME_58PHF_2F6-SME_58PHF, SME_58PHF_2FF-SME_58PHF	
+		dc.w SME_58PHF_308-SME_58PHF, SME_58PHF_30F-SME_58PHF	
+		dc.w SME_58PHF_31A-SME_58PHF, SME_58PHF_321-SME_58PHF	
+		dc.w SME_58PHF_324-SME_58PHF, SME_58PHF_32B-SME_58PHF	
+		dc.w SME_58PHF_332-SME_58PHF, SME_58PHF_339-SME_58PHF	
+		dc.w SME_58PHF_342-SME_58PHF, SME_58PHF_34B-SME_58PHF	
+		dc.w SME_58PHF_356-SME_58PHF, SME_58PHF_361-SME_58PHF	
+		dc.w SME_58PHF_368-SME_58PHF, SME_58PHF_371-SME_58PHF	
+		dc.w SME_58PHF_378-SME_58PHF, SME_58PHF_381-SME_58PHF	
+		dc.w SME_58PHF_386-SME_58PHF, SME_58PHF_38D-SME_58PHF	
+		dc.w SME_58PHF_394-SME_58PHF, SME_58PHF_39F-SME_58PHF	
+		dc.w SME_58PHF_3AA-SME_58PHF, SME_58PHF_3AF-SME_58PHF	
+		dc.w SME_58PHF_3B6-SME_58PHF, SME_58PHF_3B9-SME_58PHF	
+		dc.w SME_58PHF_3BC-SME_58PHF, SME_58PHF_3BF-SME_58PHF	
+		dc.w SME_58PHF_3C6-SME_58PHF, SME_58PHF_3CD-SME_58PHF	
+		dc.w SME_58PHF_3D4-SME_58PHF, SME_58PHF_3DB-SME_58PHF	
+		dc.w SME_58PHF_3E0-SME_58PHF, SME_58PHF_3E3-SME_58PHF	
+		dc.w SME_58PHF_3E6-SME_58PHF, SME_58PHF_3E9-SME_58PHF	
+		dc.w SME_58PHF_3EC-SME_58PHF, SME_58PHF_3EF-SME_58PHF	
+		dc.w SME_58PHF_3F2-SME_58PHF, SME_58PHF_3F9-SME_58PHF	
+		dc.w SME_58PHF_404-SME_58PHF, SME_58PHF_40B-SME_58PHF	
+		dc.w SME_58PHF_410-SME_58PHF, SME_58PHF_417-SME_58PHF	
+		dc.w SME_58PHF_41E-SME_58PHF, SME_58PHF_429-SME_58PHF	
+		dc.w SME_58PHF_430-SME_58PHF, SME_58PHF_433-SME_58PHF	
+		dc.w SME_58PHF_43A-SME_58PHF, SME_58PHF_441-SME_58PHF	
+		dc.w SME_58PHF_44A-SME_58PHF	
+SME_58PHF_D6:	dc.b 0	
+SME_58PHF_D7:	dc.b 4, $20, 0, $70, 3, $20, $B, $20, $E	
+SME_58PHF_E0:	dc.b 3, $50, $11, $50, $17, $20, $1D	
+SME_58PHF_E7:	dc.b 3, $50, $20, $50, $17, $20, $1D	
+SME_58PHF_EE:	dc.b 3, $50, $20, $50, $17, $20, $26	
+SME_58PHF_F5:	dc.b 3, $80, $29, $20, $B, $20, $E	
+SME_58PHF_FC:	dc.b 5, $B5, $91, $70, $3A, 0, $42, $20, $43, $10, $46	
+SME_58PHF_107:	dc.b 2, $B5, $91, $B0, $48	
+SME_58PHF_10C:	dc.b 2, $B5, $9D, $80, $5A	
+SME_58PHF_111:	dc.b 5, $B5, $9D, $70, $63, 0, $6B, $20, $6C, $10, $6F	
+SME_58PHF_11C:	dc.b 2, $B5, $9D, $B0, $71	
+SME_58PHF_121:	dc.b 3, $B5, $91, $30, $7D, $50, $81	
+SME_58PHF_128:	dc.b 9, $20, $8D, $20, $90, 0, $95, $10, $96, $10, $98, $10, $9A, 0, $9C, $75, $A9, $15, $B1	
+SME_58PHF_13B:	dc.b 7, $10, $9D, $10, $A1, $50, $A3, $30, $A9, $75, $A9, 0, $AD, $15, $B1	
+SME_58PHF_14A:	dc.b 9, $50, $B8, $20, $BE, 0, $B7, $10, $B4, $25, $B3, $15, $B6, $35, $B8, 5, $BC, 5, $BD	
+SME_58PHF_15D:	dc.b $B, $70, $CB, $20, $D3, $10, $D6, 0, $CA, $10, $C7, 0, $C9, $15, $B6, $15, $B3, $35, $B8, 5, $BD, 5, $BC	
+SME_58PHF_174:	dc.b 8, $70, $DA, $20, $E2, $10, $D8, $15, $B6, $15, $B3, $35, $B8, 5, $BD, 5, $BC	
+SME_58PHF_185:	dc.b 7, $50, $E7, $20, $ED, $15, $B1, 0, $9E, 0, $E6, $75, $A9, 0, $9D	
+SME_58PHF_194:	dc.b 6, $10, $F8, $30, $FA, $10, $FE, $11, 0, $31, 2, $B5, $BE	
+SME_58PHF_1A1:	dc.b 2, $B1, 6, $B5, $BE	
+SME_58PHF_1A6:	dc.b 2, $81, $18, $85, $CA	
+SME_58PHF_1AB:	dc.b 5, $51, $21, $11, $27, $11, $29, $31, $2B, $85, $CA	
+SME_58PHF_1B6:	dc.b 2, $B1, $2F, $85, $CA	
+SME_58PHF_1BB:	dc.b 3, $81, $3B, 1, 6, $B5, $BE	
+SME_58PHF_1C2:	dc.b $B, $11, $4A, $21, $4C, 1, $4F, $11, $51, 1, $53, 1, $55, 1, $54, 1, $56, 1, $58, $75, $D3, $15, $DB	
+SME_58PHF_1D9:	dc.b 8, $21, $59, $11, $5C, $21, $5E, 1, $61, $21, $63, $21, $66, $75, $D3, $15, $DB	
+SME_58PHF_1EA:	dc.b 7, $11, $6F, $21, $71, $21, $74, $21, $77, 1, $7B, $B5, $DD, $15, $E9	
+SME_58PHF_1F9:	dc.b 7, $21, $82, $21, $85, 1, $88, $51, $89, $11, $90, $B5, $DD, $15, $E9	
+SME_58PHF_208:	dc.b 7, $11, $92, $21, $94, $21, $97, $21, $9A, 1, $9E, $B5, $DD, $15, $E9	
+SME_58PHF_217:	dc.b 5, $81, $9F, 1, $A9, $11, $5E, $75, $D3, $15, $DB	
+SME_58PHF_222:	dc.b 3, $85, $EB, $35, $F4, 5, $F8	
+SME_58PHF_229:	dc.b 5, $15, $EF, $15, $F2, $56, $2C, 6, $32, $56, $33	
+SME_58PHF_234:	dc.b 3, $85, $EB, $35, $F4, 5, $F8	
+SME_58PHF_23B:	dc.b 5, $15, $EF, $15, $F2, $56, $2C, 6, $32, $56, $33	
+SME_58PHF_246:	dc.b 6, $15, $F9, $35, $FB, $35, $FF, $36, 3, $26, 7, $16, $A	
+SME_58PHF_253:	dc.b 6, $26, 7, $16, $39, $36, $3B, $36, $3F, $36, $43, 6, $47	
+SME_58PHF_260:	dc.b 6, $15, $F9, $35, $FB, $35, $FF, $36, 3, $26, 7, $16, $A	
+SME_58PHF_26D:	dc.b 6, $26, 7, $16, $39, $36, $3B, $36, $3F, $36, $43, 6, $47	
+SME_58PHF_27A:	dc.b 3, $86, $C, $16, $15, $26, $17	
+SME_58PHF_281:	dc.b 7, $16, $F, $16, $12, $26, $48, $26, $4B, $16, $4E, $16, $50, $26, $52	
+SME_58PHF_290:	dc.b 3, $86, $C, $16, $15, $26, $17	
+SME_58PHF_297:	dc.b 7, $16, $F, $16, $12, $26, $48, $26, $4B, $16, $4E, $16, $50, $26, $52	
+SME_58PHF_2A6:	dc.b 5, $26, $1A, $76, $1D, $36, $25, $16, $29, 6, $2B	
+SME_58PHF_2B1:	dc.b 5, $26, $1A, 6, $2B, $76, $55, $36, $5D, $16, $61	
+SME_58PHF_2BC:	dc.b 5, $26, $1A, $76, $1D, $36, $25, $16, $29, 6, $2B	
+SME_58PHF_2C7:	dc.b 5, $26, $1A, 6, $2B, $76, $55, $36, $5D, $16, $61	
+SME_58PHF_2D2:	dc.b 1, $F2, $9C	
+SME_58PHF_2D5:	dc.b 1, $F2, $AC	
+SME_58PHF_2D8:	dc.b 1, $F2, $BC	
+SME_58PHF_2DB:	dc.b 1, $F2, $CC	
+SME_58PHF_2DE:	dc.b 1, $F2, $DC	
+SME_58PHF_2E1:	dc.b 2, $B2, $EC, $22, $F8	
+SME_58PHF_2E6:	dc.b 1, $F2, $FB	
+SME_58PHF_2E9:	dc.b 2, $B3, $B, $23, $17	
+SME_58PHF_2EE:	dc.b 1, $F3, $1A	
+SME_58PHF_2F1:	dc.b 2, $53, $2A, $B3, $30	
+SME_58PHF_2F6:	dc.b 4, $53, $3C, $73, $42, $13, $4A, 3, $4C	
+SME_58PHF_2FF:	dc.b 4, $13, $4D, $73, $4F, $23, $57, 3, $5A	
+SME_58PHF_308:	dc.b 3, $87, $F0, $27, $F9, $37, $FC	
+SME_58PHF_30F:	dc.b 5, $25, $7F, $25, $82, $25, $85, $27, $F9, $37, $FC	
+SME_58PHF_31A:	dc.b 3, $73, $85, $33, $8D, $23, $91	
+SME_58PHF_321:	dc.b 1, $83, $94	
+SME_58PHF_324:	dc.b 3, $73, $9D, 3, $A5, $33, $A6	
+SME_58PHF_32B:	dc.b 3, $73, $AA, $33, $B2, $23, $B6	
+SME_58PHF_332:	dc.b 3, $B3, $B9, $13, $C5, 3, $C7	
+SME_58PHF_339:	dc.b 4, $B3, $C8, $33, $D4, 3, $D8, 3, $D9	
+SME_58PHF_342:	dc.b 4, $B3, $DA, $33, $E6, 3, $EA, 3, $EB	
+SME_58PHF_34B:	dc.b 5, $83, $EC, $13, $F5, $53, $F7, $13, $FD, 3, $FF	
+SME_58PHF_356:	dc.b 5, $84, 0, $14, 9, $53, $F7, $13, $FD, 3, $FF	
+SME_58PHF_361:	dc.b 3, $57, $B8, $77, $BE, $77, $C6	
+SME_58PHF_368:	dc.b 4, $37, $C2, $57, $CE, $37, $D4, $77, $D8	
+SME_58PHF_371:	dc.b 3, $57, $B8, $77, $BE, $77, $E0	
+SME_58PHF_378:	dc.b 4, $37, $C2, $57, $CE, $37, $D4, $77, $E8	
+SME_58PHF_381:	dc.b 2, $54, $40, $B4, $46	
+SME_58PHF_386:	dc.b 3, $84, $52, $34, $5B, 4, $5F	
+SME_58PHF_38D:	dc.b 3, $74, $60, $14, $68, $B4, $6A	
+SME_58PHF_394:	dc.b 5, $74, $76, $14, $7E, $54, $80, $34, $86, 4, $8A	
+SME_58PHF_39F:	dc.b 5, $74, $8B, $14, $7E, $54, $93, $34, $86, 4, $8A	
+SME_58PHF_3AA:	dc.b 2, $24, $99, $F4, $9C	
+SME_58PHF_3AF:	dc.b 3, $24, $AC, $B4, $AF, $24, $BB	
+SME_58PHF_3B6:	dc.b 1, $B4, $BE	
+SME_58PHF_3B9:	dc.b 1, $54, $CA	
+SME_58PHF_3BC:	dc.b 1, $14, $D0	
+SME_58PHF_3BF:	dc.b 3, $73, $85, $33, $8D, $23, $91	
+SME_58PHF_3C6:	dc.b 3, $73, $9D, 3, $A5, $33, $A6	
+SME_58PHF_3CD:	dc.b 3, $B4, $D2, $14, $DE, $34, $E0	
+SME_58PHF_3D4:	dc.b 3, $54, $E4, $B4, $EA, $10, $6D	
+SME_58PHF_3DB:	dc.b 2, $F4, $F6, $25, 6	
+SME_58PHF_3E0:	dc.b 1, $F5, $10	
+SME_58PHF_3E3:	dc.b 1, $F5, $20	
+SME_58PHF_3E6:	dc.b 1, $F5, $30	
+SME_58PHF_3E9:	dc.b 1, $F5, $40	
+SME_58PHF_3EC:	dc.b 1, $F5, $50	
+SME_58PHF_3EF:	dc.b 1, $F5, $60	
+SME_58PHF_3F2:	dc.b 3, $85, $70, $55, $79, $20, $E	
+SME_58PHF_3F9:	dc.b 5, $25, $7F, $25, $82, $25, $85, $55, $79, $20, $E	
+SME_58PHF_404:	dc.b 3, $85, $88, $55, $79, $20, $E	
+SME_58PHF_40B:	dc.b 2, $B7, $AC, $27, $A9	
+SME_58PHF_410:	dc.b 3, $85, $88, $27, $F9, $37, $FC	
+SME_58PHF_417:	dc.b 3, $87, $F0, $27, $F9, $38, 0	
+SME_58PHF_41E:	dc.b 5, $25, $7F, $25, $82, $25, $85, $27, $F9, $38, 0	
+SME_58PHF_429:	dc.b 3, $85, $88, $27, $F9, $38, 0	
+SME_58PHF_430:	dc.b 1, $B8, 4	
+SME_58PHF_433:	dc.b 3, $B8, $10, $18, $1C, $58, $1E	
+SME_58PHF_43A:	dc.b 3, $88, $24, $88, $2E, 8, $2D	
+SME_58PHF_441:	dc.b 4, $28, $37, $58, $3A, $88, $40, 8, $49	
+SME_58PHF_44A:	dc.b 5, $28, $4A, $18, $4D, $38, $3C, $88, $40, 8, $49	
+		even

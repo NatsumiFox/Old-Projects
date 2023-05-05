@@ -1,0 +1,46 @@
+H:\VS15\C#\SMPS maker\bin\Debug\SMPS maker.exe.config
+H:\VS15\C#\SMPS maker\bin\Debug\SMPS maker.exe
+H:\VS15\C#\SMPS maker\bin\Debug\SMPS maker.pdb
+H:\VS15\C#\SMPS maker\obj\Debug\SMPS maker.csprojResolveAssemblyReference.cache
+H:\VS15\C#\SMPS maker\obj\Debug\MainWindow.g.cs
+H:\VS15\C#\SMPS maker\obj\Debug\App.g.cs
+H:\VS15\C#\SMPS maker\obj\Debug\SMPS maker_MarkupCompile.cache
+H:\VS15\C#\SMPS maker\obj\Debug\SMPS maker_MarkupCompile.lref
+H:\VS15\C#\SMPS maker\obj\Debug\MainWindow.baml
+H:\VS15\C#\SMPS maker\obj\Debug\SMPS maker.g.resources
+H:\VS15\C#\SMPS maker\obj\Debug\SMPS_maker.Properties.Resources.resources
+H:\VS15\C#\SMPS maker\obj\Debug\SMPS maker.csproj.GenerateResource.Cache
+H:\VS15\C#\SMPS maker\obj\Debug\SMPS maker.exe
+H:\VS15\C#\SMPS maker\obj\Debug\SMPS maker.pdb
+H:\VS15\C#\SMPS maker\obj\Debug\GeneratedInternalTypeHelper.g.cs
+G:\C#\SMPS maker\bin\Debug\SMPS maker.exe.config
+G:\C#\SMPS maker\obj\Debug\SMPS maker.exe
+G:\C#\SMPS maker\obj\Debug\SMPS maker.pdb
+G:\C#\SMPS maker\bin\Debug\SMPS maker.exe
+G:\C#\SMPS maker\bin\Debug\SMPS maker.pdb
+G:\C#\SMPS maker\obj\Debug\SMPS maker.csprojResolveAssemblyReference.cache
+G:\C#\SMPS maker\obj\Debug\MainWindow.g.cs
+G:\C#\SMPS maker\obj\Debug\App.g.cs
+G:\C#\SMPS maker\obj\Debug\GeneratedInternalTypeHelper.g.cs
+G:\C#\SMPS maker\obj\Debug\SMPS maker_MarkupCompile.cache
+G:\C#\SMPS maker\obj\Debug\SMPS maker_MarkupCompile.lref
+G:\C#\SMPS maker\obj\Debug\MainWindow.baml
+G:\C#\SMPS maker\obj\Debug\SMPS maker.g.resources
+G:\C#\SMPS maker\obj\Debug\SMPS_maker.Properties.Resources.resources
+G:\C#\SMPS maker\obj\Debug\SMPS maker.csproj.GenerateResource.Cache
+A:\Projects\C#\SMPS maker\bin\Debug\SMPS maker.exe.config
+A:\Projects\C#\SMPS maker\bin\Debug\SMPS maker.exe
+A:\Projects\C#\SMPS maker\bin\Debug\SMPS maker.pdb
+A:\Projects\C#\SMPS maker\obj\Debug\SMPS maker.csproj.AssemblyReference.cache
+A:\Projects\C#\SMPS maker\obj\Debug\MainWindow.g.cs
+A:\Projects\C#\SMPS maker\obj\Debug\App.g.cs
+A:\Projects\C#\SMPS maker\obj\Debug\GeneratedInternalTypeHelper.g.cs
+A:\Projects\C#\SMPS maker\obj\Debug\SMPS maker_MarkupCompile.cache
+A:\Projects\C#\SMPS maker\obj\Debug\SMPS maker_MarkupCompile.lref
+A:\Projects\C#\SMPS maker\obj\Debug\MainWindow.baml
+A:\Projects\C#\SMPS maker\obj\Debug\SMPS maker.g.resources
+A:\Projects\C#\SMPS maker\obj\Debug\SMPS_maker.Properties.Resources.resources
+A:\Projects\C#\SMPS maker\obj\Debug\SMPS maker.csproj.GenerateResource.cache
+A:\Projects\C#\SMPS maker\obj\Debug\SMPS maker.csproj.CoreCompileInputs.cache
+A:\Projects\C#\SMPS maker\obj\Debug\SMPS maker.exe
+A:\Projects\C#\SMPS maker\obj\Debug\SMPS maker.pdb

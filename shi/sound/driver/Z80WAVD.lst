@@ -1,0 +1,605 @@
+F00:0001       ; NOTE: This file is in DOS (ASCII) encoding !!! Use EDIT or change the font
+F00:0002       ; to TERMINAL if you're using any non-DOS text editor !!!
+F00:0003       
+F00:0004       ; TÊEE co.(TM) Z80 WAVPLAY version 0.1
+F00:0005       
+F00:0006       ; If you're going to make something out of this, don't hesitate to contact
+F00:0007       ; me if you need any help !!! I would like to know if you are going to use
+F00:0008       ; this in your program(s).
+F00:0009       
+F00:0010       ; If you modify this code you must send me the modified version of this !!!
+F00:0011       ; If you don't agree, you're not allowed to modify this code !!!
+F00:0012       
+F00:0013       ; E-mail   : tmeeco@hot.ee, tmeeco@vongodric.com
+F00:0014       ; Web-site : http://www.hot.ee/tmeeco
+F00:0015       
+F00:0016       ; Copyright (C) 2007 TÊEE co.(TM)
+F00:0017       
+F00:0018       FMPORT1   EQU $4000  ; YM2612 Data port, set 1
+F00:0019       FMPORT2   EQU $4001  ; YM2612 Index port, set 1
+F00:0020       FMPORT3   EQU $4002  ; YM2612 Data port, set 2
+F00:0021       FMPORT4   EQU $4003  ; YM2612 Index port, set 2
+F00:0022       BANKREG   EQU $6000  ; Bank register
+F00:0023       
+F00:0024       WAVADDRL  EQU $0040  ; WAV file address L
+F00:0025       WAVADDRM  EQU $0041  ; WAV file address M
+F00:0026       WAVADDRH  EQU $0042  ; WAV file address H
+F00:0027       COMMAND   EQU $0043  ; Command from 68K program
+F00:0028       TIMECONS  EQU $0044  ; Time constant
+F00:0029       BANKS     EQU $0045  ; Bank switch counter
+F00:0030       WAVLENL   EQU $0046  ; WAV lenght L
+F00:0031       WAVLENM   EQU $0047  ; WAV lenght M
+F00:0032       WAVLENH   EQU $0048  ; WAV lenght H
+F00:0033       BPLAYL    EQU $0049  ; Bytes played L
+F00:0034       BPLAYM    EQU $004A  ; Bytes played M
+F00:0035       BPLAYH    EQU $004B  ; Bytes played H
+F00:0036       BCPLACE   EQU $004C  ; stored BC value during whatever
+F00:0037       
+F00:0038       ; ########################### Code starts here ##############################
+F00:0039       
+F00:0040       	ORG  $0000
+F00:0041       	DI                  ; Disable ints
+               S01:00000000:  F3
+F00:0042       	LD   SP, $2000      ; Setup stack
+               S01:00000001:  31 00 20
+F00:0043       	IM   $01            ; Set int mode 1
+               S01:00000004:  ED 56
+F00:0044       	JP   StartOfProg    ; Jump to start
+               S01:00000006:  C3 80 00
+F00:0045       
+F00:0046       	DB   "TÊEE co.(TM) Z80 WAVPLAY - ver 0.1 - 2007.JAN "
+               S01:00000009:  54 E6 45 45 20 63 6F 2E 28 54 4D 29 20 5A 38 30
+               S01:00000019:  20 57 41 56 50 4C 41 59 20 2D 20 76 65 72 20 30
+F00:0047       
+F00:0048       
+F00:0049       ; ########################## Interrupt handler ##############################
+F00:0050       
+F00:0051       	ORG  $0038
+F00:0052       InterruptHandler     ; Do nothing in this program
+F00:0053       	RETI
+               S02:00000038:  ED 4D
+F00:0054       
+F00:0055       
+F00:0056       ; ############################## Main code ##################################
+F00:0057       
+F00:0058       	ORG  $0080
+F00:0059       StartOfProg
+F00:0060       
+F00:0061       	CALL ResetYM2612
+               S03:00000080:  CD 26 01
+F00:0062       	CALL InitYM2612
+               S03:00000083:  CD 37 01
+F00:0063       
+F00:0064       CheckIfSTOP1          ; Check if we're STOPPED
+F00:0065       ;	LD   A, (COMMAND)
+F00:0066       ;	OR   A
+F00:0067       ;	JP   Z, CheckIfSTOP1 ; Loop while COMMAND = 0
+F00:0068       
+F00:0069       	CALL SetupBankStuff
+               S03:00000086:  CD CE 00
+F00:0070       
+F00:0071       PCMloop
+F00:0072       
+F00:0073       	LD   A, (HL)         ; Load sample
+               S03:00000089:  7E
+F00:0074       	INC  HL              ; Increase address
+               S03:0000008A:  23
+F00:0075       	INC  DE              ; Increase Bank end counter
+               S03:0000008B:  13
+F00:0076       	LD   (BCPLACE), HL   ; PUSH HL - Use reg because its faster
+               S03:0000008C:  22 4C 00
+F00:0077       
+F00:0078       	LD   (FMPORT2), A    ; Output sample, this code is slow enough (can't play
+               S03:0000008F:  32 01 40
+F00:0079       	                     ; over 32KHz) so we don't need to "wait before write
+F00:0080       	                     ; loop". The rest of the code acts as it.
+F00:0081       
+F00:0082       CheckIfSTOP           ; Check if we're STOPPED
+F00:0083       ;	LD   A, (COMMAND)
+F00:0084       ;	OR   A
+F00:0085       ;	JP   Z, CheckIfSTOP  ; Loop while COMMAND = 0
+F00:0086       
+F00:0087       ;	EXX                  ; Do nothing to get desired sample rate
+F00:0088       ;	LD   A, (TIMECONS)
+F00:0089       ;	LD   B, A            ; Comment all of it to get maximum speed while
+F00:0090       DelayLoop             ; keeping full functionality
+F00:0091       ;	DJNZ DelayLoop
+F00:0092       ;	EXX
+F00:0093       	rept 17
+F00:0095       
+F01:0001       		NOP
+               S03:00000092:  00
+               S03:00000093:  00
+               S03:00000094:  00
+               S03:00000095:  00
+               S03:00000096:  00
+               S03:00000097:  00
+               S03:00000098:  00
+               S03:00000099:  00
+               S03:0000009A:  00
+               S03:0000009B:  00
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:00000093:  00
+               S03:00000094:  00
+               S03:00000095:  00
+               S03:00000096:  00
+               S03:00000097:  00
+               S03:00000098:  00
+               S03:00000099:  00
+               S03:0000009A:  00
+               S03:0000009B:  00
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:00000094:  00
+               S03:00000095:  00
+               S03:00000096:  00
+               S03:00000097:  00
+               S03:00000098:  00
+               S03:00000099:  00
+               S03:0000009A:  00
+               S03:0000009B:  00
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:00000095:  00
+               S03:00000096:  00
+               S03:00000097:  00
+               S03:00000098:  00
+               S03:00000099:  00
+               S03:0000009A:  00
+               S03:0000009B:  00
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:00000096:  00
+               S03:00000097:  00
+               S03:00000098:  00
+               S03:00000099:  00
+               S03:0000009A:  00
+               S03:0000009B:  00
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:00000097:  00
+               S03:00000098:  00
+               S03:00000099:  00
+               S03:0000009A:  00
+               S03:0000009B:  00
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:00000098:  00
+               S03:00000099:  00
+               S03:0000009A:  00
+               S03:0000009B:  00
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:00000099:  00
+               S03:0000009A:  00
+               S03:0000009B:  00
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:0000009A:  00
+               S03:0000009B:  00
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:0000009B:  00
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:0000009C:  00
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:0000009D:  00
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:0000009E:  00
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:0000009F:  00
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:000000A0:  00
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:000000A1:  00
+               S03:000000A2:  00
+F01:0002       	
+F01:0001       		NOP
+               S03:000000A2:  00
+F01:0002       	
+F00:0096       
+F00:0097       ; JP   WAVnotPlayed    ; Uncomment for maximum speed (+ static after the end)
+F00:0098       
+F00:0099       	LD   HL, (BCPLACE)   ; POP  HL
+               S03:000000A3:  2A 4C 00
+F00:0100       
+F00:0101       	LD   A, $80          ; Check if bank is played
+               S03:000000A6:  3E 80
+F00:0102       	CP   D
+               S03:000000A8:  BA
+F00:0103       	JP   NZ, NoBankChange
+               S03:000000A9:  C2 CB 00
+F00:0104       	LD   HL, BANKS       ; Setup bank
+               S03:000000AC:  21 45 00
+F00:0105       	INC  (HL)
+               S03:000000AF:  34
+F00:0106       	LD   A, (BANKS)
+               S03:000000B0:  3A 45 00
+F00:0107       	LD   HL, BANKREG
+               S03:000000B3:  21 00 60
+F00:0108       	LD   (HL), A
+               S03:000000B6:  77
+F00:0109       	RRA
+               S03:000000B7:  1F
+F00:0110       	LD   (HL), A
+               S03:000000B8:  77
+F00:0111       	RRA
+               S03:000000B9:  1F
+F00:0112       	LD   (HL), A
+               S03:000000BA:  77
+F00:0113       	RRA
+               S03:000000BB:  1F
+F00:0114       	LD   (HL), A
+               S03:000000BC:  77
+F00:0115       	RRA
+               S03:000000BD:  1F
+F00:0116       	LD   (HL), A
+               S03:000000BE:  77
+F00:0117       	RRA
+               S03:000000BF:  1F
+F00:0118       	LD   (HL), A
+               S03:000000C0:  77
+F00:0119       	RRA
+               S03:000000C1:  1F
+F00:0120       	LD   (HL), A
+               S03:000000C2:  77
+F00:0121       	XOR  A
+               S03:000000C3:  AF
+F00:0122       	LD   (HL), A
+               S03:000000C4:  77
+F00:0123       	LD   (HL), A
+               S03:000000C5:  77
+F00:0124       	LD   DE, 0           ; Reset Bank end counter
+               S03:000000C6:  11 00 00
+F00:0125       	LD   H, $80          ; Start from start of Bank
+               S03:000000C9:  26 80
+F00:0126       NoBankChange
+F00:0127       
+F00:0128       	JP   PCMloop
+               S03:000000CB:  C3 89 00
+F00:0129       
+F00:0130       ; ################## All the routines we're going to use ####################
+F00:0131       
+F00:0132       SetupBankStuff        ; Setup Bank, address within Bank and Bank counter
+F00:0133       	LD   A, (WAVADDRM)   ; Set Bank
+               S03:000000CE:  3A 41 00
+F00:0134       	RLCA
+               S03:000000D1:  07
+F00:0135       	LD   HL, BANKREG
+               S03:000000D2:  21 00 60
+F00:0136       	LD   (HL), A
+               S03:000000D5:  77
+F00:0137       	LD   A, (WAVADDRH)
+               S03:000000D6:  3A 42 00
+F00:0138       	LD   (HL), A
+               S03:000000D9:  77
+F00:0139       	RRA
+               S03:000000DA:  1F
+F00:0140       	LD   (HL), A
+               S03:000000DB:  77
+F00:0141       	RRA
+               S03:000000DC:  1F
+F00:0142       	LD   (HL), A
+               S03:000000DD:  77
+F00:0143       	RRA
+               S03:000000DE:  1F
+F00:0144       	LD   (HL), A
+               S03:000000DF:  77
+F00:0145       	RRA
+               S03:000000E0:  1F
+F00:0146       	LD   (HL), A
+               S03:000000E1:  77
+F00:0147       	RRA
+               S03:000000E2:  1F
+F00:0148       	LD   (HL), A
+               S03:000000E3:  77
+F00:0149       	XOR  A               ; Setting last 2 bank-bits is pointless because I'm
+               S03:000000E4:  AF
+F00:0150       	LD   (HL), A         ; going to load data only from the ROM area.
+               S03:000000E5:  77
+F00:0151       	LD   (HL), A
+               S03:000000E6:  77
+F00:0152       
+F00:0153       	LD   (BPLAYL), A     ; Reset Bytes played counter
+               S03:000000E7:  32 49 00
+F00:0154       	LD   (BPLAYM), A
+               S03:000000EA:  32 4A 00
+F00:0155       	LD   (BPLAYH), A
+               S03:000000ED:  32 4B 00
+F00:0156       
+F00:0157       	LD   A, (WAVADDRL)   ; Set Z80 address in Bank
+               S03:000000F0:  3A 40 00
+F00:0158       	LD   L, A
+               S03:000000F3:  6F
+F00:0159       	LD   A, (WAVADDRM)
+               S03:000000F4:  3A 41 00
+F00:0160       	OR   $80
+               S03:000000F7:  F6 80
+F00:0161       	LD   H, A
+               S03:000000F9:  67
+F00:0162       
+F00:0163       	LD   A, (WAVADDRM)   ; Set Bank count
+               S03:000000FA:  3A 41 00
+F00:0164       	RLA
+               S03:000000FD:  17
+F00:0165       	AND  $01
+               S03:000000FE:  E6 01
+F00:0166       	LD   B, A
+               S03:00000100:  47
+F00:0167       	LD   A, (WAVADDRH)
+               S03:00000101:  3A 42 00
+F00:0168       	SLA  A
+               S03:00000104:  CB 27
+F00:0169       	OR   B
+               S03:00000106:  B0
+F00:0170       	LD   (BANKS), A
+               S03:00000107:  32 45 00
+F00:0171       
+F00:0172       	LD   BC, 4           ; Get lenght of WAV
+               S03:0000010A:  01 04 00
+F00:0173       	ADD  HL, BC
+               S03:0000010D:  09
+F00:0174       	LD   A, (HL)
+               S03:0000010E:  7E
+F00:0175       	LD   (WAVLENL), A
+               S03:0000010F:  32 46 00
+F00:0176       	INC  HL
+               S03:00000112:  23
+F00:0177       	LD   A, (HL)
+               S03:00000113:  7E
+F00:0178       	LD   (WAVLENM), A
+               S03:00000114:  32 47 00
+F00:0179       	INC  HL
+               S03:00000117:  23
+F00:0180       	LD   A, (HL)
+               S03:00000118:  7E
+F00:0181       	LD   (WAVLENH), A
+               S03:00000119:  32 48 00
+F00:0182       	LD   BC, 51          ; Skip the rest of the header
+               S03:0000011C:  01 33 00
+F00:0183       	ADD  HL, BC
+               S03:0000011F:  09
+F00:0184       
+F00:0185       	LD   A, H
+               S03:00000120:  7C
+F00:0186       	AND  $7F
+               S03:00000121:  E6 7F
+F00:0187       	LD   D, A
+               S03:00000123:  57
+F00:0188       	LD   E, L
+               S03:00000124:  5D
+F00:0189       
+F00:0190       	RET
+               S03:00000125:  C9
+F00:0191       
+F00:0192       ResetYM2612           ; Quick n' Dirty OPL2/OPL3 style reset on YM2612
+F00:0193       	LD   B, $21
+               S03:00000126:  06 21
+F00:0194       FMresetLoop           ; I know that I'm writing to some non-existant regs
+F00:0195       	XOR  A               ; but if not, this won't be dirty anymore
+               S03:00000128:  AF
+F00:0196       	CALL WriteFMset1
+               S03:00000129:  CD 4D 01
+F00:0197       	CALL WriteFMset2
+               S03:0000012C:  CD 5F 01
+F00:0198       	INC  B
+               S03:0000012F:  04
+F00:0199       	LD   A, $B6
+               S03:00000130:  3E B6
+F00:0200       	CP   B
+               S03:00000132:  B8
+F00:0201       	JP   NZ, FMresetLoop
+               S03:00000133:  C2 28 01
+F00:0202       	RET
+               S03:00000136:  C9
+F00:0203       
+F00:0204       InitYM2612
+F00:0205       	LD   A, $80          ; Enable DAC
+               S03:00000137:  3E 80
+F00:0206       	LD   B, $2B
+               S03:00000139:  06 2B
+F00:0207       	CALL WriteFMset1
+               S03:0000013B:  CD 4D 01
+F00:0208       	LD   A, $C0          ; CH6 both channels
+               S03:0000013E:  3E C0
+F00:0209       	LD   B, $B6
+               S03:00000140:  06 B6
+F00:0210       	CALL WriteFMset2
+               S03:00000142:  CD 5F 01
+F00:0211       	LD   A, $80          ; Point to DAC reg
+               S03:00000145:  3E 80
+F00:0212       	LD   B, $2A
+               S03:00000147:  06 2A
+F00:0213       	CALL WriteFMset1
+               S03:00000149:  CD 4D 01
+F00:0214       	RET
+               S03:0000014C:  C9
+F00:0215       
+F00:0216       WriteFMset1           ; Write data to YM2612 register set 1
+F00:0217       	LD   HL, FMPORT1     ; B = index, A = data
+               S03:0000014D:  21 00 40
+F00:0218       	BIT  7, (HL)
+               S03:00000150:  CB 7E
+F00:0219       	JP   NZ, WriteFMset1
+               S03:00000152:  C2 4D 01
+F00:0220       	LD   (HL), B
+               S03:00000155:  70
+F00:0221       WriteFMset11
+F00:0222       	BIT  7, (HL)
+               S03:00000156:  CB 7E
+F00:0223       	JP   NZ, WriteFMset11
+               S03:00000158:  C2 56 01
+F00:0224       	LD   (FMPORT2), A
+               S03:0000015B:  32 01 40
+F00:0225       	RET
+               S03:0000015E:  C9
+F00:0226       
+F00:0227       WriteFMset2           ; Write data to YM2612 register set 2
+F00:0228       	LD   HL, FMPORT1     ; B = index, A = data
+               S03:0000015F:  21 00 40
+F00:0229       	BIT  7, (HL)
+               S03:00000162:  CB 7E
+F00:0230       	JP   NZ, WriteFMset2
+               S03:00000164:  C2 5F 01
+F00:0231       	LD   HL, FMPORT3
+               S03:00000167:  21 02 40
+F00:0232       	LD   (HL), B
+               S03:0000016A:  70
+F00:0233       WriteFMset22
+F00:0234       	BIT  7, (HL)
+               S03:0000016B:  CB 7E
+F00:0235       	JP   NZ, WriteFMset22
+               S03:0000016D:  C2 6B 01
+F00:0236       	LD   (FMPORT4), A
+               S03:00000170:  32 03 40
+F00:0237       	RET
+               S03:00000173:  C9
+F00:0238       
+F00:0239       
+
+
+Sections:
+S01  seg0
+S02  seg38
+S03  seg80
+
+
+Sources:
+F00  Z80WAVD.ASM
+F01  REPEAT:Z80WAVD.ASM:line 95
+
+
+Symbols:
+WriteFMset22 LAB (0x16b) ABS sec=seg80 
+WriteFMset11 LAB (0x156) ABS sec=seg80 
+WriteFMset2 LAB (0x15f) ABS sec=seg80 
+WriteFMset1 LAB (0x14d) ABS sec=seg80 
+FMresetLoop LAB (0x128) ABS sec=seg80 
+NoBankChange LAB (0xcb) ABS sec=seg80 
+DelayLoop LAB (0x92) ABS sec=seg80 
+CheckIfSTOP LAB (0x92) ABS sec=seg80 
+PCMloop LAB (0x89) ABS sec=seg80 
+SetupBankStuff LAB (0xce) ABS sec=seg80 
+CheckIfSTOP1 LAB (0x86) ABS sec=seg80 
+InitYM2612 LAB (0x137) ABS sec=seg80 
+ResetYM2612 LAB (0x126) ABS sec=seg80 
+InterruptHandler LAB (0x38) ABS sec=seg38 
+StartOfProg LAB (0x80) ABS sec=seg80 
+BCPLACE EXPR(76) 
+BPLAYH EXPR(75) 
+BPLAYM EXPR(74) 
+BPLAYL EXPR(73) 
+WAVLENH EXPR(72) 
+WAVLENM EXPR(71) 
+WAVLENL EXPR(70) 
+BANKS EXPR(69) 
+TIMECONS EXPR(68) 
+COMMAND EXPR(67) 
+WAVADDRH EXPR(66) 
+WAVADDRM EXPR(65) 
+WAVADDRL EXPR(64) 
+BANKREG EXPR(24576) 
+FMPORT4 EXPR(16387) 
+FMPORT3 EXPR(16386) 
+FMPORT2 EXPR(16385) 
+FMPORT1 EXPR(16384) 
+__VASM EXPR(0) INTERNAL 
+
+There have been no errors.

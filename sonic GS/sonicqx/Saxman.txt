@@ -1,0 +1,27 @@
+==============================================================================
+Sonic QX
+YMX Bank Template v1.00
+==============================================================================
+
+FILE NAME       Saxman.ymx
+DATE            December 15, 2003
+AUTHOR          Yamaha (archived by Damian Grove)
+VOICES          5
+
+
+VOICE LIST:
+0 - GrandPiano
+1 - ElectroPno
+2 - Small Pipe
+3 - Trumpet81Z
+4 - ElecBass 1
+
+
+DESCRIPTION:
+This YMX bank includes five select Yamaha TX81Z voices. All of these voices
+come from the original ROM banks that are installed on the TX81Z. Three of
+them come from bank A, one from bank B, and one from bank C. I feel that these
+voices would sound good with just about any song. I have limited the bank to
+five voices to save space when attaching it to your General MIDI import. You
+are free to customize this bank in any way you would like. More Yamaha TX81Z
+voices can be found in TXA.SYX, TXB.SYX, TXC.SYX, and TXD.SYX.

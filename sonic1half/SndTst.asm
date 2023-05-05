@@ -1,0 +1,55 @@
+ChkSoundsPlayed:
+		cmpi.w  #$88,d0
+		beq.w   Skipsound
+		cmpi.w  #$94,d0
+		beq.w   Skipsound
+		cmpi.w  #$95,d0
+		beq.w   Skipsound
+		cmpi.w  #$96,d0
+		beq.w   Skipsound
+		cmpi.w  #$99,d0
+		beq.w   Skipsound
+                cmpi.w  #$97,d0
+		beq.w   Skipsound
+		cmpi.w  #$98,d0
+		beq.w   Skipsound
+		cmpi.w  #$9A,d0
+		beq.w   Skipsound
+		cmpi.w  #$9B,d0
+		beq.w   Skipsound
+		cmpi.w  #$9C,d0
+		beq.w   Skipsound
+		cmpi.w  #$9D,d0
+		beq.w   Skipsound
+		cmpi.w  #$9E,d0
+		beq.w   Skipsound
+		cmpi.w  #$9F,d0
+		beq.w   Skipsound
+		cmpi.w  #$D5,d0
+		beq.w   Skipsound
+		cmpi.w  #$D6,d0
+		beq.w   Skipsound
+		cmpi.w  #$D7,d0
+		beq.w   Skipsound
+		cmpi.w  #$D8,d0
+		beq.w   Skipsound
+		cmpi.w  #$D9,d0
+		beq.w   Skipsound
+		cmpi.w  #$Da,d0
+		beq.w   Skipsound
+		cmpi.w  #$Db,d0
+		beq.w   Skipsound
+		cmpi.w  #$Dc,d0
+		beq.w   Skipsound
+		cmpi.w  #$DD,d0
+		beq.w   Skipsound
+		cmpi.w  #$DE,d0
+		beq.w   Skipsound
+		cmpi.w  #$DF,d0
+		beq.w   Skipsound
+                jsr	PlaySound
+                rts
+Skipsound:
+                move.w  #$A6,d0
+                jsr	PlaySound_Special
+                rts

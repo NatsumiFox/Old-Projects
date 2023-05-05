@@ -1,0 +1,47 @@
+	StartDriver "SK"
+; ===========================================================================
+	DACBank_Defs 0
+
+	incDAC 81, bin
+	incDAC 86, bin
+	incDAC 88, bin
+	Z80Bank_End
+; ===========================================================================
+	Z80Bank_Start Z80BankAlign_End, 'MUS00'	; include sound effects
+Music_Super:	include "Sound/Music/Invin.asm"
+Music_Area00:	include "Sound/Music/secos.asm"
+Music_Area01:	include "Sound/Music/ship.asm"
+		align $10
+Z80_Snd_Driver:		incbin 'Sound/Driver/SK.bin'
+Z80_Snd_Driver2:; create pointers to our music
+	Z80PtrROMBank Music_Super, Music_Area00, Music_Area01
+	dcb.w $33-((*-Z80_Snd_Driver2)/2), 0
+
+	Z80createSFXptrs	; and to sound effects
+	Z80Bank_End
+; ===========================================================================
+	Z80Bank_SFX	"SFX"	; include sound effects
+	DoDacFile	; write DAC banks to external ROM
+; ===========================================================================
+offs =	0	; write music banks to external ROM
+	StartFile	MusicBanks_SK, "Sound/Driver/MusicBanks_SK.bin", 0
+Z80_BankID:
+	MusMakeBankID	Super, Area00, Area01
+	dcb.b $33-(*-Z80_BankID), $AA
+	EndFile
+; ===========================================================================
+	; then create also ROM for misc variables
+	StartFile	SndVariables_SK, "Sound/Driver/VariablesSK.Z80", 0
+	MakeBankIDvar	offset(Music_Super), .s1
+	dc.b 'DefaultMusicBank = 0\$.s1\h',$0A 	; default music bank location
+
+	MakeBankIDvar	offset(SoundSK_33), .s2
+	dc.b 'SoundBank = 0\$.s2\h',$0A		; sound effect bank location
+
+	MakeBankIDvar	offset(SEGA_PCMSK), .s3
+	dc.b 'SegaPCMBank = 0\$.s3\h',$0A	; SEGA PCM bank location
+
+.s4 equ	(((offset(SEGA_PCMSK)-z80BankAddr)&$7FFF)+$8000)
+	dc.b 'SegaPCMPtr = 0\$.s4\h',$0A	; SEGA PCM pointer
+	EndFile
+; ===========================================================================

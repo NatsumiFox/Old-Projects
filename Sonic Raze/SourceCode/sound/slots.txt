@@ -1,0 +1,12 @@
+94 - Countinue
+95 - Special Stage
+96 - Chaos Emerald
+97 - Ending Seqence
+98 - Invincibility
+99 - Sonic Has Passed
+9A - Air Countdown
+9B - Title Screen
+9C - Boss
+9D - Credits
+9E - Game Over
+9F - 1up

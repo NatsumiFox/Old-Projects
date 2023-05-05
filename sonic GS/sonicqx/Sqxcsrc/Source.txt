@@ -1,0 +1,47 @@
+///////////////////////////////////////////////////
+// Sonic QX Beta C Source Code                   //
+// Copyright(c) 2003-2004, Damian Grove          //
+// ! ! ! D O   N O T   D I S T R I B U T E ! ! ! //
+///////////////////////////////////////////////////
+
+==============================================================================
+==============================================================================
+
+Sonic QX has been programmed in C in order to allow it to be ported over to
+different platforms. I feel that this is a welcome bennefit for anyone who
+wishes to modify their music with Sonic QX. This source is available initially
+as a Win32 application, but shouldn't be too big of a task to port to other
+platforms. One of the advantages for x86 users is the inline assembly used in
+certain parts of the source. I have not left non-x86 users behind though. For
+those who want a Mac port for example, you can simply replace all the areas
+that contain assembly with the commented C code that is provided either above
+or below the area where assembly is used. The assembly is a nice aid to those
+folks who have really old computers (such as a Pentium running at 100MHz).
+
+==============================================================================
+==============================================================================
+
+These files contain inline x86 assembly code:
+- Sqx.c
+- Drum.c
+
+==============================================================================
+==============================================================================
+
+The name "Sonic QX" cannot be legally registered since both parts are already
+owned. However, I do clearly own the source code for Sonic QX. This means that
+if you mis-use it, I can press charges against you. When you are licenced this
+code, keep in mind that it is YOUR responsibility to make sure that no other
+person obtains it. By licence agreements, you must be sure that this source is
+used by you and you ONLY. You may not give it to someone else, even if they
+have already been licenced a copy of the code. If you need to share the code
+with someone, you must have a seperate licence which you may obtain through
+me. Be responsible and do NOT give this source out to anyone.
+
+==============================================================================
+==============================================================================
+
+Damian Grove
+E-MAIL - saxman (at) shentel (dot) net
+AIM SN - ymtx81z
+ICQ UIN - 8257368

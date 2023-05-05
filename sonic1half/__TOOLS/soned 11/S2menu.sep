@@ -1,0 +1,36 @@
+Type: 1	
+
+Zone ID:    0
+Act ID:     0
+
+Object Def: objdef\s1obj
+
+8x8 Tiles: ..\data\menu\soncmils.bin.dat
+
+16x16 Tiles:   ..\
+
+256x256 Tiles: ..\
+
+FG Layout: ..\
+BG Layout: ..\
+
+Objects:       ..\
+
+Palettes-
+
+ Number of files: 1
+
+  Palette 1-
+
+   Start index:        0
+   Number of entries: 40
+   File:              ..\data\menu\menu.bin
+
+
+Angle Array:             ..\
+Collision Array:         ..\
+Rotated Collision Array: ..\
+
+Collision Index 1: ..\
+
+-EOF-

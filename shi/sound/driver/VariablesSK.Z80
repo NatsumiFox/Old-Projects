@@ -1,0 +1,4 @@
+DefaultMusicBank = 06h
+SoundBank = 07h
+SegaPCMBank = 07h
+SegaPCMPtr = 08000h
